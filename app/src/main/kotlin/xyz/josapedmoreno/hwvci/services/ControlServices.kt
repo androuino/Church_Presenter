@@ -1,5 +1,8 @@
 package xyz.josapedmoreno.hwvci.services
 
+import com.google.gson.Gson
+import com.intellisrc.core.Log
+import com.intellisrc.web.service.Request
 import com.intellisrc.web.service.Service
 import com.intellisrc.web.service.ServiciableMultiple
 import groovy.lang.Closure
@@ -43,6 +46,8 @@ class ControlServices : ServiciableMultiple {
     override fun getServices(): MutableList<Service> {
         val services: MutableList<Service> = mutableListOf()
         services.add(adminService())
+        services.add(createService())
+        services.add(checkSessionService())
         return services
     }
 
@@ -57,5 +62,51 @@ class ControlServices : ServiciableMultiple {
             }
         }
         return service
+    }
+
+    private fun createService(): Service {
+        val service = Service()
+        service.method = HttpMethod.GET
+        service.allow = getUserAllow()
+        service.contentType = "text/html"
+        service.path = "/create"
+        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
+            fun doCall(): File {
+                return File(publicResources, "create.html")
+            }
+        }
+        return service
+    }
+
+    private fun checkSessionService(): Service {
+        val service = Service()
+        service.method = HttpMethod.GET
+        service.path = "/checksessions"
+        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
+            fun doCall(request: Request): String {
+                var success = false
+                val map = LinkedHashMap<String, Any>(1)
+                try {
+                    if (request.session().attribute("username").toString() == "admin")
+                        success = true
+                } catch (ex: NullPointerException) {
+                    success = false
+                }
+                map["ok"] = success
+                return gson.toJson(map)
+            }
+        }
+        return service
+    }
+
+    companion object {
+        fun getUserAllow() = Service.Allow { request ->
+            if (request.session() != null) {
+                return@Allow request.session().attribute("username").toString() == "admin"
+            } else {
+                return@Allow false
+            }
+        }
+        private val gson = Gson().newBuilder().create()
     }
 }
