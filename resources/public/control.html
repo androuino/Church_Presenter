@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Controller</title>
+
+    <link rel="stylesheet" href="css/alert.css" type="text/css"/>
+    <link rel="stylesheet" href="css/googleicon.css" type="text/css">
+    <link rel="stylesheet" href="css/control.min.css" type="text/css"/>
+    <link rel="stylesheet" href="css/scale.css" type="text/css" />
+    <link rel="stylesheet" href="css/light.css" type="text/css" />
+</head>
+<body>
+<main class="wrapper">
+    <section id="header">
+        <p>HWVCI Presenter v1.0</p>
+    </section>
+    <section class="container">
+        <h1>Welcome to HWVCI Presenter</h1>
+        <form class="form">
+            <input id="inputUsername" type="text" placeholder="Username">
+            <input id="inputPassword" type="password" placeholder="Password">
+            <button id="loginButton">Login</button>
+        </form>
+    </section>
+    <section id="mainControl">
+        <nav id="nav">
+            <span id="navNew" class="gicon">note_add</span>
+            <span id="navEdit" class="gicon">edit_document</span>
+            <span id="navDelete" class="gicon">delete</span>
+            <span id="navInfo" class="gicon">info</span>
+            <span id="navLogout" class="gicon">logout</span>
+        </nav>
+        <aside id="songs">
+            <div id="searchContainer">
+                <input id="inputSearch" type="text" placeholder="Search song">
+                <span id="iconSearch" class="gicon">search</span>
+            </div>
+            <table id="tableSong">
+                <thead>
+                    <tr>
+                        <th>Author</th>
+                        <th>Song</th>
+                        <th>Date Added</th>
+                    </tr>
+                </thead>
+                <tbody id="tbodySongList"></tbody>
+            </table>
+        </aside>
+        <aside id="live"></aside>
+    </section>
+    <ul id="bubbles" class="bg-bubbles">
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+    </ul>
+</main>
+<script src="js/popper.min.js" type="text/javascript"></script>
+<script src="js/tippy-bundle.umd.js" type="text/javascript"></script>
+<script src="js/m2d2.bundle.min.js" type="text/javascript"></script>
+<script type="text/javascript" src="js/control.min.js"></script>
+</body>
+</html>

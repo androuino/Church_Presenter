@@ -1,0 +1,10 @@
+.idea/
+app/build/
+/deploy
+/.gradle
+/node_modules
+log/
+service.lock
+package-lock.json
+pass
+client_secret_google_api.json

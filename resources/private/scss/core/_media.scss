@@ -1,0 +1,152 @@
+/*------------------------------------------------------------------*/
+/*-------------------------- RESPONSIVE ----------------------------*/
+/*------------------------------------------------------------------*/
+/*@media screen and (min-width:300px) {
+    nav ul {
+        max-height:0;
+    }
+    .showing {
+        display: inline-block;
+        max-height: 100vh;
+    }
+    nav ul li {
+        box-sizing:border-box;
+        width:100%;
+        padding: 0;
+        text-align:center;
+    }
+    .handle {
+        display:block;
+    }
+    #videoContainer {
+        height: 197px;
+    }
+    .video-overlay {
+        height: 197px;
+    }
+    .form_parent {
+        width: 100% !important;
+    }
+    #ulMain {
+        padding: 0 !important;
+    }
+    .login_parent {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    #loginPanel {
+        padding: 0 !important;
+        margin: 0 !important;
+        border-right: 0 !important;
+        border-bottom: 1px solid !important;
+    }
+    #registerPanel {
+        margin: 0 !important;
+        padding: 0 !important;
+        margin-top: 2em !important;
+        margin-bottom: 2em !important;
+    }
+    .google_parent {
+        width: auto;
+    }
+    footer {
+        height: auto !important;
+    }
+    footer ul {
+        display: flex ;
+        flex-direction: column;
+    }
+    footer ul li {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+}*/
+
+@media screen and (max-width:768px) {
+    #container {
+        min-width: 100%;
+    }
+    main {
+        margin-top: 54px;
+    }
+    nav ul {
+        max-height:0;
+    }
+    .showing {
+        display: inline-block;
+        max-height: 100vh;
+    }
+    nav ul li {
+        box-sizing:border-box;
+        width:100%;
+        padding: 0;
+        text-align:center;
+    }
+    .handle {
+        display:block;
+    }
+    #videoContainer {
+        margin-top: 54px;
+    }
+    .form_parent {
+        width: 100% !important;
+    }
+    #ulMain {
+        padding: 0 !important;
+    }
+    .table-fill {
+        display: block
+    }
+    .product-list {
+        display: block
+    }
+    #userInfoContainer {
+        display: flex;
+        flex-direction: column;
+    }
+    #uiLeft {
+        margin-bottom: 2em;
+    }
+    .login_parent {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    #loginPanel {
+        padding: 0 !important;
+        margin: 0 !important;
+        border-right: 0 !important;
+        border-bottom: 1px solid !important;
+    }
+    #registerPanel {
+        margin: 0 !important;
+        padding: 0 !important;
+        margin-top: 2em !important;
+        margin-bottom: 2em !important;
+    }
+    .google_parent {
+        width: auto;
+    }
+    .stlWrapper {
+        width: 320px;
+        overflow: auto;
+    }
+    footer {
+        height: auto !important;
+    }
+    footer ul {
+        display: flex ;
+        flex-direction: column;
+    }
+    footer ul li {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+}
+
+

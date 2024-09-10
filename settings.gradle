@@ -1,0 +1,3 @@
+rootProject.name = 'pnw'
+include('app')
+

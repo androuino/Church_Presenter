@@ -1,0 +1,101 @@
+#m2d2-alert {
+  .m2d2-alert-front {
+    min-width: 400px;
+    min-height: 100px;
+    max-width: 70%;
+    background-color: $background;
+    border: 1px solid $highlight;
+    outline: 2px solid $background;
+    color: white;
+    padding: $dbl_padding;
+    box-shadow: 0 0 5px 1px #000;
+    display : flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+
+    &.question::before {
+      color: $blue;
+      font-size: 200%;
+      margin: $dbl_padding;
+    }
+    &.ok::before {
+      color: $green;
+      font-size: 200%;
+      margin: $dbl_padding;
+    }
+    &.input::before {
+      color: $orange;
+      font-size: 200%;
+      margin: $dbl_padding;
+    }
+    &.wait::before {
+      color: white;
+      font-size: 200%;
+      margin: $dbl_padding;
+      display: block;
+    }
+    &.error::before {
+      color: $red;
+      font-size: 200%;
+      margin: $dbl_padding;
+    }
+    &.info::before {
+      color: $yellow;
+      font-size: 200%;
+      margin: $dbl_padding;
+    }
+
+    .m2d2-alert-title {
+      font-size: 200%;
+      text-align: center;
+      line-height: 40px;
+    }
+    .m2d2-alert-text {
+      line-height: 40px;
+      text-align: center;
+      width: 100%;
+    }
+    .m2d2-alert-field {
+      border: 0;
+    }
+    .m2d2-alert-field,
+    .m2d2-alert-field input,
+    .m2d2-alert-field textarea {
+      max-width: 100%;
+    }
+    .m2d2-alert-field p * {
+        vertical-align: top;
+    }
+    .m2d2-alert-field ul {
+    }
+    .m2d2-alert-field li {
+    }
+    .m2d2-alert-field span {
+        text-align: left;
+    }
+    .m2d2-alert-buttons {
+      padding: $dbl_padding;
+      width : 100%;
+      button {
+        min-width: 100px;
+        font-size: 28px;
+        border-radius: 10px;
+      }
+      .ok, .yes, .send, .save, .print {
+        float: right;
+        background-color: $blue;
+        color: $white;
+      }
+      .no, .cancel {
+        float: left;
+        background-color: $red;
+        color: $white;
+      }
+    }
+  }
+  .m2d2-alert-back {
+    position: fixed !important;
+    z-index: 10000;
+  }
+}

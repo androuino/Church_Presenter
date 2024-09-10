@@ -1,0 +1,103 @@
+plugins {
+    id 'application'
+    id 'java'
+    id 'idea'
+    id 'war'
+    id 'org.jetbrains.kotlin.jvm' version '2.0.0'
+    id 'com.github.johnrengelman.shadow' version '7.0.0'
+}
+
+group = 'xyz.josapedmoreno.hwvci'
+version = '1.0'
+
+repositories {
+    mavenCentral()
+    google()
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+    maven { url 'https://jitpack.io' }
+    maven { url "https://artifact.aspose.com/repo/" }
+    maven { url "https://releases.aspose.com/java/repo/" }
+}
+
+dependencies {
+    def commonVer = "2.9.1"
+    def groovyVer = "4.0.15"
+    def gsonVer = "2.8.9"
+    def sqlVer = "8.0.28"
+    def postgreSqlVer = "42.2.27"
+    def sqLiteVer = "3.36.0.1"
+    def derbyVer = "10.15.2.0"
+    def asposeVer = "23.5"
+    def opencsvVer = "4.4"
+    def mariadbVer = "3.1.2"
+    def metaApiVer = "14.0.8"
+    def kjwtCore = "0.9.0"
+    def arrow = "1.2.4"
+    def sparkVer = "2.9.4"
+
+    //implementation fileTree(dir: 'libs', include: '*.jar')
+    implementation "org.apache.groovy:groovy:${groovyVer}"
+    implementation "com.intellisrc:core:${commonVer}"
+    implementation "com.intellisrc:db:${commonVer}"
+    implementation "com.intellisrc:web:${commonVer}"
+    implementation "com.intellisrc:thread:${commonVer}"
+    implementation "com.intellisrc:crypt:${commonVer}"
+    implementation "com.intellisrc:log:${commonVer}"
+    implementation "com.google.code.gson:gson:${gsonVer}"
+    implementation "org.apache.derby:derby:${derbyVer}"
+    implementation "com.aspose:aspose-cells:${asposeVer}"
+    implementation "com.opencsv:opencsv:${opencsvVer}"
+    implementation "cloud.metaapi.sdk:metaapi-java-sdk:${metaApiVer}"
+    implementation "io.github.nefilim.kjwt:kjwt-core:${kjwtCore}"
+    implementation "io.arrow-kt:arrow-core:${arrow}"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.9.23"
+    implementation "com.sparkjava:spark-core:${sparkVer}"
+    implementation "org.apache.commons:commons-imaging:1.0-alpha3"
+    //implementation files('libs/jsoup-1.17.2.jar')
+    //implementation files('libs/LCMS4J.jar')
+    // Database
+    implementation "org.xerial:sqlite-jdbc:${sqLiteVer}"
+    implementation "org.mariadb.jdbc:mariadb-java-client:${mariadbVer}"
+    // UNIT TESTS
+    testImplementation "org.codehaus.groovy:groovy-all:2.4.15"
+    testImplementation "org.jetbrains.kotlin:kotlin-test:1.7.21"
+    //testImplementation "org.spockframework:spock-core:${spock}"
+    testImplementation "org.junit.jupiter:junit-jupiter-api:5.7.0"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.7.0"
+    testImplementation 'org.jetbrains.kotlin:kotlin-test'
+}
+
+application {
+    group groupName
+    version version
+    mainClass.set('xyz.josapedmoreno.hwvci.App')
+}
+
+shadowJar {
+    archiveBaseName.set(project.name)
+    archiveVersion.set("${project.version}")
+    zip64 = true
+
+    mergeServiceFiles()
+}
+
+tasks.register('compile') {
+    dependsOn(shadowJar)
+}
+
+test {
+    systemProperty 'java.library.path', file('libs').absolutePath
+    useJUnitPlatform()
+}
+
+run {
+    systemProperty 'java.library.path', file('libs').absolutePath
+}
+
+compileKotlin {
+    kotlinOptions.jvmTarget = '11'
+}
+
+compileTestKotlin {
+    kotlinOptions.jvmTarget = '11'
+}

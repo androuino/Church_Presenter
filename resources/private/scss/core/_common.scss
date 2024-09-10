@@ -1,0 +1,150 @@
+* {
+    box-sizing: border-box; 
+}
+.centered {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: 0;
+    margin: auto;
+}
+.centera {
+    margin:auto;
+}
+.centerh {
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin: auto;
+}
+.centerv {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+}
+.center {
+    text-align: center !important;
+}
+.left {
+    text-align: left !important;
+}
+.right {
+    text-align: right !important;
+}
+.justify {
+    text-align: justify !important;
+}
+.fleft {
+    float: left !important;
+}
+.fright {
+    float: right !important;
+}
+.clear {
+    clear: both;
+}
+.vtop {
+    vertical-align: top !important;
+}
+.vmid {
+    vertical-align: middle !important;
+}
+.nopad {
+    padding: 0 !important;
+}
+.pad {
+    padding: 1vw !important;
+}
+.nomargin {
+    margin: 0 !important;
+}
+.margin {
+    margin: 1vw !important;
+}
+.marginh {
+    margin-left: 1vw !important;
+    margin-right: 1vw !important;
+}
+.marginv {
+    margin-top: 1vw !important;
+    margin-bottom: 1vw !important;
+}
+.full {
+    width: 100%;
+}
+.half {
+    width: 50%;
+}
+.fullh {
+    height: 100%;
+}
+.fullvw {
+    width: 100vw;
+}
+.halfvw {
+    width: 50vw;
+}
+.fullvh {
+    height: 100vh;
+}
+.halfvh {
+    height: 50vh;
+}
+.strong {
+    font-weight: bold !important;
+}
+.lcase {
+    text-transform: lowercase;
+}
+.ucase {
+    text-transform: uppercase;
+}
+.ccase {
+    text-transform: capitalize;
+}
+.hidden {
+    display: none;
+}
+.invisible {
+    visibility: hidden;
+}
+.absolute {
+    position: absolute;
+}
+.relative {
+    position: relative;
+}
+.round {
+    border-radius: 4px;
+}
+.nowrap {
+    white-space: nowrap;
+}
+.overflow {
+    overflow: auto;
+}
+.overhid {
+    overflow: hidden;
+}
+.inline {
+    display: inline-block;
+}
+.block {
+    display: block;
+}
+.noselect {
+  -webkit-user-select: none;   
+  -moz-user-select: none;      
+  -ms-user-select: none;       
+  user-select: none;    
+}
+.blur {
+    filter: blur(8px);
+    -webkit-filter: blur(8px);
+}
+.fa {
+    font-style: normal;
+}
+

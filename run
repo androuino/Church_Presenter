@@ -1,0 +1,30 @@
+#!/bin/bash
+clear
+# shellcheck disable=SC2164
+cd /home/pi/queue/
+source env.file
+#FILE=main.db
+#if [[ -f $FILE ]]; then
+#    echo rm $FILE
+#fi
+if [[ -f /Library/Java/JavaVirtualMachines/jdk-15.0.2.jdk/Contents/Home/bin/java ]]; then
+  msgJAVABIN="/Library/Java/JavaVirtualMachines/jdk-15.0.2.jdk/Contents/Home/bin/java"
+  echo $msgJAVABIN
+elif [[ -f /opt/java/openjdk/bin/java ]]; then
+  msgJAVABIN="/opt/java/openjdk/bin/java"
+  echo $msgJAVABIN
+elif [[ -f /usr/bin/java ]]; then
+  msgJAVABIN="/usr/bin/java"
+  echo $msgJAVABIN
+else
+  echo "Unknown location of Java"
+  msgJAVABIN="java"
+fi
+#classpath is not required but it doesn't hurt
+JAR=$(ls -v -w 1 *all.jar | tail -n1)
+DEBUG=""
+if [[ $1 == "" ]]; then
+  DEBUG="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5555"
+fi
+$msgJAVABIN -Xmx128M -Djava.awt.headless=true -jar $JAR ${@:1}
+exit
