@@ -109,7 +109,11 @@ m2d2.ready($ => {
             }
         }
     });
-    const navNew = $("#navNew");
+    const navNew = $("#navNew", {
+        onclick : function(ev) {
+            $.alert("Creating...");
+        }
+    });
     const navEdit = $("#navEdit", {
         onclick : function(ev) {
             if (select === null) {
