@@ -114,6 +114,7 @@ m2d2.ready($ => {
             $.alert("Creating...");
         }
     });
+
     const navEdit = $("#navEdit", {
         onclick : function(ev) {
             if (select === null) {
