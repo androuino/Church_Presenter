@@ -59,26 +59,30 @@ m2d2.ready($ => {
     });
     const wrapper = $(".wrapper", {
         onload : function(ev) {
-            if (localStorage.getItem("login")) {
-                container.show = false;
-                bubbles.show = false;
-                header.show = true;
-                mainControl.show = true;
-                // todo: get data from database
-                for (var i = 0; i < 10; i++) {
-                    tbodySongList.items.push({
-                        dataset : { id : i },
-                        author : { text : "Name " + i },
-                        song : { text : "Song " + i },
-                        dateAdded : { text : "Date " + i }
-                    });
+            $.get("/checksessions", res => {
+                if (res.ok) {
+                    container.show = false;
+                    bubbles.show = false;
+                    header.show = true;
+                    mainControl.show = true;
+                    // todo: get data from database
+                    for (var i = 0; i < 10; i++) {
+                        tbodySongList.items.push({
+                            dataset : { id : i },
+                            author : { text : "Name " + i },
+                            song : { text : "Song " + i },
+                            dateAdded : { text : "Date " + i }
+                        });
+                    }
+                    localStorage.setItem("login", true);
+                } else {
+                    header.show = false;
+                    mainControl.show = false;
+                    container.show = true
+                    bubbles.show = true;
+                    localStorage.clear();
                 }
-            } else {
-                header.show = false;
-                mainControl.show = false;
-                container.show = true
-                bubbles.show = true;
-            }
+            }, true);
         }
     });
     const form = $(".form");
@@ -111,10 +115,9 @@ m2d2.ready($ => {
     });
     const navNew = $("#navNew", {
         onclick : function(ev) {
-            $.alert("Creating...");
+            window.open('http://localhost:5555/create', 'newWindow', 'width=800,height=600,toolbar=no,scrollbars=yes,resizable=yes');
         }
     });
-
     const navEdit = $("#navEdit", {
         onclick : function(ev) {
             if (select === null) {
