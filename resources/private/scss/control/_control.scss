@@ -131,10 +131,29 @@ body :-ms-input-placeholder {
                 }
             }
             tbody {
+                background-color: grey;
                 tr {
                     &:hover {
                         background: #ffee00;
                         color: black;
+                        cursor: pointer;
+                    }
+                    td {
+                        #iconDeleteSong {
+                            &:hover {
+                                color: red;
+                            }
+                        }
+                        #iconEditSong {
+                            &:hover {
+                                color: blue;
+                            }
+                        }
+                        #iconAddToService {
+                            &:hover {
+                                color: green;
+                            }
+                        }
                     }
                 }
                 tr.active {

@@ -19,6 +19,7 @@ m2d2.load($ => {
 });
 m2d2.ready($ => {
     var select = null;
+    var songId = null;
     const header = $("#header");
     const container = $(".container");
     const mainControl = $("#mainControl");
@@ -31,20 +32,61 @@ m2d2.ready($ => {
                     tagName : "td",
                     css : "author",
                 },
-                song : {
+                songTitle : {
                     tagName : "td",
-                    css : "song",
+                    css : "songTitle",
                 },
-                dateAdded : {
+                deleteSong : {
                     tagName : "td",
-                    css : "dateAdded",
+                    css : "deleteSong",
+                    span : {
+                        tagName : "span",
+                        id : "iconDeleteSong",
+                        css : "gicon",
+                        text : "delete",
+                        style : {
+                            color : "red",
+                        }
+                    }
+                },
+                editSong : {
+                    tagName : "td",
+                    css : "editSong",
+                    span : {
+                        tagName : "span",
+                        id : "iconEditSong",
+                        css : "gicon",
+                        text : "edit_document",
+                        onclick : function(ev) {
+                            if (songId != null) {
+                                $.get("/editsong/" + songId, res => {
+                                    if (res.ok) {
+                                        localStorage.setItem("data", JSON.stringify(res.data));
+                                        window.open('http://localhost:5555/create', 'newWindow', 'width=800,height=600,toolbar=no,scrollbars=yes,resizable=yes');
+                                    }
+                                });
+                            } else {
+                                $.alert("Please pick a song on the list.");
+                            }
+                        }
+                    }
+                },
+                toService : {
+                    tagName : "td",
+                    css : "toService",
+                    span : {
+                        tagName : "span",
+                        id : "iconAddToService",
+                        css : "gicon",
+                        text : "playlist_add",
+                    }
                 },
                 onclick : function(ev) {
-                    const id = this.dataset.id;
-                    select = id;
+                    songId = this.dataset.id;
+                    select = songId;
                     this.classList.add("active");
                     tbodySongList.items.forEach(row => {
-                        if (row.dataset.id != id) {
+                        if (row.dataset.id != songId) {
                             row.classList.remove("active");
                             row.style.background = "";
                         } else {
@@ -65,15 +107,20 @@ m2d2.ready($ => {
                     bubbles.show = false;
                     header.show = true;
                     mainControl.show = true;
-                    // todo: get data from database
-                    for (var i = 0; i < 10; i++) {
-                        tbodySongList.items.push({
-                            dataset : { id : i },
-                            author : { text : "Name " + i },
-                            song : { text : "Song " + i },
-                            dateAdded : { text : "Date " + i }
-                        });
-                    }
+                    $.get("/getsongs", res => {
+                        if (res.ok) {
+                            tbodySongList.items.clear();
+                            res.data.forEach(item => {
+                                tbodySongList.items.push({
+                                    dataset : { id : item.id },
+                                    author : { text : item.author },
+                                    songTitle : { text : item.songTitle }
+                                });
+                            });
+                        } else {
+                            console.debug("Error getting all the songs");
+                        }
+                    });
                     localStorage.setItem("login", true);
                 } else {
                     header.show = false;
@@ -209,6 +256,24 @@ m2d2.ready($ => {
     });
     tippy('#iconSearch', {
         content: "Search",
+        interactive: true,
+        placement: 'top',
+        animation: 'scale',
+    });
+    tippy('#headerDeleteSong', {
+        content: "Delete",
+        interactive: true,
+        placement: 'top',
+        animation: 'scale',
+    });
+    tippy('#headerEditSong', {
+        content: "Edit",
+        interactive: true,
+        placement: 'top',
+        animation: 'scale',
+    });
+    tippy('#headerAddToService', {
+        content: "Add to service",
         interactive: true,
         placement: 'top',
         animation: 'scale',
