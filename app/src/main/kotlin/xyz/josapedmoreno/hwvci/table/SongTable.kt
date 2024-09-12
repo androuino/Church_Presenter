@@ -34,4 +34,14 @@ class SongTable : Table<Song>() {
     fun getSongLyricsById(id: Int) : String {
         return find("id", id).lyrics
     }
+    fun saveEditedSong(data: JsonObject) : Boolean {
+        var success = false
+        val song = Song()
+        val id = data.get("id").asInt
+        val lyrics = data.get("lyrics").asString
+        song.id = id
+        song.lyrics = lyrics
+        success = update(song, arrayListOf("id", "author", "title"))
+        return success
+    }
 }

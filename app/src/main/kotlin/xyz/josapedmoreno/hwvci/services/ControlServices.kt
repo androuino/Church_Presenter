@@ -55,6 +55,7 @@ class ControlServices : ServiciableMultiple {
         services.add(editSongsService())
         services.add(deleteSongsService())
         services.add(getSongLyricsService())
+        services.add(saveEditedSongService())
         return services
     }
 
@@ -202,6 +203,24 @@ class ControlServices : ServiciableMultiple {
                     success = true
                     map["data"] = lyrics
                 }
+                map["ok"] = success
+                return gson.toJson(map)
+            }
+        }
+        return service
+    }
+
+    private fun saveEditedSongService(): Service {
+        val service = Service()
+        service.method = HttpMethod.POST
+        service.allow = getUserAllow()
+        service.path = "/saveeditedsong"
+        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
+            fun doCall(request: Request): String {
+                var success = false
+                val map = LinkedHashMap<String, Any>(1)
+                val data = gson.fromJson(request.body, JsonObject::class.java)
+                success = SongTable().saveEditedSong(data)
                 map["ok"] = success
                 return gson.toJson(map)
             }
