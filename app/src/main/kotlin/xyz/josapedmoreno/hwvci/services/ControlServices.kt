@@ -54,6 +54,7 @@ class ControlServices : ServiciableMultiple {
         services.add(getSongsService())
         services.add(editSongsService())
         services.add(deleteSongsService())
+        services.add(getSongLyricsService())
         return services
     }
 
@@ -178,6 +179,29 @@ class ControlServices : ServiciableMultiple {
                 val map = LinkedHashMap<String, Any>(1)
                 val id = request.params("id")
                 success = SongTable().deleteSongById(id.toInt())
+                map["ok"] = success
+                return gson.toJson(map)
+            }
+        }
+        return service
+    }
+
+    private fun getSongLyricsService(): Service {
+        val service = Service()
+        service.method = HttpMethod.GET
+        service.allow = getUserAllow()
+        service.path = "/getsonglyrics/:id"
+        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
+            fun doCall(request: Request): String {
+                var success = false
+                var data = ""
+                val map = LinkedHashMap<String, Any>(1)
+                val id = request.params("id")
+                val lyrics = SongTable().getSongLyricsById(id.toInt())
+                if (lyrics.isNotEmpty()) {
+                    success = true
+                    map["data"] = lyrics
+                }
                 map["ok"] = success
                 return gson.toJson(map)
             }

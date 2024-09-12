@@ -41,7 +41,44 @@ m2d2.ready($ => {
                         });
                     },
                     onclick : function(ev) {
-                        console.log(ev.target.dataset.id);
+                        const id = ev.target.dataset.id;
+                        this.classList.add("active");
+                        lyricsHeader.text = this.text + " song lyrics";
+                        lyricsHeader.style.color = "#ffee00";
+                        $.get("/getsonglyrics/" + id, res => {
+                            if (res.ok) {
+                                const sections = res.data.split('$').filter(section => section.trim() !== '');
+                                lyricsContainer.items.clear();
+                                sections.forEach(section => {
+                                    // Split section into lines
+                                    const lines = section.trim().split('\n').map(line => line.trim()).filter(line => line.length > 0);
+                                    if (lines.length > 1) { // Ensure there is at least one line of text after the header
+                                        // Join the lines into a single string
+                                        const text = lines.slice(1).join(' ');
+                                        lyricsContainer.items.push({
+                                            spanLyrics : { text : text },
+                                        });
+                                    }
+                                });
+                                ulSongs.items.forEach(row => {
+                                    const p = row.children[0];
+                                    if (id === p.dataset.id) {
+                                        if (this.classList.contains("live")) {
+                                            this.style.background = "linear-gradient(to right, #ffee00, #3ff53f)";
+                                        }
+                                    } else {
+                                        p.classList.remove("active");
+                                        if (p.classList.contains("live")) {
+                                            p.style.color = "black";
+                                            p.style.background = "#3ff53f";
+                                        } else {
+                                            p.style.color = "";
+                                            p.style.background = "";
+                                        }
+                                    }
+                                });
+                            }
+                        }, true);
                     }
                 },
                 spanRemove : {
@@ -93,6 +130,31 @@ m2d2.ready($ => {
                             placement: 'top',
                             animation: 'scale',
                         });
+                    },
+                    // todo this
+                    onclick : function(ev) {
+                        var liveIcon;
+                        ulSongs.items.forEach(row => {
+                            const p = row.children[0];
+                            if (this === row.children[3]) {
+                                liveIcon = row.children[3];
+                                p.classList.add("live");
+                                if (p.classList.contains("active")) {
+                                    p.style.background = "linear-gradient(to right, #ffee00, #3ff53f)";
+                                } else {
+                                    p.style.color = "black";
+                                    p.style.background = "#3ff53f";
+                                }
+                            } else {
+                                p.classList.remove("live");
+                                if (p.classList.contains("active")) {
+                                    p.style.background = "#ffee00";
+                                } else {
+                                    p.style.color = "";
+                                    p.style.background = "";
+                                }
+                            }
+                        });
                     }
                 }
             }
@@ -105,10 +167,18 @@ m2d2.ready($ => {
             }
         }
     });
+    const lyricsHeader = $("#lyricsHeader");
     const lyricsContainer = $("#lyricsContainer", {
         template : {
             li : {
                 tagName : "li",
+                style : {
+                    borderBottom : "1px solid white",
+                },
+                spanLyrics : {
+                    tagName : "span",
+                    id : "spanLyrics",
+                }
             },
         },
         items : [],
