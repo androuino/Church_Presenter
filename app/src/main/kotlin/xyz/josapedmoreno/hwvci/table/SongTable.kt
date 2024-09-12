@@ -41,7 +41,7 @@ class SongTable : Table<Song>() {
         val lyrics = data.get("lyrics").asString
         song.id = id
         song.lyrics = lyrics
-        success = update(song, arrayListOf("id", "author", "title"))
+        success = update(song, arrayListOf("id", "author", "song_title"))
         return success
     }
 }
