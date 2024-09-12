@@ -99,6 +99,9 @@ m2d2.ready($ => {
             }
         }
     });
+    window.addEventListener('unload', function () {
+        localStorage.setItem("data", null);
+    });
     tippy('#howTo', {
         allowHTML: true,
         content: howToContent,

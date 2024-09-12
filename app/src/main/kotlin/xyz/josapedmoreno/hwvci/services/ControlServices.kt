@@ -53,6 +53,7 @@ class ControlServices : ServiciableMultiple {
         services.add(saveSongService())
         services.add(getSongsService())
         services.add(editSongsService())
+        services.add(deleteSongsService())
         return services
     }
 
@@ -159,6 +160,24 @@ class ControlServices : ServiciableMultiple {
                     success = true
                     map["data"] = data
                 }
+                map["ok"] = success
+                return gson.toJson(map)
+            }
+        }
+        return service
+    }
+
+    private fun deleteSongsService(): Service {
+        val service = Service()
+        service.method = HttpMethod.DELETE
+        service.allow = getUserAllow()
+        service.path = "/deletesong/:id"
+        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
+            fun doCall(request: Request): String {
+                var success = false
+                val map = LinkedHashMap<String, Any>(1)
+                val id = request.params("id")
+                success = SongTable().deleteSongById(id.toInt())
                 map["ok"] = success
                 return gson.toJson(map)
             }
