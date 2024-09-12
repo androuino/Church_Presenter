@@ -41,21 +41,25 @@
                     <tr>
                         <th id="headerAuthor">AUTHOR</th>
                         <th>TITLE</th>
-                        <th style="width: 1.8em;">
-                            <span id="headerDeleteSong" class="gicon">info</span>
-                        </th>
-                        <th style="width: 1.8em;">
-                            <span id="headerEditSong" class="gicon">info</span>
-                        </th>
-                        <th style="width: 1.8em;">
-                            <span id="headerAddToService" class="gicon">info</span>
-                        </th>
+                        <th style="width: 1.8em;"></th>
+                        <th style="width: 1.8em;"></th>
+                        <th style="width: 1.8em;"></th>
                     </tr>
                 </thead>
                 <tbody id="tbodySongList"></tbody>
             </table>
         </aside>
-        <aside id="live"></aside>
+        <aside id="live">
+            <div id="divLive">
+                <ul id="ulLyrics"></ul>
+            </div>
+            <div id="divLiveControls">
+                <div><p>SONGS FOR LIVE</p></div>
+                <ul id="ulSongs"></ul>
+                <div><p>SONGS LYRICS</p></div>
+                <ul id="lyricsContainer"></ul>
+            </div>
+        </aside>
     </section>
     <ul id="bubbles" class="bg-bubbles">
         <li></li>

@@ -28,4 +28,7 @@ class SongTable : Table<Song>() {
     fun getSongById(id: Int) : Song {
         return get(id)
     }
+    fun deleteSongById(id: Int) : Boolean {
+        return delete(id)
+    }
 }

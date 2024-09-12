@@ -20,10 +20,99 @@ m2d2.load($ => {
 m2d2.ready($ => {
     var select = null;
     var songId = null;
+    var songTitle = "";
     const header = $("#header");
     const container = $(".container");
     const mainControl = $("#mainControl");
     const bubbles = $("#bubbles");
+    const ulSongs = $("#ulSongs", {
+        template : {
+            li : {
+                tagName : "li",
+                pSongTitle : {
+                    tagName : "p",
+                    id : "pSongTitle",
+                    onload : function(ev) {
+                        tippy(this, {
+                            content: "Click to view the lyrics",
+                            interactive: false,
+                            placement: 'top',
+                            animation: 'scale',
+                        });
+                    },
+                    onclick : function(ev) {
+                        console.log(ev.target.dataset.id);
+                    }
+                },
+                spanRemove : {
+                    tagName : "span",
+                    id : "spanRemove",
+                    css : "gicon",
+                    text : "delete",
+                    style : {
+                        color : "red",
+                    },
+                    onload : function(ev) {
+                        tippy(this, {
+                            content: "Remove from service",
+                            interactive: false,
+                            placement: 'top',
+                            animation: 'scale',
+                        });
+                    },
+                },
+                spanEdit : {
+                    tagName : "span",
+                    id : "spanEdit",
+                    css : "gicon",
+                    text : "edit_document",
+                    style : {
+                        color : "#3be3c6",
+                    },
+                    onload : function(ev) {
+                        tippy(this, {
+                            content: "Edit on the go",
+                            interactive: false,
+                            placement: 'top',
+                            animation: 'scale',
+                        });
+                    }
+                },
+                spanToLive : {
+                    tagName : "span",
+                    id : "spanToLive",
+                    css : "gicon",
+                    text : "play_arrow",
+                    style : {
+                        color : "#3ff53f",
+                    },
+                    onload : function(ev) {
+                        tippy(this, {
+                            content: "To live",
+                            interactive: false,
+                            placement: 'top',
+                            animation: 'scale',
+                        });
+                    }
+                }
+            }
+        },
+        items : [],
+        onclick : function(ev) {
+            if (ev.target.id && ev.target.id.startsWith('spanRemove')) {
+                const li = ev.target.closest('li');
+                this.removeChild(li);
+            }
+        }
+    });
+    const lyricsContainer = $("#lyricsContainer", {
+        template : {
+            li : {
+                tagName : "li",
+            },
+        },
+        items : [],
+    });
     const tbodySongList = $("#tbodySongList", {
         template : {
             tr : {
@@ -46,7 +135,33 @@ m2d2.ready($ => {
                         text : "delete",
                         style : {
                             color : "red",
-                        }
+                        },
+                        onload : function(ev) {
+                            tippy(this, {
+                                content: "Delete",
+                                interactive: false,
+                                placement: 'top',
+                                animation: 'scale',
+                            });
+                        },
+                        onclick : function(ev) {
+                            if (songId != null) {
+                                $.confirm("Confirmation to delete this song?", res => {
+                                    if (res) {
+                                        $.delete("/deletesong/" + songId, res => {
+                                            if (res.ok) {
+                                                $.success("Song is deleted.");
+                                                getSongList();
+                                            } else {
+                                                $.failure("Something went wrong.");
+                                            }
+                                        }, true);
+                                    }
+                                });
+                            } else {
+                                $.alert("Please pick a song on the list.");
+                            }
+                        },
                     }
                 },
                 editSong : {
@@ -57,6 +172,14 @@ m2d2.ready($ => {
                         id : "iconEditSong",
                         css : "gicon",
                         text : "edit_document",
+                        onload : function(ev) {
+                            tippy(this, {
+                                content: "Edit",
+                                interactive: false,
+                                placement: 'top',
+                                animation: 'scale',
+                            });
+                        },
                         onclick : function(ev) {
                             if (songId != null) {
                                 $.get("/editsong/" + songId, res => {
@@ -79,6 +202,27 @@ m2d2.ready($ => {
                         id : "iconAddToService",
                         css : "gicon",
                         text : "playlist_add",
+                        onload : function(ev) {
+                            tippy(this, {
+                                content: "Add to service",
+                                interactive: false,
+                                placement: 'top',
+                                animation: 'scale',
+                            });
+                        },
+                        onclick : function(ev) {
+                            if (songId != null) {
+                                ulSongs.items.push({
+                                    dataset : { id : songId },
+                                    pSongTitle : {
+                                        dataset : { id : songId },
+                                        text : songTitle
+                                    },
+                                });
+                            } else {
+                                $.alert("Please click a song on the list.");
+                            }
+                        }
                     }
                 },
                 onclick : function(ev) {
@@ -91,6 +235,10 @@ m2d2.ready($ => {
                             row.style.background = "";
                         } else {
                             row.style.background = "#ffee00";
+                            const secondCell = row.querySelectorAll('td')[1];
+                            if (secondCell) {
+                                songTitle = secondCell.textContent;
+                            }
                         }
                     });
 
@@ -107,20 +255,7 @@ m2d2.ready($ => {
                     bubbles.show = false;
                     header.show = true;
                     mainControl.show = true;
-                    $.get("/getsongs", res => {
-                        if (res.ok) {
-                            tbodySongList.items.clear();
-                            res.data.forEach(item => {
-                                tbodySongList.items.push({
-                                    dataset : { id : item.id },
-                                    author : { text : item.author },
-                                    songTitle : { text : item.songTitle }
-                                });
-                            });
-                        } else {
-                            console.debug("Error getting all the songs");
-                        }
-                    });
+                    getSongList();
                     localStorage.setItem("login", true);
                 } else {
                     header.show = false;
@@ -221,6 +356,22 @@ m2d2.ready($ => {
             }
         }
     });
+    function getSongList() {
+        $.get("/getsongs", res => {
+            if (res.ok) {
+                tbodySongList.items.clear();
+                res.data.forEach(item => {
+                    tbodySongList.items.push({
+                        dataset : { id : item.id },
+                        author : { text : item.author },
+                        songTitle : { text : item.songTitle }
+                    });
+                });
+            } else {
+                console.debug("Error getting all the songs");
+            }
+        });
+    }
     tippy('#navNew', {
         content: "Create a new song",
         interactive: true,
@@ -256,24 +407,6 @@ m2d2.ready($ => {
     });
     tippy('#iconSearch', {
         content: "Search",
-        interactive: true,
-        placement: 'top',
-        animation: 'scale',
-    });
-    tippy('#headerDeleteSong', {
-        content: "Delete",
-        interactive: true,
-        placement: 'top',
-        animation: 'scale',
-    });
-    tippy('#headerEditSong', {
-        content: "Edit",
-        interactive: true,
-        placement: 'top',
-        animation: 'scale',
-    });
-    tippy('#headerAddToService', {
-        content: "Add to service",
         interactive: true,
         placement: 'top',
         animation: 'scale',
