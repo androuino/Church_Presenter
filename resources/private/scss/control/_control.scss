@@ -209,6 +209,10 @@ body :-ms-input-placeholder {
                         cursor: pointer;
                     }
                 }
+                li p.active {
+                    background-color: #ffee00;
+                    color: black;
+                }
                 li span {
                     margin-left: 10x;
                     &:hover {

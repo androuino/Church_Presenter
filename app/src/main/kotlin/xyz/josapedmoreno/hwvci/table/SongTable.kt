@@ -31,4 +31,7 @@ class SongTable : Table<Song>() {
     fun deleteSongById(id: Int) : Boolean {
         return delete(id)
     }
+    fun getSongLyricsById(id: Int) : String {
+        return find("id", id).lyrics
+    }
 }
