@@ -25,6 +25,23 @@ m2d2.ready($ => {
     const container = $(".container");
     const mainControl = $("#mainControl");
     const bubbles = $("#bubbles");
+    const ulLiveLyrics = $("#ulLiveLyrics", {
+        template : {
+            li : {
+                tagName : "li",
+                onclick : function(ev) {
+                    const id = this.dataset.id;
+                    this.classList.add("active");
+                    ulLiveLyrics.items.forEach(row => {
+                        if (id !== row.dataset.id) {
+                            row.classList.remove("active");
+                        }
+                    });
+                }
+            },
+        },
+        items : [],
+    });
     const ulSongs = $("#ulSongs", {
         template : {
             li : {
@@ -129,13 +146,14 @@ m2d2.ready($ => {
                             animation: 'scale',
                         });
                     },
-                    // todo this
                     onclick : function(ev) {
                         var liveIcon;
+                        var selectedSongId = 0;
                         ulSongs.items.forEach(row => {
                             const p = row.children[0];
                             if (this === row.children[3]) {
                                 liveIcon = row.children[3];
+                                selectedSongId = p.dataset.id;
                                 p.classList.add("live");
                                 if (p.classList.contains("active")) {
                                     p.style.background = "linear-gradient(to right, #ffee00, #3ff53f)";
@@ -153,6 +171,20 @@ m2d2.ready($ => {
                                 }
                             }
                         });
+                        $.get("/getsonglyrics/" + selectedSongId, res => {
+                            if (res.ok) {
+                                ulLiveLyrics.items.clear();
+                                let blocks = res.data.match(/\$\w[\s\S]*?(?=\$\w|$)/g);
+                                blocks.forEach(block => {
+                                    let trimmedBlock = block.trim();
+                                    if (trimmedBlock) {  // Make sure the block is not empty
+                                        ulLiveLyrics.items.push({
+                                            innerHTML : trimmedBlock.replace(/\n/g, '<br>'),
+                                        });
+                                    }
+                                });
+                            }
+                        }, true);
                     }
                 }
             }
@@ -178,9 +210,13 @@ m2d2.ready($ => {
                 ondblclick : function(ev) {
                     this.contentEditable = true;
                     this.focus();
+                    this.style.backgroundColor = "yellow";
+                    this.style.color = "black";
                 },
                 onblur : function(ev) {
                     this.contentEditable = false;
+                    this.style.backgroundColor = "";
+                    this.style.color = "";
                     var lyrics = "";
                     lyricsContainer.items.forEach(row => {
                         lyrics += row.text;
@@ -226,13 +262,13 @@ m2d2.ready($ => {
                         tagName : "span",
                         id : "iconDeleteSong",
                         css : "gicon",
-                        text : "delete",
+                        text : "delete_forever",
                         style : {
                             color : "red",
                         },
                         onload : function(ev) {
                             tippy(this, {
-                                content: "Delete",
+                                content: "Delete forever",
                                 interactive: false,
                                 placement: 'top',
                                 animation: 'scale',
@@ -502,6 +538,18 @@ m2d2.ready($ => {
     tippy('#iconSearch', {
         content: "Search",
         interactive: true,
+        placement: 'top',
+        animation: 'scale',
+    });
+    tippy('#lyricsContainer', {
+        content: "Double click to edit",
+        interactive: false,
+        placement: 'top',
+        animation: 'scale',
+    });
+    tippy('#clearLive', {
+        content: "Clear live",
+        interactive: false,
         placement: 'top',
         animation: 'scale',
     });
