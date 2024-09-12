@@ -47,16 +47,14 @@ m2d2.ready($ => {
                         lyricsHeader.style.color = "#ffee00";
                         $.get("/getsonglyrics/" + id, res => {
                             if (res.ok) {
-                                const sections = res.data.split('$').filter(section => section.trim() !== '');
                                 lyricsContainer.items.clear();
-                                sections.forEach(section => {
-                                    // Split section into lines
-                                    const lines = section.trim().split('\n').map(line => line.trim()).filter(line => line.length > 0);
-                                    if (lines.length > 1) { // Ensure there is at least one line of text after the header
-                                        // Join the lines into a single string
-                                        const text = lines.slice(1).join(' ');
+                                let blocks = res.data.match(/\$\w[\s\S]*?(?=\$\w|$)/g);
+                                blocks.forEach(block => {
+                                    let trimmedBlock = block.trim();
+                                    if (trimmedBlock) {  // Make sure the block is not empty
                                         lyricsContainer.items.push({
-                                            spanLyrics : { text : text },
+                                            dataset : { id : id },
+                                            innerHTML : trimmedBlock.replace(/\n/g, '<br>'),
                                         });
                                     }
                                 });
@@ -164,6 +162,8 @@ m2d2.ready($ => {
             if (ev.target.id && ev.target.id.startsWith('spanRemove')) {
                 const li = ev.target.closest('li');
                 this.removeChild(li);
+                lyricsHeader.text = "SONG'S LYRICS";
+                lyricsContainer.items.clear();
             }
         }
     });
@@ -175,9 +175,33 @@ m2d2.ready($ => {
                 style : {
                     borderBottom : "1px solid white",
                 },
-                spanLyrics : {
-                    tagName : "span",
-                    id : "spanLyrics",
+                ondblclick : function(ev) {
+                    this.contentEditable = true;
+                    this.focus();
+                },
+                onblur : function(ev) {
+                    this.contentEditable = false;
+                    var lyrics = "";
+                    lyricsContainer.items.forEach(row => {
+                        lyrics += row.text;
+                    });
+                    const data = {
+                        id : this.dataset.id,
+                        lyrics : lyrics
+                    };
+                    $.post("/saveeditedsong", data, res => {
+                        if (res.ok) {
+                            $.success("Save edit success!");
+                        } else {
+                            $.failure("Something's wrong saving your edits.");
+                        }
+                    }, true);
+                },
+                onkeydown : function(ev) {
+                    if (ev.key === "Enter" && !ev.shiftKey) {
+                        document.execCommand('insertHTML', false, '<br><br>'); // Insert a new line with a break
+                        ev.preventDefault();
+                    }
                 }
             },
         },
