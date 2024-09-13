@@ -44,4 +44,7 @@ class SongTable : Table<Song>() {
         success = update(song, arrayListOf("id", "author", "song_title"))
         return success
     }
+    fun getSongTitleById(id: Int) : String {
+        return find("id", id).songTitle
+    }
 }
