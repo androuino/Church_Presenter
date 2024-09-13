@@ -42,7 +42,7 @@ body :-ms-input-placeholder {
     align-items: center;
     justify-content: center;
     width: 100%;
-    height: 50px;
+    height: 20px;
 }
 .wrapper {
     display: flex;
@@ -80,7 +80,7 @@ body :-ms-input-placeholder {
     flex-direction: row;
     flex-wrap: wrap;
     width: 100%;
-    height: calc(100vh - 50px);
+    height: calc(100vh - 20px);
     background: linear-gradient(to bottom right, #2f2f2f 0, #17332f 100%);
     nav {
         display: flex;
@@ -168,7 +168,7 @@ body :-ms-input-placeholder {
         flex-direction: row;
         width: calc(100% - 50% - (35px/2));
         background: black;
-        span {
+        #clearLive {
             position: absolute;
             color: red;
             &:hover {

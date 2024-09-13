@@ -25,6 +25,7 @@ m2d2.ready($ => {
     const container = $(".container");
     const mainControl = $("#mainControl");
     const bubbles = $("#bubbles");
+    const tableSong = $("#tableSong");
     const ulLiveLyrics = $("#ulLiveLyrics", {
         template : {
             li : {
@@ -219,15 +220,15 @@ m2d2.ready($ => {
                     this.style.color = "";
                     var lyrics = "";
                     lyricsContainer.items.forEach(row => {
-                        lyrics += row.text;
+                        lyrics += row.text + "\n";
                     });
                     const data = {
                         id : this.dataset.id,
-                        lyrics : lyrics
+                        lyrics : lyrics.trimEnd()
                     };
                     $.post("/saveeditedsong", data, res => {
                         if (res.ok) {
-                            $.success("Save edit success!");
+                            autoSaveTippy[0].show();
                         } else {
                             $.failure("Something's wrong saving your edits.");
                         }
@@ -312,12 +313,7 @@ m2d2.ready($ => {
                         },
                         onclick : function(ev) {
                             if (songId != null) {
-                                $.get("/editsong/" + songId, res => {
-                                    if (res.ok) {
-                                        localStorage.setItem("data", JSON.stringify(res.data));
-                                        window.open('http://localhost:5555/create', 'newWindow', 'width=800,height=600,toolbar=no,scrollbars=yes,resizable=yes');
-                                    }
-                                });
+                                editSong(songId);
                             } else {
                                 $.alert("Please pick a song on the list.");
                             }
@@ -342,13 +338,20 @@ m2d2.ready($ => {
                         },
                         onclick : function(ev) {
                             if (songId != null) {
-                                ulSongs.items.push({
-                                    dataset : { id : songId },
-                                    pSongTitle : {
-                                        dataset : { id : songId },
-                                        text : songTitle
-                                    },
-                                });
+                                $.get("/getsongtitle/" + songId, res => {
+                                    if (res.ok) {
+                                        songTitle = res.title;
+                                        ulSongs.items.push({
+                                            dataset : { id : songId },
+                                            pSongTitle : {
+                                                dataset : { id : songId },
+                                                text : res.title
+                                            },
+                                        });
+                                    } else {
+                                        console.debug("There's an error getting the song title.");
+                                    }
+                                }, true);
                             } else {
                                 $.alert("Please click a song on the list.");
                             }
@@ -372,6 +375,9 @@ m2d2.ready($ => {
                         }
                     });
 
+                },
+                onmouseover : function(ev) {
+                    songId = this.dataset.id;
                 }
             }
         },
@@ -435,7 +441,7 @@ m2d2.ready($ => {
             if (select === null) {
                 $.failure("Please select a song to edit.");
             } else {
-                $.alert("Editing...");
+                editSong(songId);
             }
         }
     });
@@ -467,22 +473,96 @@ m2d2.ready($ => {
         }
     });
     const inputSearch = $("#inputSearch", {
-        onkeypress : function(ev) {
-            if (ev.key === "Enter") {
+        onkeyup : function(ev) {
+            let filter = this.value.toUpperCase();
+            let tr = tableSong.getElementsByTagName('tr');
+            if (ev.key === 'Escape') {
+                this.value = "";
+                for (let i = 1; i < tr.length; i++) {  // Start from 1 to skip the header
+                    tr[i].style.display = '';
+                }
+            } else if (filter === '') {
+                // If the input is cleared, show all rows
+                for (let i = 1; i < tr.length; i++) {  // Start from 1 to skip the header
+                    tr[i].style.display = '';
+                }
+            } else if (ev.key === "Enter") {
                 if (this.value === "") {
                     $.failure("I did not get that!");
                 } else {
-                    $.alert("Searching...");
+                    for (let i = 1; i < tr.length; i++) {  // Start from 1 to skip the header
+                        let tds = tr[i].getElementsByTagName('td');
+                        let rowText = '';
+
+                        // Concatenate text from all cells in the row
+                        for (let j = 0; j < tds.length; j++) {
+                            rowText += tds[j].textContent || tds[j].innerText;
+                        }
+
+                        // Check if the row text matches the filter
+                        if (rowText.toUpperCase().indexOf(filter) > -1) {
+                            tr[i].style.display = '';
+                        } else {
+                            tr[i].style.display = 'none';
+                        }
+                    }
                 }
             }
         }
     });
     const iconSearch = $("#iconSearch", {
         onclick : function(ev) {
+            let filter = inputSearch.value.toUpperCase();
+            let tr = tableSong.getElementsByTagName('tr');
             if (inputSearch.value === "") {
                 $.failure("I did not get that!");
             } else {
-                $.alert("Searching...");
+                for (let i = 1; i < tr.length; i++) {  // Start from 1 to skip the header
+                    let tds = tr[i].getElementsByTagName('td');
+                    let rowText = '';
+
+                    // Concatenate text from all cells in the row
+                    for (let j = 0; j < tds.length; j++) {
+                        rowText += tds[j].textContent || tds[j].innerText;
+                    }
+
+                    // Check if the row text matches the filter
+                    if (rowText.toUpperCase().indexOf(filter) > -1) {
+                        tr[i].style.display = '';
+                    } else {
+                        tr[i].style.display = 'none';
+                    }
+                }
+            }
+        }
+    });
+    const clearLive = $("#clearLive", {
+        onclick : function(ev) {
+            if (ulLiveLyrics.items.length > 0) {
+                $.confirm("Confirm to clear.", res => {
+                    if (res) {
+                        ulLiveLyrics.items.clear();
+                        ulSongs.items.forEach(row => {
+                            const p = row.children[0];
+                            if (p.classList.contains("active")) {
+                                p.classList.remove("active");
+                                if (p.classList.contains("live")) {
+                                    p.style.color = "black";
+                                    p.style.background = "#3ff53f";
+                                } else {
+                                    p.style.color = "";
+                                    p.style.background = "";
+                                }
+                            } else {
+                                if (p.classList.contains("live")) {
+                                    p.classList.remove("live")
+                                    p.style.color = "";
+                                    p.style.background = "";
+                                }
+                            }
+                        });
+                    }
+                });
             }
         }
     });
@@ -499,6 +579,14 @@ m2d2.ready($ => {
                 });
             } else {
                 console.debug("Error getting all the songs");
+            }
+        });
+    }
+    function editSong(songId) {
+        $.get("/editsong/" + songId, res => {
+            if (res.ok) {
+                localStorage.setItem("data", JSON.stringify(res.data));
+                window.open('http://localhost:5555/create', 'newWindow', 'width=800,height=600,toolbar=no,scrollbars=yes,resizable=yes');
             }
         });
     }
@@ -551,6 +639,13 @@ m2d2.ready($ => {
         content: "Clear live",
         interactive: false,
         placement: 'top',
+        animation: 'scale',
+    });
+    const autoSaveTippy = tippy("#lyricsContainer", {
+        content: "Save edit success!",
+        interactive: false,
+        placement: 'top',
+        trigger: 'manual',
         animation: 'scale',
     });
 });

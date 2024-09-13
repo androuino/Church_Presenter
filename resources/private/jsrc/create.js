@@ -21,26 +21,26 @@ m2d2.ready($ => {
     let howToContent = "<p>Song sections</p>" +
                        "<p>Small or capital letter is fine</p>" +
                        "<p>--------------------------</p>" +
-                       "<p>I - for INTRO</p>" +
+                       "<p>$I - for INTRO</p>" +
                        "<p>--------------------------</p>" +
-                       "<p>P - for PRE-CHORUS</p>" +
+                       "<p>$P - for PRE-CHORUS</p>" +
                        "<p>--------------------------</p>" +
-                       "<p>V - for VERSE</p>" +
+                       "<p>$V - for VERSE</p>" +
                        "<p>--------------------------</p>" +
-                       "<p>C - for CHORUS</p>" +
+                       "<p>$C - for CHORUS</p>" +
                        "<p>--------------------------</p>" +
-                       "<p>B - for BRIDGE</p>" +
+                       "<p>$B - for BRIDGE</p>" +
                        "<p>--------------------------</p>" +
-                       "<p>R - for REFRAIN</p>" +
+                       "<p>$R - for REFRAIN</p>" +
                        "<p>--------------------------</p>" +
-                       "<p>O - for OUTRO</p>" +
+                       "<p>$O - for OUTRO</p>" +
                        "<p>--------------------------</p>" +
                        "<p>Example</p>" +
-                       "<p>V</p>" +
+                       "<p>$V</p>" +
                        "<p>The splendor of a King...</p>" +
-                       "<p>C</p>" +
+                       "<p>$c</p>" +
                        "<p>How great is our God</p>" +
-                       "<p>B</p>" +
+                       "<p>$b</p>" +
                        "<p>Name above all names.</p>";
     let placeholder = "v\n" +
                       "The splendor of a King,\n" +
