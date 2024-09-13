@@ -36,6 +36,20 @@ m2d2.ready($ => {
                     ulLiveLyrics.items.forEach(row => {
                         if (id !== row.dataset.id) {
                             row.classList.remove("active");
+                        } else {
+                            const data = {
+                                lyrics : "row.text"
+                            };
+                            $.post("/stream", data, res => {
+                                if (res.ok) {
+                                    console.debug("lyrics sent.");
+                                    /*$.post("/stopstream", res => {
+                                        if (res.ok) {
+                                            console.debug("success");
+                                        }
+                                    }, true);*/
+                                }
+                            }, true);
                         }
                     });
                 }

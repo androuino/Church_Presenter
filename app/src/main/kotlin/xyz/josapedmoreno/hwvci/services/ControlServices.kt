@@ -3,6 +3,7 @@ package xyz.josapedmoreno.hwvci.services
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.intellisrc.core.Log
+import com.intellisrc.thread.Tasks
 import com.intellisrc.web.service.Request
 import com.intellisrc.web.service.Service
 import com.intellisrc.web.service.ServiciableMultiple
@@ -57,6 +58,7 @@ class ControlServices : ServiciableMultiple {
         services.add(getSongLyricsService())
         services.add(saveEditedSongService())
         services.add(getSongTitleService())
+        services.add(steamService())
         return services
     }
 
@@ -252,6 +254,25 @@ class ControlServices : ServiciableMultiple {
         return service
     }
 
+    private fun steamService(): Service {
+        val service = Service()
+        service.method = HttpMethod.POST
+        service.allow = getUserAllow()
+        service.path = "/stream"
+        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
+            fun doCall(request: Request): String {
+                val map = LinkedHashMap<String, Any>(1)
+                val data = gson.fromJson(request.body, JsonObject::class.java)
+                val lyrics = data.get("lyrics").asString
+                // todo here
+                SSENotifier.sendLyrics(lyrics)
+                map["ok"] = true
+                return gson.toJson(map)
+            }
+        }
+        return service
+    }
+
     companion object {
         fun getUserAllow() = Service.Allow { request ->
             if (request.session() != null) {
@@ -261,5 +282,6 @@ class ControlServices : ServiciableMultiple {
             }
         }
         private val gson = Gson().newBuilder().create()
+        private val sseEventService = SSEEventService()
     }
 }
