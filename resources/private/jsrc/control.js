@@ -454,7 +454,16 @@ m2d2.ready($ => {
             }
         }
     });
-    const navInfo = $("#navInfo");
+    const navInfo = $("#navInfo", {
+        onclick : function(ev) {
+            // todo: show a modal form here
+            // info:
+            // Software: HWVCI Presenter
+            // Version: 1.0
+            // Developer: Sem Moreno
+            // Website: https://josapedmoreno.xyz
+        }
+    });
     const navLogout = $("#navLogout", {
         onclick : function(ev) {
             $.confirm("Are you want to log out?", res => {
@@ -566,6 +575,17 @@ m2d2.ready($ => {
             }
         }
     });
+    const controlClearSongList = $("#controlClearSongList", {
+        onclick : function(ev) {
+            if (ulSongs.items.length > 0) {
+                $.confirm("Confirm to clear the song list?", res => {
+                    if (res) {
+                        ulSongs.items.clear();
+                    }
+                });
+            }
+        }
+    });
     function getSongList() {
         $.get("/getsongs", res => {
             if (res.ok) {
@@ -610,12 +630,15 @@ m2d2.ready($ => {
     });
     tippy('#navInfo', {
         allowHTML: true,
-        content: '<p>Application: HWVCI Presenter</p>\n<p>Software version: 1.0</p>\n<p>Developer: Sem Moreno</p>\n<p>Website: <a href="https://josapedmoreno.xyz" target="_blank">josapedmoreno.xyz</a></p>',
+        content: 'About',
         interactive: true,
-        trigger: "click",
-        onShow: async (instance) => {
-            // call a function here
-        }
+        animation: 'scale',
+    });
+    tippy('#navSettings', {
+        content: "Settings",
+        interactive: true,
+        placement: 'top',
+        animation: 'scale',
     });
     tippy('#navLogout', {
         content: "Log out",
@@ -646,6 +669,48 @@ m2d2.ready($ => {
         interactive: false,
         placement: 'top',
         trigger: 'manual',
+        animation: 'scale',
+    });
+    tippy('#controlDefault', {
+        content: "Default screen",
+        interactive: false,
+        placement: 'top',
+        animation: 'scale',
+    });
+    tippy('#controlBlackScreen', {
+        content: "Set screen to black",
+        interactive: false,
+        placement: 'top',
+        animation: 'scale',
+    });
+    tippy('#controlShowDesktop', {
+        content: "Show desktop",
+        interactive: false,
+        placement: 'top',
+        animation: 'scale',
+    });
+    tippy('#controlHideLyrics', {
+        content: "Hide the lyric",
+        interactive: false,
+        placement: 'top',
+        animation: 'scale',
+    });
+    tippy('#controlClearSongList', {
+        content: "Clear song list",
+        interactive: false,
+        placement: 'top',
+        animation: 'scale',
+    });
+    tippy('#controlViewLive', {
+        content: "Live view",
+        interactive: false,
+        placement: 'top',
+        animation: 'scale',
+    });
+    tippy('#controlPreview', {
+        content: "Preview",
+        interactive: false,
+        placement: 'top',
         animation: 'scale',
     });
 });
