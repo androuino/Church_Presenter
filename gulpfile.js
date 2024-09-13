@@ -14,8 +14,8 @@ const prefixUser = "user";
 const paths = {
     // Private in:
     priv    : "resources/private/",
-    jsrc    : ['jsrc/index.js', 'jsrc/control.js', 'jsrc/create.js'],
-    scss    : ['scss/index.scss', 'scss/control.scss', 'scss/create.scss'],
+    jsrc    : ['jsrc/index.js', 'jsrc/control.js', 'jsrc/create.js', 'jsrc/settings.js'],
+    scss    : ['scss/index.scss', 'scss/control.scss', 'scss/create.scss', 'scss/settings.scss'],
     // Public out:
     pub     : "resources/public/",
     js      : 'js/',
@@ -35,7 +35,11 @@ gulp.task('js', gulp.series([], function() {
         .pipe(terser())
         .pipe(concat("create" + ".min.js"))
         .pipe(gulp.dest(paths.pub + paths.js));
-    return merge([index, control, create]);
+    const settings = gulp.src([paths.priv + paths.jsrc[3]])
+        .pipe(terser())
+        .pipe(concat("settings" + ".min.js"))
+        .pipe(gulp.dest(paths.pub + paths.js));
+    return merge([index, control, create, settings]);
 }));
 // CSS
 gulp.task('css', gulp.series([], function () {
@@ -66,7 +70,16 @@ gulp.task('css', gulp.series([], function () {
         .pipe(rename({ extname : ".min.css" }))
         .pipe(maps.write("."))
         .pipe(gulp.dest(paths.pub + paths.css));
-    return merge([index, control, create]);
+    const settings = gulp.src([paths.priv + paths.scss[3]])
+        .pipe(maps.init())
+        .pipe(sassGlob())
+        .pipe(sass().on('error', sass.logError))
+        .pipe(cssmin())
+        .pipe(rename({ extname : "" })) //remove extensions
+        .pipe(rename({ extname : ".min.css" }))
+        .pipe(maps.write("."))
+        .pipe(gulp.dest(paths.pub + paths.css));
+    return merge([index, control, create, settings]);
 }));
 
 // Build
