@@ -38,16 +38,11 @@ m2d2.ready($ => {
                             row.classList.remove("active");
                         } else {
                             const data = {
-                                lyrics : "row.text"
+                                lyrics : row.text
                             };
                             $.post("/stream", data, res => {
                                 if (res.ok) {
                                     console.debug("lyrics sent.");
-                                    /*$.post("/stopstream", res => {
-                                        if (res.ok) {
-                                            console.debug("success");
-                                        }
-                                    }, true);*/
                                 }
                             }, true);
                         }
@@ -598,6 +593,14 @@ m2d2.ready($ => {
                     }
                 });
             }
+        }
+    });
+    // todo
+    const navSettings = $("#navSettings", {
+        onclick : function(ev) {
+            $.get("/settings", res => {
+                window.open('http://localhost:5555/settings', 'newWindow', 'width=800,height=600,toolbar=no,scrollbars=yes,resizable=yes');
+            }, true);
         }
     });
     function getSongList() {

@@ -16,16 +16,17 @@ import xyz.josapedmoreno.hwvci.table.Users
 
 class App : SysService() {
     override fun onStart() {
-        Tasks.add(SSENotifier(sseEventService))
+        val sseNotifier = SSENotifier(sseEventService)
+        SSENotifier.setInstance(sseNotifier)
 
         var port = Config.getInt("web.port")
         if (!args.isEmpty())
             port = Integer.parseInt(args.poll())
         webService.port = port
         webService.setResources(SysInfo.getFile(publicResources))
+        webService.add(sseEventService)
         webService.add(AuthService())
         webService.add(ControlServices())
-        webService.add(sseEventService)
         webService.start(true)
 
         if (Users().createAdmin()) {
