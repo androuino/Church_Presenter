@@ -26,6 +26,9 @@ m2d2.ready($ => {
             }
         },
         items : [],
+        onchange : function(ev) {
+            taFontPreview.style.fontFamily = selectFont.value;
+        }
     });
     const inputFontSize = $("#inputFontSize", {
         onload : function(ev) {
@@ -41,17 +44,29 @@ m2d2.ready($ => {
         onload: function(ev) {
             $.get("/getfonts", res => {
                 if (res.ok) {
+                    var defaultFont = "";
                     selectFont.items.clear();
                     res.data.forEach(item => {
+                        if (item === "Arial") {
+                            defaultFont = item;
+                        } else if (item === "Ubuntu") {
+                            defaultFont = item;
+                        } else if (item === "San Francisco") {
+                            defaultFont = item
+                        }
                         selectFont.items.push({
                             text : item,
                         });
                     });
                     if (selectFont.items.length > 0) {
-                        selectFont.value = "Arial";
+                        selectFont.value = defaultFont;
                     }
                 }
             }, true);
         }
     });
+    const taFontPreview = $("#taFontPreview");
+    const settingFont = $("#settingFont");
+    const settingLocation = $("#settingLocation");
+    const settingMedia = $("#settingMedia");
 });
