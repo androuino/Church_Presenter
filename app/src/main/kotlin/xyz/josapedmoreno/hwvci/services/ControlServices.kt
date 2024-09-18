@@ -9,6 +9,7 @@ import com.intellisrc.web.service.Service
 import com.intellisrc.web.service.ServiciableMultiple
 import groovy.lang.Closure
 import org.eclipse.jetty.http.HttpMethod
+import xyz.josapedmoreno.hwvci.control.Core
 import xyz.josapedmoreno.hwvci.control.Paths.Companion.publicResources
 import xyz.josapedmoreno.hwvci.table.SongTable
 import java.io.File
@@ -59,6 +60,8 @@ class ControlServices : ServiciableMultiple {
         services.add(saveEditedSongService())
         services.add(getSongTitleService())
         services.add(steamService())
+        services.add(settingsService())
+        services.add(getFontsService())
         return services
     }
 
@@ -264,9 +267,38 @@ class ControlServices : ServiciableMultiple {
                 val map = LinkedHashMap<String, Any>(1)
                 val data = gson.fromJson(request.body, JsonObject::class.java)
                 val lyrics = data.get("lyrics").asString
-                // todo here
                 SSENotifier.sendLyrics(lyrics)
                 map["ok"] = true
+                return gson.toJson(map)
+            }
+        }
+        return service
+    }
+
+    private fun settingsService(): Service {
+        val service = Service()
+        service.method = HttpMethod.GET
+        service.allow = getUserAllow()
+        service.contentType = "text/html"
+        service.path = "/settings"
+        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
+            fun doCall(): File {
+                return File(publicResources, "settings.html")
+            }
+        }
+        return service
+    }
+
+    private fun getFontsService(): Service {
+        val service = Service()
+        service.method = HttpMethod.GET
+        service.allow = getUserAllow()
+        service.path = "/getfonts"
+        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
+            fun doCall(request: Request): String {
+                val map = LinkedHashMap<String, Any>(1)
+                map["ok"] = true
+                map["data"] = Core.getFonts()
                 return gson.toJson(map)
             }
         }

@@ -1,28 +1,22 @@
 package xyz.josapedmoreno.hwvci.services
 
-import com.intellisrc.thread.ServiceTask
-import java.lang.Thread.sleep
-
-class SSENotifier(val sseEventService: SSEEventService? = null) : ServiceTask() {
-    override fun process(): Runnable? {
-        return Thread {
-            while (running) {
-                sleep(10000)
-                //sseEventService.lyricsChangerNotifier("lyrics")
-            }
-        }
-    }
-
-    override fun reset(): Boolean {
-        running = false
-        return true
+class SSENotifier(private val sseEventService: SSEEventService?) {
+    fun process(lyrics: String) {
+        sseEventService?.lyricsChangerNotifier(lyrics)
     }
 
     companion object {
-        var running = true
-        var sseEventService: SSEEventService? = null
+        @Volatile
+        private var instance: SSENotifier? = null
+
+        @Synchronized
+        fun setInstance(instance: SSENotifier) {
+            this.instance = instance
+        }
+
+        @Synchronized
         fun sendLyrics(lyrics: String) {
-            SSENotifier().sseEventService?.lyricsChangerNotifier(lyrics)
+            instance?.process(lyrics) ?: throw IllegalStateException("SSENotifier is not initialized")
         }
     }
 }

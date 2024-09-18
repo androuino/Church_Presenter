@@ -4,7 +4,7 @@ import com.google.gson.Gson
 import com.intellisrc.web.service.ServerSentEvent
 
 class SSEEventService : ServerSentEvent() {
-    override fun getPath(): String? {
+    override fun getPath(): String {
         return "/events"
     }
 

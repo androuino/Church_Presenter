@@ -11,6 +11,15 @@ body {
     height: 100vh;
     color: white;
     font-size: 24px;
+    select {
+        width: calc(100% / 2);
+    }
+    input {
+        width: calc(100% / 2);
+    }
+    button {
+        width: calc(100% / 2);
+    }
 }
 .btn {
     appearance: none;

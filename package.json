@@ -1,6 +1,6 @@
 {
   "name": "hwvci-pnw-software",
-  "version": "1.0",
+  "version": "1.0.0",
   "description": "HWVCI PnW Software",
   "repository": {
     "type": "module",
