@@ -11,10 +11,25 @@
     <link rel="stylesheet" href="css/light.css" type="text/css" />
 </head>
 <body>
-<label for="selectFont">Choose font:</label>
-<select name="font" id="selectFont"></select><label for="inputFontSize">Font size:</label>
-<input id="inputFontSize" type="number" placeholder="14">
-<button id="buttonSave" class="btn">Save settings</button>
+<main id="main">
+    <ol>
+        <li id="settingFont">
+            <section id="sectionSettings">
+                <label for="selectFont">Choose font:</label>
+                <select name="font" id="selectFont"></select>
+                <label for="inputFontSize">Font size:</label>
+                <input id="inputFontSize" type="number" placeholder="14">
+                <button id="buttonSave" class="btn">Save settings</button>
+            </section>
+            <section id="sectionPreview">
+                <label for="taFontPreview">Font Preview</label>
+                <textarea name="font preview" id="taFontPreview">Sample TEXT</textarea>
+            </section>
+        </li>
+        <li id="settingLocation"></li>
+        <li id="settingMedia"></li>
+    </ol>
+</main>
 <script src="js/popper.min.js" type="text/javascript"></script>
 <script src="js/tippy-bundle.umd.js" type="text/javascript"></script>
 <script src="js/m2d2.bundle.min.js" type="text/javascript"></script>

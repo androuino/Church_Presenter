@@ -16,9 +16,6 @@ import xyz.josapedmoreno.hwvci.table.Users
 
 class App : SysService() {
     override fun onStart() {
-        val sseNotifier = SSENotifier(sseEventService)
-        SSENotifier.setInstance(sseNotifier)
-
         var port = Config.getInt("web.port")
         if (!args.isEmpty())
             port = Integer.parseInt(args.poll())
@@ -28,6 +25,10 @@ class App : SysService() {
         webService.add(AuthService())
         webService.add(ControlServices())
         webService.start(true)
+
+        val sseNotifier = SSENotifier(sseEventService)
+        sseNotifier.apply { start() }
+        SSENotifier.setInstance(sseNotifier)
 
         if (Users().createAdmin()) {
             Log.i("Admin is created")
