@@ -599,7 +599,8 @@ m2d2.ready($ => {
     const navSettings = $("#navSettings", {
         onclick : function(ev) {
             $.get("/settings", res => {
-                window.open('http://localhost:5555/settings', 'newWindow', 'width=800,height=600,toolbar=no,scrollbars=yes,resizable=yes');
+                const newWindowUrl = `${window.location.protocol}/settings`;
+                window.open(newWindowUrl, 'newWindow', 'width=1200,height=700,toolbar=no,scrollbars=yes,resizable=yes');
             }, true);
         }
     });
@@ -623,7 +624,8 @@ m2d2.ready($ => {
         $.get("/editsong/" + songId, res => {
             if (res.ok) {
                 localStorage.setItem("data", JSON.stringify(res.data));
-                window.open('http://localhost:5555/create', 'newWindow', 'width=800,height=600,toolbar=no,scrollbars=yes,resizable=yes');
+                const newWindowUrl = `${window.location.protocol}/create`;
+                window.open(newWindowUrl, 'newWindow', 'width=800,height=600,toolbar=no,scrollbars=yes,resizable=yes');
             }
         });
     }
