@@ -197,65 +197,145 @@ m2d2.ready($ => {
         }
     });
     */
+    const topLeftOffset = $("#topLeftOffset", {
+        disabled : true,
+        onchange : function(ev) {
+            previewText.style.marginTop = ev.target.value + "px";
+        }
+    });
+    const topMiddleOffset = $("#topMiddleOffset", {
+        disabled : true,
+        onchange : function(ev) {
+            previewText.style.marginTop = ev.target.value + "px";
+        }
+    });
+    const topRightOffset = $("#topRightOffset", {
+        disabled : true,
+        onchange : function(ev) {
+            previewText.style.marginTop = ev.target.value + "px";
+        }
+    });
+    const leftUpperOffset = $("#leftUpperOffset", {
+        disabled : true,
+        onchange : function(ev) {
+            previewText.style.marginLeft = ev.target.value + "px";
+        }
+    });
+    const rightUpperOffset = $("#rightUpperOffset", {
+        disabled : true,
+        onchange : function(ev) {
+            previewText.style.marginRight = ev.target.value + "px";
+        }
+    });
+    const leftMiddleOffset = $("#leftMiddleOffset", {
+        disabled : true,
+        onchange : function(ev) {
+            previewText.style.marginLeft = ev.target.value + "px";
+        }
+    });
+    const rightMiddleOffset = $("#rightMiddleOffset", {
+        disabled : true,
+        onchange : function(ev) {
+            previewText.style.marginRight = ev.target.value + "px";
+        }
+    });
+    const leftLowerOffset = $("#leftLowerOffset", {
+        disabled : true,
+        onchange : function(ev) {
+            previewText.style.marginLeft = ev.target.value + "px";
+        }
+    });
+    const rightLowerOffset = $("#rightLowerOffset", {
+        disabled : true,
+        onchange : function(ev) {
+            previewText.style.marginRight = ev.target.value + "px";
+        }
+    });
+    const leftBottomOffset = $("#leftBottomOffset", {
+        disabled : true,
+        onchange : function(ev) {
+            previewText.style.marginBottom = ev.target.value + "px";
+        }
+    });
+    const middleBottomOffset = $("#middleBottomOffset", {
+        disabled : true,
+        onchange : function(ev) {
+            previewText.style.marginBottom = ev.target.value + "px";
+        }
+    });
+    const rightBottomOffset = $("#rightBottomOffset", {
+        disabled : true,
+        onchange : function(ev) {
+            previewText.style.marginBottom = ev.target.value + "px";
+        }
+    });
     const previewContainer = $("#previewContainer");
     const radioTopLeft = $("#radioTopLeft", {
         onclick : function(ev) {
-            previewContainer.style.justifyContent = "flex-start";
-            previewContainer.style.alignItems = "flex-start";
+            changeLocation("flex-start", "flex-start");
+            resetOffset();
+            disabledOffset(false,true,true,false,true,true,true,true,true,true,true,true);
         }
     });
     const radioTopMiddle = $("#radioTopMiddle", {
         onclick : function(ev) {
-            previewContainer.style.justifyContent = "flex-start";
-            previewContainer.style.alignItems = "center";
+            changeLocation("flex-start", "center");
+            resetOffset();
+            disabledOffset(true,false,true,true,true,true,true,true,true,true,true,true);
         }
     });
     const radioTopRight = $("#radioTopRight", {
         onclick : function(ev) {
-            previewContainer.style.justifyContent = "flex-start";
-            previewContainer.style.alignItems = "flex-end";
+            changeLocation("flex-start", "flex-end");
+            resetOffset();
+            disabledOffset(true,true,false,true,false,true,true,true,true,true,true,true);
         }
     });
     const radioLefMiddle = $("#radioLefMiddle", {
         onclick : function(ev) {
-            previewContainer.style.justifyContent = "center";
-            previewContainer.style.alignItems = "flex-start";
+            changeLocation("center", "flex-start");
+            resetOffset();
+            disabledOffset(true,true,true,true,true,false,true,true,true,true,true,true);
         }
     });
     const radioCenter = $("#radioCenter", {
         onload : function(ev) {
-            if (this.checked === true) {
-                previewContainer.style.justifyContent = "center";
-                previewContainer.style.alignItems = "center";
-            }
+            console.log("Default location");
+            changeLocation("center", "center");
+            disabledOffset(true,false,true,true,true,false,false,true,true,true,false,true);
         },
         onclick : function(ev) {
-            previewContainer.style.justifyContent = "center";
-            previewContainer.style.alignItems = "center";
+            changeLocation("center", "center");
+            resetOffset();
+            disabledOffset(true,false,true,true,true,false,false,true,true,true,false,true);
         }
     });
     const radioRightMiddle = $("#radioRightMiddle", {
         onclick : function(ev) {
-            previewContainer.style.justifyContent = "center";
-            previewContainer.style.alignItems = "flex-end";
+            changeLocation("center", "flex-end");
+            resetOffset();
+            disabledOffset(true,true,true,true,true,true,false,true,true,true,true,true);
         }
     });
     const radioLeftBottom = $("#radioLeftBottom", {
         onclick : function(ev) {
-            previewContainer.style.justifyContent = "flex-end";
-            previewContainer.style.alignItems = "flex-start";
+            changeLocation("flex-end", "flex-start");
+            resetOffset();
+            disabledOffset(true,true,true,true,true,true,true,false,true,false,true,true);
         }
     });
     const radioMiddleBottom = $("#radioMiddleBottom", {
         onclick : function(ev) {
-            previewContainer.style.justifyContent = "flex-end";
-            previewContainer.style.alignItems = "center";
+            changeLocation("flex-end", "center");
+            resetOffset();
+            disabledOffset(true,true,true,true,true,true,true,true,true,true,false,true);
         }
     });
     const radioRightBottom = $("#radioRightBottom", {
         onclick : function(ev) {
-            previewContainer.style.justifyContent = "flex-end";
-            previewContainer.style.alignItems = "flex-end";
+            changeLocation("flex-end", "flex-end");
+            resetOffset();
+            disabledOffset(true,true,true,true,true,true,true,true,false,true,true,false);
         }
     });
     const previewText = $("#previewText", {
@@ -273,6 +353,44 @@ m2d2.ready($ => {
             });
         });
     });
+    const buttonResetOffset = $("#buttonResetOffset", {
+        onclick : function(ev) {
+            previewText.style.margin = "0";
+            resetOffset();
+        }
+    });
+    function resetOffset() {
+        topLeftOffset.value = "0";
+        topMiddleOffset.value = "0";
+        topRightOffset.value = "0";
+        leftUpperOffset.value = "0";
+        rightUpperOffset.value = "0";
+        leftMiddleOffset.value = "0";
+        rightMiddleOffset.value = "0";
+        leftLowerOffset.value = "0";
+        rightLowerOffset.value = "0";
+        leftBottomOffset.value = "0";
+        middleBottomOffset.value = "0";
+        rightBottomOffset.value = "0";
+    }
+    function disabledOffset(topLeft,topMiddle,topRight,leftUpper,rightUpper,leftMiddle,rightMiddle,leftLower,rightLower,leftBottom,middleBottom,rightBottom) {
+        topLeftOffset.disabled = topLeft;
+        topMiddleOffset.disabled = topMiddle;
+        topRightOffset.disabled = topRight;
+        leftUpperOffset.disabled = leftUpper;
+        rightUpperOffset.disabled = rightUpper;
+        leftMiddleOffset.disabled = leftMiddle;
+        rightMiddleOffset.disabled = rightMiddle;
+        leftLowerOffset.disabled = leftLower;
+        rightLowerOffset.disabled = rightLower;
+        leftBottomOffset.disabled = leftBottom;
+        middleBottomOffset.disabled = middleBottom;
+        rightBottomOffset.disabled = rightBottom;
+    }
+    function changeLocation(x, y) {
+        previewContainer.style.justifyContent = x;
+        previewContainer.style.alignItems = y;
+    }
     tippy('#navFontSettings', {
         content: "Font settings (Font style and size)",
         interactive: true,
@@ -371,7 +489,7 @@ m2d2.ready($ => {
         animation: 'scale',
         theme: 'light',
     });
-    tippy('#bottomLowerOffset', {
+    tippy('#leftLowerOffset', {
         content: "Bottom-lower offset",
         interactive: false,
         placement: 'right',
