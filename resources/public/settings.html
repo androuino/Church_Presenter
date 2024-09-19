@@ -26,11 +26,15 @@
                     <select name="font" id="selectFont"></select>
                     <label for="inputFontSize">Font size:</label>
                     <input id="inputFontSize" type="number" placeholder="14">
+                    <label for="colorPicker">Font color:</label>
+                    <input type="color" id="colorPicker" name="colorPicker" value="#000000">
                     <button id="buttonSave" class="btn">Save settings</button>
                 </section>
                 <section id="sectionPreview">
                     <label for="taFontPreview">Font Preview</label>
-                    <textarea name="font preview" id="taFontPreview">Sample TEXT</textarea>
+                    <aside id="taContainer">
+                        <textarea name="font preview" id="taFontPreview">Sample TEXT</textarea>
+                    </aside>
                     <aside id="fontModifierControls">
                         <span id="fontBold" class="gicon">format_bold</span>
                         <span id="fontItalic" class="gicon">format_italic</span>
@@ -68,7 +72,15 @@
                         <div class="box box24"><input id="rightBottomOffset" class="offset" type="number" value="0"></div>
                         <div class="box box25"></div>
                     </aside>
-                    <button id="buttonResetOffset" class="btn">Reset</button>
+                    <aside id="previewFontAlignment">
+                        <span id="fontAlignCenter" class="gicon">format_align_center</span>
+                        <span id="fontAlignHorRight" class="gicon">align_horizontal_right</span>
+                        <span id="fontAlignJustify" class="gicon">format_align_justify</span>
+                        <span id="fontAlignHorLeft" class="gicon">align_horizontal_left</span>
+                        <span id="fontAlignRight" class="gicon">format_align_right</span>
+                        <span id="fontAlignLeft" class="gicon">format_align_left</span>
+                    </aside>
+                    <button id="buttonResetOffset" class="btn">Reset offset</button>
                 </section>
                 <section id="sectionPreviewLocation">
                     <p>Preview</p>
