@@ -595,6 +595,10 @@ m2d2.ready($ => {
             }
         }
     });
+    const navWiFi = $("#navWiFi", {
+        onclick : function(ev) {
+        }
+    });
     // todo
     const navSettings = $("#navSettings", {
         onclick : function(ev) {
