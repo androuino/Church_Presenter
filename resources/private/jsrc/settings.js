@@ -32,11 +32,16 @@ m2d2.ready($ => {
     });
     const inputFontSize = $("#inputFontSize", {
         onload : function(ev) {
-            this.value = 14;
+            this.value = 24;
         },
         onchange : function(ev) {
+            var size = 1;
             if (this.value <= 0) {
                 this.value = 1;
+            } else {
+                size = ev.target.value;
+                taFontPreview.style.fontSize = size + "px";
+                previewText.style.fontSize = size + "px";
             }
         }
     });
@@ -67,7 +72,7 @@ m2d2.ready($ => {
     });
     const taFontPreview = $("#taFontPreview", {
         onchange : function(ev) {
-            previewText.text = this.value;
+            previewText.innerHTML = this.value.replace(/\n/g, '<br>');;
         }
     });
     const settingFont = $("#settingFont", {
@@ -87,7 +92,6 @@ m2d2.ready($ => {
             const host = window.location.hostname; // Get the current host
             const protocol = window.location.protocol; // Get the current protocol (http or https)
             const url = `${host}:5555`; // Construct the full URL
-            console.log(url);
             //livePreview.src = `/`; todo: uncomment if needed
         },
     });
@@ -151,8 +155,10 @@ m2d2.ready($ => {
             this.classList.toggle("active");
             if (this.classList.contains("active")) {
                 taFontPreview.style.fontWeight = 'bold';
+                previewText.style.fontWeight = 'bold';
             } else {
                 taFontPreview.style.fontWeight = '';
+                previewText.style.fontWeight = '';
             }
             // todo: update db
         }
@@ -162,8 +168,10 @@ m2d2.ready($ => {
             this.classList.toggle("active");
             if (this.classList.contains("active")) {
                 taFontPreview.style.fontStyle = 'italic';
+                previewText.style.fontStyle = 'italic';
             } else {
                 taFontPreview.style.fontStyle = '';
+                previewText.style.fontStyle = '';
             }
             // todo: update db
         }
@@ -173,13 +181,22 @@ m2d2.ready($ => {
             this.classList.toggle("active");
             if (this.classList.contains("active")) {
                 taFontPreview.style.textDecoration = 'line-through';
+                previewText.style.textDecoration = 'line-through';
             } else {
                 taFontPreview.style.textDecoration = '';
+                previewText.style.textDecoration = '';
             }
             // todo: update db
         }
     });
     const inputThemeName = $("#inputThemeName");
+    const colorPicker = $("#colorPicker", {
+        onchange : function(ev) {
+            const color = ev.target.value;
+            taFontPreview.style.color = color;
+            previewText.style.color = color;
+        }
+    });
     const buttonSaveTheme = $("#buttonSaveTheme", {
         onclick : function(ev) {
             if (inputThemeName.value === "") {
@@ -200,73 +217,133 @@ m2d2.ready($ => {
     const topLeftOffset = $("#topLeftOffset", {
         disabled : true,
         onchange : function(ev) {
-            previewText.style.marginTop = ev.target.value + "px";
+            var offset = ev.target.value;
+            if (offset <= 0) {
+                offset = 0;
+                this.value = offset;
+            }
+            previewText.style.marginTop = offset + "px";
         }
     });
     const topMiddleOffset = $("#topMiddleOffset", {
         disabled : true,
         onchange : function(ev) {
-            previewText.style.marginTop = ev.target.value + "px";
+            var offset = ev.target.value;
+            if (offset <= 0) {
+                offset = 0;
+                this.value = offset;
+            }
+            previewText.style.marginTop = offset + "px";
         }
     });
     const topRightOffset = $("#topRightOffset", {
         disabled : true,
         onchange : function(ev) {
-            previewText.style.marginTop = ev.target.value + "px";
+            var offset = ev.target.value;
+            if (offset <= 0) {
+                offset = 0;
+                this.value = offset;
+            }
+            previewText.style.marginTop = offset + "px";
         }
     });
     const leftUpperOffset = $("#leftUpperOffset", {
         disabled : true,
         onchange : function(ev) {
-            previewText.style.marginLeft = ev.target.value + "px";
+            var offset = ev.target.value;
+            if (offset <= 0) {
+                offset = 0;
+                this.value = offset;
+            }
+            previewText.style.marginLeft = offset + "px";
         }
     });
     const rightUpperOffset = $("#rightUpperOffset", {
         disabled : true,
         onchange : function(ev) {
-            previewText.style.marginRight = ev.target.value + "px";
+            var offset = ev.target.value;
+            if (offset <= 0) {
+                offset = 0;
+                this.value = offset;
+            }
+            previewText.style.marginRight = offset + "px";
         }
     });
     const leftMiddleOffset = $("#leftMiddleOffset", {
         disabled : true,
         onchange : function(ev) {
-            previewText.style.marginLeft = ev.target.value + "px";
+            var offset = ev.target.value;
+            if (offset <= 0) {
+                offset = 0;
+                this.value = offset;
+            }
+            previewText.style.marginLeft = offset + "px";
         }
     });
     const rightMiddleOffset = $("#rightMiddleOffset", {
         disabled : true,
         onchange : function(ev) {
-            previewText.style.marginRight = ev.target.value + "px";
+            var offset = ev.target.value;
+            if (offset <= 0) {
+                offset = 0;
+                this.value = offset;
+            }
+            previewText.style.marginRight = offset + "px";
         }
     });
     const leftLowerOffset = $("#leftLowerOffset", {
         disabled : true,
         onchange : function(ev) {
-            previewText.style.marginLeft = ev.target.value + "px";
+            var offset = ev.target.value;
+            if (offset <= 0) {
+                offset = 0;
+                this.value = offset;
+            }
+            previewText.style.marginLeft = offset + "px";
         }
     });
     const rightLowerOffset = $("#rightLowerOffset", {
         disabled : true,
         onchange : function(ev) {
-            previewText.style.marginRight = ev.target.value + "px";
+            var offset = ev.target.value;
+            if (offset <= 0) {
+                offset = 0;
+                this.value = offset;
+            }
+            previewText.style.marginRight = offset + "px";
         }
     });
     const leftBottomOffset = $("#leftBottomOffset", {
         disabled : true,
         onchange : function(ev) {
-            previewText.style.marginBottom = ev.target.value + "px";
+            var offset = ev.target.value;
+            if (offset <= 0) {
+                offset = 0;
+                this.value = offset;
+            }
+            previewText.style.marginBottom = offset + "px";
         }
     });
     const middleBottomOffset = $("#middleBottomOffset", {
         disabled : true,
         onchange : function(ev) {
-            previewText.style.marginBottom = ev.target.value + "px";
+            var offset = ev.target.value;
+            if (offset <= 0) {
+                offset = 0;
+                this.value = offset;
+            }
+            previewText.style.marginBottom = offset + "px";
         }
     });
     const rightBottomOffset = $("#rightBottomOffset", {
         disabled : true,
         onchange : function(ev) {
-            previewText.style.marginBottom = ev.target.value + "px";
+            var offset = ev.target.value;
+            if (offset <= 0) {
+                offset = 0;
+                this.value = offset;
+            }
+            previewText.style.marginBottom = offset + "px";
         }
     });
     const previewContainer = $("#previewContainer");
@@ -357,6 +434,76 @@ m2d2.ready($ => {
         onclick : function(ev) {
             previewText.style.margin = "0";
             resetOffset();
+        }
+    });
+    const fontAlignCenter = $("#fontAlignCenter", {
+        onload : function(ev) {
+            this.classList.add("active");
+            previewText.style.textAlign = "center";
+        },
+        onclick : function(ev) {
+            previewText.style.textAlign = "center";
+            this.classList.add("active");
+            fontAlignHorRight.classList.remove("active");
+            fontAlignJustify.classList.remove("active");
+            fontAlignHorLeft.classList.remove("active");
+            fontAlignRight.classList.remove("active");
+            fontAlignLeft.classList.remove("active");
+        }
+    });
+    const fontAlignHorRight = $("#fontAlignHorRight", {
+        onclick : function(ev) {
+            previewText.style.textAlign = "end";
+            fontAlignCenter.classList.remove("active");
+            this.classList.add("active");
+            fontAlignJustify.classList.remove("active");
+            fontAlignHorLeft.classList.remove("active");
+            fontAlignRight.classList.remove("active");
+            fontAlignLeft.classList.remove("active");
+        }
+    });
+    const fontAlignJustify = $("#fontAlignJustify", {
+        onclick : function(ev) {
+            previewText.style.textAlign = "justify";
+            fontAlignCenter.classList.remove("active");
+            fontAlignHorRight.classList.remove("active");
+            this.classList.add("active");
+            fontAlignHorLeft.classList.remove("active");
+            fontAlignRight.classList.remove("active");
+            fontAlignLeft.classList.remove("active");
+        }
+    });
+    const fontAlignHorLeft = $("#fontAlignHorLeft", {
+        onclick : function(ev) {
+            previewText.style.textAlign = "start";
+            fontAlignCenter.classList.remove("active");
+            fontAlignHorRight.classList.remove("active");
+            fontAlignJustify.classList.remove("active");
+            this.classList.add("active");
+            fontAlignRight.classList.remove("active");
+            fontAlignLeft.classList.remove("active");
+        }
+    });
+    const fontAlignRight = $("#fontAlignRight", {
+        onclick : function(ev) {
+            previewText.style.textAlign = "right";
+            fontAlignCenter.classList.remove("active");
+            fontAlignHorRight.classList.remove("active");
+            fontAlignJustify.classList.remove("active");
+            fontAlignHorLeft.classList.remove("active");
+            this.classList.add("active");
+            fontAlignLeft.classList.remove("active");
+        }
+    });
+    const fontAlignLeft = $("#fontAlignLeft", {
+        onclick : function(ev) {
+            previewText.style.textAlign = "left";
+            fontAlignCenter.classList.remove("active");
+            fontAlignHorRight.classList.remove("active");
+            fontAlignJustify.classList.remove("active");
+            fontAlignHorLeft.classList.remove("active");
+            fontAlignRight.classList.remove("active");
+            this.classList.add("active");
         }
     });
     function resetOffset() {
@@ -519,6 +666,48 @@ m2d2.ready($ => {
     });
     tippy('#rightBottomOffset', {
         content: "Right-bottom offset",
+        interactive: false,
+        placement: 'bottom',
+        animation: 'scale',
+        theme: 'light',
+    });
+    tippy('#fontAlignCenter', {
+        content: "Text align center",
+        interactive: false,
+        placement: 'bottom',
+        animation: 'scale',
+        theme: 'light',
+    });
+    tippy('#fontAlignHorRight', {
+        content: "Text align end",
+        interactive: false,
+        placement: 'bottom',
+        animation: 'scale',
+        theme: 'light',
+    });
+    tippy('#fontAlignJustify', {
+        content: "Text align justify",
+        interactive: false,
+        placement: 'bottom',
+        animation: 'scale',
+        theme: 'light',
+    });
+    tippy('#fontAlignHorLeft', {
+        content: "Text align start",
+        interactive: false,
+        placement: 'bottom',
+        animation: 'scale',
+        theme: 'light',
+    });
+    tippy('#fontAlignRight', {
+        content: "Text align right",
+        interactive: false,
+        placement: 'bottom',
+        animation: 'scale',
+        theme: 'light',
+    });
+    tippy('#fontAlignLeft', {
+        content: "Text align left",
         interactive: false,
         placement: 'bottom',
         animation: 'scale',
