@@ -15,61 +15,297 @@ main {
     color: white;
     font-size: 24px;
     margin: 0;
-    ol {
-        width: 100%;
-        height: 100vh;
+    #settingsNav {
+        width: 24px;
         display: flex;
-        flex-direction: row;
-        list-style: none;
-        #settingFont {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            display: flex;
-            #sectionSettings {
-                display: flex;
-                flex-direction: column;
-                width: calc(100% / 2);
-                gap: 8px;
-                margin: 8px;
-                select {
-                    width: 100%;
-                    font-size: 1.2em;
-                }
-                input {
-                    width: 100%;
-                    font-size: 1.2em;
-                }
-                button {
-                    width: calc(100% / 2);
-                }
-            }
-            #sectionPreview {
-                display: flex;
-                flex-direction: column;
-                width: calc(100% / 2);
-                gap: 8px;
-                margin: 8px;
-                textarea {
-                    width: 100%;
-                    height: 4em;
-                    font-size: 1.2em;
-                }
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        bap: 8px;
+        background-color: cadetblue;
+        span {
+            &:hover {
+                cursor: pointer;
+                background-color: green;
             }
         }
-        #settingLocation {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            display: flex;
-        }
-        #settingMedia {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            display: flex;
+        span.active {
+            background-color: green;
         }
     }
+    section {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        ol {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: row;
+            list-style: none;
+            #settingFont {
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                display: flex;
+                #sectionSettings {
+                    display: flex;
+                    flex-direction: column;
+                    width: calc(100% / 2);
+                    gap: 8px;
+                    margin: 8px;
+                    select {
+                        width: 100%;
+                        font-size: 1.2em;
+                    }
+                    input {
+                        width: 100%;
+                        font-size: 1.2em;
+                    }
+                    button {
+                        width: calc(100% / 2);
+                    }
+                }
+                #sectionPreview {
+                    display: flex;
+                    flex-direction: column;
+                    width: calc(100% / 2);
+                    gap: 8px;
+                    margin: 8px;
+                    textarea {
+                        width: 100%;
+                        height: 4em;
+                        font-size: 1.2em;
+                    }
+                    aside {
+                        display: flex;
+                        flex-direction: row;
+                        span {
+                            &:hover {
+                                cursor: pointer;
+                                background-color: green;
+                            }
+                        }
+                        span.active {
+                            background-color: cadetblue;
+                        }
+                    }
+                }
+            }
+            #settingLocation {
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                display: flex;
+                flex-direction: row;
+                #sectionSettingLocation {
+                    display: flex;
+                    justify-content: flex-start;
+                    align-items: flex-start;
+                    width: calc(100% / 2);
+                    gap: 8px;
+                    margin: 8px;
+                    aside {
+                        display: grid;
+                        grid-template-columns: repeat(5, 1fr);
+                        grid-template-rows: repeat(4, 1fr);
+                        gap: 1px;
+                        width: 100%;
+                        height: auto;
+                        border: 1px solid black;
+                        background-color: black;
+                        overflow: auto;
+                        .box {
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            border: 1px solid black;
+                            background-color: black;
+                            width: 100px;
+                        }
+                        .offset {
+                            margin: 8px;
+                            font-size: 1em;
+                            width: 80px;
+                        }
+                        .box1 {
+                            grid-column: 1 / 2;
+                            grid-row: 1 / 2;
+                            background-color: black;
+                        }
+                        .box2 {
+                            grid-column: 2 / 3;
+                            grid-row: 1 / 2;
+                            background-color: cyan;
+                        }
+                        .box3 {
+                            grid-column: 3 / 4;
+                            grid-row: 1 / 2;
+                            background-color: magenta;
+                        }
+                        .box4 {
+                            grid-column: 4 / 4;
+                            grid-row: 1 / 1;
+                            background-color: cyan;
+                        }
+                        .box5 {
+                            grid-column: 5 / 5;
+                            grid-row: 1 / 1;
+                            background-color: black;
+                        }
+                        .box6 {
+                            grid-column: 1 / 1;
+                            grid-row: 2 / 2;
+                            background-color: cyan;
+                        }
+                        .box7 {
+                            grid-column: 2 / 2;
+                            grid-row: 2 / 3;
+                            background-color: black;
+                        }
+                        .box8 {
+                            grid-column: 3 / 3;
+                            grid-row: 2 / 2;
+                            background-color: black;
+                        }
+                        .box9 {
+                            grid-column: 4 / 4;
+                            grid-row: 2 / 2;
+                            background-color: black;
+                        }
+                        .box10 {
+                            grid-column: 5 / 5;
+                            grid-row: 2 / 2;
+                            background-color: cyan;
+                        }
+                        .box11 {
+                            grid-column: 1 / 1;
+                            grid-row: 3 / 3;
+                            background-color: magenta;
+                        }
+                        .box12 {
+                            grid-column: 2 / 3;
+                            grid-row: 3 / 3;
+                            background-color: black;
+                        }
+                        .box13 {
+                            grid-column: 3 / 3;
+                            grid-row: 3 / 3;
+                            background-color: black;
+                        }
+                        .box14 {
+                            grid-column: 4 / 4;
+                            grid-row: 3 / 4;
+                            background-color: black;
+                        }
+                        .box15 {
+                            grid-column: 5 / 5;
+                            grid-row: 3 / 3;
+                            background-color: magenta;
+                        }
+                        .box16 {
+                            grid-column: 1 / 1;
+                            grid-row: 4 / 4;
+                            background-color: cyan;
+                        }
+                        .box17 {
+                            grid-column: 2 / 2;
+                            grid-row: 4 / 4;
+                            background-color: black;
+                        }
+                        .box18 {
+                            grid-column: 3 / 3;
+                            grid-row: 4 / 4;
+                            background-color: black;
+                        }
+                        .box19 {
+                            grid-column: 4 / 4;
+                            grid-row: 4 / 4;
+                            background-color: black;
+                        }
+                        .box20 {
+                            grid-column: 5 / 5;
+                            grid-row: 4 / 5;
+                            background-color: cyan;
+                        }
+                        .box21 {
+                            grid-column: 1 / 1;
+                            grid-row: 5 / 5;
+                            background-color: black;
+                        }
+                        .box22 {
+                            grid-column: 2 / 2;
+                            grid-row: 5 / 5;
+                            background-color: cyan;
+                        }
+                        .box23 {
+                            grid-column: 3 / 3;
+                            grid-row: 5 / 5;
+                            background-color: magenta;
+                        }
+                        .box24 {
+                            grid-column: 4 / 4;
+                            grid-row: 5 / 5;
+                            background-color: cyan;
+                        }
+                        .box25 {
+                            grid-column: 5 / 5;
+                            grid-row: 5 / 5;
+                            background-color: black;
+                        }
+                    }
+                }
+                #sectionPreviewLocation {
+                    width: calc(100% / 2);
+                    gap: 8px;
+                    margin: 8px;
+                    /*
+                    iframe {
+                        margin: 0;
+                        padding: 0;
+                        height: 100%;
+                    }
+                    */
+                    aside {
+                        margin: 0;
+                        padding: 0;
+                        width: 100%;
+                        height: 500px;
+                        display: flex;
+                        background-color: black;
+                        p {
+                            color: white;
+                        }
+                    }
+                }
+            }
+            #settingMedia {
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                display: flex;
+            }
+            #settingThemeList {
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                display: flex;
+            }
+        }
+        aside {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            input {
+                width: calc(100% / 2);
+                font-size: 1.2em;
+            }
+        }
+    }
+
 }
 .btn {
     appearance: none;
