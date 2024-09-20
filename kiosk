@@ -5,14 +5,14 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then # linux
   while true ; do
     sleep 20
     #xdotool key ctrl+r
-    chromium --kiosk http://localhost:5555/
+    chromium-browser --kiosk http://localhost:5555/
     break
   done
 elif [[ "$OSTYPE" == "linux-gnueabihf" ]]; then
   while true ; do
     sleep 20
     #xdotool key ctrl+r
-    chromium --kiosk http://localhost:5555/
+    chromium-browser --kiosk http://localhost:5555/
     break
   done
 elif [[ "$OSTYPE" == "darwin"* ]]; then # Mac OS

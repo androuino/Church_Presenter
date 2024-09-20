@@ -12,6 +12,10 @@ class SSEEventService : ServerSentEvent() {
         broadcast(lyrics, "lyrics")
     }
 
+    fun wifiStatusNotifier(status: String) {
+        broadcast(status, "wifi")
+    }
+
     companion object {
         private val gson = Gson().newBuilder().create()
         private val map = LinkedHashMap<String, Any>(1)

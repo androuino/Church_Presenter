@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WiFi Settings</title>
+
+    <link rel="stylesheet" href="css/alert.css" type="text/css"/>
+    <link rel="stylesheet" href="css/googleicon.css" type="text/css">
+    <link rel="stylesheet" href="css/wifisettings.min.css" type="text/css"/>
+    <link rel="stylesheet" href="css/scale.css" type="text/css" />
+    <link rel="stylesheet" href="css/light.css" type="text/css" />
+</head>
+<body>
+<main id="main">
+    <p>WIFI SETTINGS</p>
+    <section id="wifiStatus">
+        <aside id="ssidContainer">
+            <p>Wifi is connected to: </p><p id="ssid"></p>
+        </aside>
+        <aside id="ipContainer">
+            <p>IP Address is:</p><p id="ip"></p>
+        </aside>
+    </section>
+    <section id="wifiList">
+        <label for="wifiSsidList">WiFi SSID</label>
+        <select name="ssids" id="wifiSsidList"></select>
+        <label for="wifiPassword">WiFi Password</label>
+        <aside>
+            <input id="wifiPassword" type="password">
+            <span id="showPassword" class="gicon">visibility_off</span>
+        </aside>
+    </section>
+    <section id="wifiControls">
+        <button id="buttonConnectWifi" class="btn">Connect</button>
+        <button id="buttonDisconnectWifi" class="btn">Disconnect</button>
+    </section>
+</main>
+<script src="js/popper.min.js" type="text/javascript"></script>
+<script src="js/tippy-bundle.umd.js" type="text/javascript"></script>
+<script src="js/m2d2.bundle.min.js" type="text/javascript"></script>
+<script type="text/javascript" src="js/wifisettings.min.js"></script>
+</body>
+</html>
