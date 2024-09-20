@@ -18,6 +18,10 @@ m2d2.load($ => {
     });
 });
 m2d2.ready($ => {
+    var isBold = false;
+    var isItalic = false;
+    var isStrikeThrough = false;
+    var alignment = "center";
     const selectFont = $("#selectFont", {
         template : {
             font : {
@@ -101,6 +105,17 @@ m2d2.ready($ => {
             settingFont.show = false;
             settingLocation.show = false;
             settingThemeList.show = false;
+
+            $.get("/getthemes", res => {
+                if (res.ok) {
+                    themeList.items.clear();
+                    res.data.forEach(item => {
+                        themeList.items.push({
+                            text : item,
+                        });
+                    });
+                }
+            }, true);
         },
     });
     const settingThemeList = $("#settingThemeList", {
@@ -156,9 +171,11 @@ m2d2.ready($ => {
             if (this.classList.contains("active")) {
                 taFontPreview.style.fontWeight = 'bold';
                 previewText.style.fontWeight = 'bold';
+                isBold = true;
             } else {
                 taFontPreview.style.fontWeight = '';
                 previewText.style.fontWeight = '';
+                isBold = false;
             }
             // todo: update db
         }
@@ -169,9 +186,11 @@ m2d2.ready($ => {
             if (this.classList.contains("active")) {
                 taFontPreview.style.fontStyle = 'italic';
                 previewText.style.fontStyle = 'italic';
+                isItalic = true;
             } else {
                 taFontPreview.style.fontStyle = '';
                 previewText.style.fontStyle = '';
+                isItalic = false;
             }
             // todo: update db
         }
@@ -182,9 +201,11 @@ m2d2.ready($ => {
             if (this.classList.contains("active")) {
                 taFontPreview.style.textDecoration = 'line-through';
                 previewText.style.textDecoration = 'line-through';
+                isStrikeThrough = true;
             } else {
                 taFontPreview.style.textDecoration = '';
                 previewText.style.textDecoration = '';
+                isStrikeThrough = false;
             }
             // todo: update db
         }
@@ -202,8 +223,38 @@ m2d2.ready($ => {
             if (inputThemeName.value === "") {
                 $.failure("Please type-in a theme's name");
             } else {
-                // todo: save to db
-                inputThemeName.value = "";
+                const data = {
+                    themeName: inputThemeName.value,
+                    font: selectFont.value,
+                    fontSize: inputFontSize.value,
+                    fontColor: colorPicker.value,
+                    bold: isBold,
+                    italic: isItalic,
+                    strikeThrough: isItalic,
+                    topLeftOffset: topLeftOffset.value,
+                    topMiddleOffset: topMiddleOffset.value,
+                    topRightOffset: topRightOffset.value,
+                    leftUpperOffset: leftUpperOffset.value,
+                    rightUpperOffset: rightUpperOffset.value,
+                    leftMiddleOffset: leftMiddleOffset.value,
+                    rightMiddleOffset: rightMiddleOffset.value,
+                    leftLowerOffset: leftLowerOffset.value,
+                    rightLowerOffset: rightLowerOffset.value,
+                    leftBottomOffset: leftBottomOffset.value,
+                    middleBottomOffset: middleBottomOffset.value,
+                    rightBottomOffset: rightBottomOffset.value,
+                    textAlign: alignment
+                };
+                $.put("/savetheme", data, res => {
+                    if (res.ok) {
+                        $.success("New theme saved.");
+                        inputThemeName.value = "";
+                    } else {
+                        $.failure("An error occurred!");
+                    }
+                }, error => {
+                    $.failure("An error occurred!", error);
+                }, true);
             }
         }
     });
@@ -377,7 +428,6 @@ m2d2.ready($ => {
     });
     const radioCenter = $("#radioCenter", {
         onload : function(ev) {
-            console.log("Default location");
             changeLocation("center", "center");
             disabledOffset(true,false,true,true,true,false,false,true,true,true,false,true);
         },
@@ -449,6 +499,7 @@ m2d2.ready($ => {
             fontAlignHorLeft.classList.remove("active");
             fontAlignRight.classList.remove("active");
             fontAlignLeft.classList.remove("active");
+            alignment = "center";
         }
     });
     const fontAlignHorRight = $("#fontAlignHorRight", {
@@ -460,6 +511,7 @@ m2d2.ready($ => {
             fontAlignHorLeft.classList.remove("active");
             fontAlignRight.classList.remove("active");
             fontAlignLeft.classList.remove("active");
+            alignment = "end";
         }
     });
     const fontAlignJustify = $("#fontAlignJustify", {
@@ -471,6 +523,7 @@ m2d2.ready($ => {
             fontAlignHorLeft.classList.remove("active");
             fontAlignRight.classList.remove("active");
             fontAlignLeft.classList.remove("active");
+            alignment = "justify";
         }
     });
     const fontAlignHorLeft = $("#fontAlignHorLeft", {
@@ -482,6 +535,7 @@ m2d2.ready($ => {
             this.classList.add("active");
             fontAlignRight.classList.remove("active");
             fontAlignLeft.classList.remove("active");
+            alignment = "start";
         }
     });
     const fontAlignRight = $("#fontAlignRight", {
@@ -493,6 +547,7 @@ m2d2.ready($ => {
             fontAlignHorLeft.classList.remove("active");
             this.classList.add("active");
             fontAlignLeft.classList.remove("active");
+            alignment = "right";
         }
     });
     const fontAlignLeft = $("#fontAlignLeft", {
@@ -504,7 +559,17 @@ m2d2.ready($ => {
             fontAlignHorLeft.classList.remove("active");
             fontAlignRight.classList.remove("active");
             this.classList.add("active");
+            alignment = "left";
         }
+    });
+    const themeList = $("#themeList", {
+        template : {
+            optionTheme : {
+                tagName : "option",
+                id : "optionTheme",
+            }
+        },
+        items : [],
     });
     function resetOffset() {
         topLeftOffset.value = "0";

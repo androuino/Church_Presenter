@@ -2,8 +2,6 @@ package xyz.josapedmoreno.hwvci.services
 
 import com.google.gson.Gson
 import com.google.gson.JsonObject
-import com.intellisrc.core.Log
-import com.intellisrc.thread.Tasks
 import com.intellisrc.web.service.Request
 import com.intellisrc.web.service.Service
 import com.intellisrc.web.service.ServiciableMultiple
@@ -12,6 +10,7 @@ import org.eclipse.jetty.http.HttpMethod
 import xyz.josapedmoreno.hwvci.control.Core
 import xyz.josapedmoreno.hwvci.control.Paths.Companion.publicResources
 import xyz.josapedmoreno.hwvci.table.SongTable
+import xyz.josapedmoreno.hwvci.table.Themes
 import java.io.File
 
 class ControlServices : ServiciableMultiple {
@@ -62,6 +61,12 @@ class ControlServices : ServiciableMultiple {
         services.add(steamService())
         services.add(settingsService())
         services.add(getFontsService())
+        services.add(getSSIDService())
+        services.add(wifiSettingsService())
+        services.add(wifiConnectService())
+        services.add(wifiDisconnectService())
+        services.add(saveThemeService())
+        services.add(getThemeService())
         return services
     }
 
@@ -299,6 +304,107 @@ class ControlServices : ServiciableMultiple {
                 val map = LinkedHashMap<String, Any>(1)
                 map["ok"] = true
                 map["data"] = Core.getFonts()
+                return gson.toJson(map)
+            }
+        }
+        return service
+    }
+
+    private fun getSSIDService(): Service {
+        val service = Service()
+        service.method = HttpMethod.GET
+        service.allow = getUserAllow()
+        service.path = "/getssid"
+        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
+            fun doCall(request: Request): String {
+                var success = false
+                val map = LinkedHashMap<String, Any>(1)
+                val data = Core.getAvailableWifiSSIDsLinux()
+                if (data.isNotEmpty()) {
+                    success = true
+                    map["data"] = data
+                }
+                map["ok"] = success
+                return gson.toJson(map)
+            }
+        }
+        return service
+    }
+
+    private fun wifiSettingsService(): Service {
+        val service = Service()
+        service.method = HttpMethod.GET
+        service.allow = getUserAllow()
+        service.contentType = "text/html"
+        service.path = "/wifisettings"
+        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
+            fun doCall(): File {
+                return File(publicResources, "wifisettings.html")
+            }
+        }
+        return service
+    }
+
+    private fun wifiConnectService(): Service {
+        val service = Service()
+        service.method = HttpMethod.POST
+        service.allow = getUserAllow()
+        service.path = "/wificonnect"
+        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
+            fun doCall(request: Request): String {
+                var success = false
+                val map = LinkedHashMap<String, Any>(1)
+                val data = gson.fromJson(request.body, JsonObject::class.java)
+                success = Core.connectToWifi(data)
+                map["ok"] = success
+                return gson.toJson(map)
+            }
+        }
+        return service
+    }
+
+    private fun wifiDisconnectService(): Service {
+        val service = Service()
+        service.method = HttpMethod.POST
+        service.allow = getUserAllow()
+        service.path = "/wifidisconnect"
+        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
+            fun doCall(request: Request): String {
+                val map = LinkedHashMap<String, Any>(1)
+                map["ok"] = Core.wifiDisconnect()
+                return gson.toJson(map)
+            }
+        }
+        return service
+    }
+
+    private fun saveThemeService(): Service {
+        val service = Service()
+        service.method = HttpMethod.PUT
+        service.allow = getUserAllow()
+        service.path = "/savetheme"
+        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
+            fun doCall(request: Request): String {
+                val map = LinkedHashMap<String, Any>(1)
+                val data = gson.fromJson(request.body, JsonObject::class.java)
+                map["ok"] = Themes().saveTheme(data)
+                return gson.toJson(map)
+            }
+        }
+        return service
+    }
+
+    private fun getThemeService(): Service {
+        val service = Service()
+        service.method = HttpMethod.GET
+        service.allow = getUserAllow()
+        service.path = "/getthemes"
+        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
+            fun doCall(request: Request): String {
+                val map = LinkedHashMap<String, Any>(1)
+                val data = gson.fromJson(request.body, JsonObject::class.java)
+                map["ok"] = true
+                map["data"] = Themes().getThemes()
                 return gson.toJson(map)
             }
         }

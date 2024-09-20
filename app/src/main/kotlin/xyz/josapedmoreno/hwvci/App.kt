@@ -12,6 +12,7 @@ import xyz.josapedmoreno.hwvci.services.AuthService
 import xyz.josapedmoreno.hwvci.services.ControlServices
 import xyz.josapedmoreno.hwvci.services.SSEEventService
 import xyz.josapedmoreno.hwvci.services.SSENotifier
+import xyz.josapedmoreno.hwvci.services.WifiNotifier
 import xyz.josapedmoreno.hwvci.table.Users
 
 class App : SysService() {
@@ -29,6 +30,8 @@ class App : SysService() {
         val sseNotifier = SSENotifier(sseEventService)
         sseNotifier.apply { start() }
         SSENotifier.setInstance(sseNotifier)
+        val wifiNotifier = WifiNotifier(sseEventService)
+        Tasks.add(wifiNotifier)
 
         if (Users().createAdmin()) {
             Log.i("Admin is created")

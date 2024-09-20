@@ -18,6 +18,7 @@ m2d2.load($ => {
     });
 });
 m2d2.ready($ => {
+    const evtSource = new EventSource('/events');
     var select = null;
     var songId = null;
     var songTitle = "";
@@ -442,7 +443,8 @@ m2d2.ready($ => {
     });
     const navNew = $("#navNew", {
         onclick : function(ev) {
-            window.open('http://localhost:5555/create', 'newWindow', 'width=800,height=600,toolbar=no,scrollbars=yes,resizable=yes');
+            const newWindowUrl = `${window.location.protocol}/create`;
+            window.open(newWindowUrl, 'newWindow', 'width=800,height=600,toolbar=no,scrollbars=yes,resizable=yes');
         }
     });
     const navEdit = $("#navEdit", {
@@ -597,6 +599,8 @@ m2d2.ready($ => {
     });
     const navWiFi = $("#navWiFi", {
         onclick : function(ev) {
+            const newWindowUrl = `${window.location.protocol}/wifisettings`;
+            window.open(newWindowUrl, 'newWindow', 'width=800,height=400,toolbar=no,scrollbars=yes,resizable=yes');
         }
     });
     // todo
@@ -633,40 +637,55 @@ m2d2.ready($ => {
             }
         });
     }
+    evtSource.addEventListener("wifi", function (ev) {
+        var data = JSON.parse(JSON.parse(ev.data));
+        if (data.status === "connected") {
+            navWiFi.style.color = "green";
+        } else {
+            navWiFi.style.color = "";
+        }
+    });
     tippy('#navNew', {
         content: "Create a new song",
         interactive: true,
-        placement: 'top',
+        placement: 'right',
         animation: 'scale',
     });
     tippy('#navEdit', {
         content: "Edit an existing song",
         interactive: true,
-        placement: 'top',
+        placement: 'right',
         animation: 'scale',
     });
     tippy('#navDelete', {
         content: "Delete a song",
         interactive: true,
-        placement: 'top',
+        placement: 'right',
         animation: 'scale',
     });
     tippy('#navInfo', {
         allowHTML: true,
         content: 'About',
         interactive: true,
+        placement: 'right',
+        animation: 'scale',
+    });
+    tippy('#navWiFi', {
+        content: "Connect the server to a wifi network",
+        interactive: true,
+        placement: 'right',
         animation: 'scale',
     });
     tippy('#navSettings', {
         content: "Settings",
         interactive: true,
-        placement: 'top',
+        placement: 'right',
         animation: 'scale',
     });
     tippy('#navLogout', {
         content: "Log out",
         interactive: true,
-        placement: 'top',
+        placement: 'right',
         animation: 'scale',
     });
     tippy('#iconSearch', {
