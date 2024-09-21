@@ -22,6 +22,8 @@ m2d2.ready($ => {
     var isItalic = false;
     var isStrikeThrough = false;
     var alignment = "center";
+    const previewMedia = $("#previewMedia");
+    const videoPlayback = $("#videoPlayback");
     const selectFont = $("#selectFont", {
         template : {
             font : {
@@ -83,7 +85,6 @@ m2d2.ready($ => {
         show : true,
         onshow : function(ev) {
             settingLocation.show = false;
-            settingMedia.show = false;
             settingThemeList.show = false;
         },
     });
@@ -91,20 +92,11 @@ m2d2.ready($ => {
         show : false,
         onshow : function(ev) {
             settingFont.show = false;
-            settingMedia.show = false;
             settingThemeList.show = false;
             const host = window.location.hostname; // Get the current host
             const protocol = window.location.protocol; // Get the current protocol (http or https)
             const url = `${host}:5555`; // Construct the full URL
             //livePreview.src = `/`; todo: uncomment if needed
-        },
-    });
-    const settingMedia = $("#settingMedia", {
-        show : false,
-        onshow : function(ev) {
-            settingFont.show = false;
-            settingLocation.show = false;
-            settingThemeList.show = false;
 
             $.get("/getthemes", res => {
                 if (res.ok) {
@@ -123,7 +115,6 @@ m2d2.ready($ => {
         onshow : function(ev) {
             settingFont.show = false;
             settingLocation.show = false;
-            settingMedia.show = false;
         }
     });
     const navFontSettings = $("#navFontSettings", {
@@ -134,7 +125,6 @@ m2d2.ready($ => {
             settingFont.show = true;
             this.classList.add("active");
             navLocationSettings.classList.remove("active");
-            navMediaSettings.classList.remove("active");
             navThemeList.classList.remove("active");
         },
     });
@@ -143,16 +133,6 @@ m2d2.ready($ => {
             settingLocation.show = true;
             this.classList.add("active");
             navFontSettings.classList.remove("active");
-            navMediaSettings.classList.remove("active");
-            navThemeList.classList.remove("active");
-        }
-    });
-    const navMediaSettings = $("#navMediaSettings", {
-        onclick : function(ev) {
-            settingMedia.show = true
-            this.classList.add("active");
-            navFontSettings.classList.remove("active");
-            navLocationSettings.classList.remove("active");
             navThemeList.classList.remove("active");
         }
     });
@@ -162,7 +142,6 @@ m2d2.ready($ => {
             this.classList.add("active");
             navFontSettings.classList.remove("active");
             navLocationSettings.classList.remove("active");
-            navMediaSettings.classList.remove("active");
         }
     });
     const fontBold = $("#fontBold", {
@@ -571,6 +550,21 @@ m2d2.ready($ => {
         },
         items : [],
     });
+    const buttonOpenFile = $("#buttonOpenFile", {
+        onclick : function(ev) {
+            // todo: open the file dialog and choose the media - set it and play
+        }
+    });
+    const mediaLink = $("#mediaLink");
+    const buttonSetPlay = $("#buttonSetPlay", {
+        onclick : function(ev) {
+            if (mediaLink.value === "") {
+                $.failure("You did not provide a proper link.");
+            } else {
+                // todo: set the media as background
+            }
+        }
+    });
     function resetOffset() {
         topLeftOffset.value = "0";
         topMiddleOffset.value = "0";
@@ -612,13 +606,6 @@ m2d2.ready($ => {
     });
     tippy('#navLocationSettings', {
         content: "Setting for the location of text on the screen",
-        interactive: true,
-        placement: 'right',
-        animation: 'scale',
-        theme: 'light',
-    });
-    tippy('#navMediaSettings', {
-        content: "Media settings for adding background",
         interactive: true,
         placement: 'right',
         animation: 'scale',
