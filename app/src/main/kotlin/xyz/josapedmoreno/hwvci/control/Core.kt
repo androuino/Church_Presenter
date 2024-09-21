@@ -10,10 +10,11 @@ import java.net.InetAddress
 import java.net.NetworkInterface
 import kotlin.concurrent.fixedRateTimer
 
-
 class Core {
     companion object {
         private val gson = Gson().newBuilder().create()
+        private val osName = System.getProperty("os.name").lowercase()
+
 
         fun getFonts() : Array<String> {
             // Get the local graphics environment
@@ -22,12 +23,12 @@ class Core {
             val fontNames = ge.availableFontFamilyNames
             return fontNames
         }
-        fun getAvailableWifiSSIDsPi(): List<String> {
+        private fun getAvailableWifiSSIDsLinux(): List<String> {
             val ssids = mutableListOf<String>()
 
             try {
                 // Execute the 'iwlist' command to scan for WiFi networks
-                val process = ProcessBuilder("sh", "-c", "iwlist wlan0 scan | grep 'ESSID'").start()
+                val process: Process = ProcessBuilder("sh", "-c", "iwlist wlp2s0 scan | grep 'ESSID'").start()
                 // Execute the 'airport' command to scan for WiFi networks
                 val reader = BufferedReader(InputStreamReader(process.inputStream))
 
@@ -37,7 +38,6 @@ class Core {
                         // Extract the SSID from the line
                         val ssid = line.substringAfter("ESSID:\"").substringBefore("\"")
                         if (ssid.isNotEmpty()) {
-                            Log.i("SSID is ", ssid)
                             ssids.add(ssid)
                         }
                     }
@@ -50,56 +50,68 @@ class Core {
 
             return ssids
         }
-        fun getAvailableWifiSSIDsLinux(): List<String> {
+        fun getAvailableWifiSSID(): List<String> {
+            val osName = System.getProperty("os.name").lowercase() // Get OS name
             val ssids = mutableListOf<String>()
 
             try {
-                // Execute the 'iwlist' command to scan for WiFi networks
-                val process = ProcessBuilder("sh", "-c", "iwlist wlp2s0 scan | grep 'ESSID'").start()
-                // Execute the 'airport' command to scan for WiFi networks
-                val reader = BufferedReader(InputStreamReader(process.inputStream))
-
-                // Read the output line by line
-                reader.useLines { lines ->
-                    lines.forEach { line ->
-                        // Extract the SSID from the line
-                        val ssid = line.substringAfter("ESSID:\"").substringBefore("\"")
-                        if (ssid.isNotEmpty()) {
-                            Log.i("SSID is ", ssid)
-                            ssids.add(ssid)
-                        }
+                // Execute the platform-specific command to scan for WiFi networks
+                lateinit var process: Process
+                when {
+                    osName.contains("windows") -> {
+                        // Command to list available WiFi networks on Windows
+                        process = ProcessBuilder("cmd.exe", "/c", "netsh wlan show networks mode=bssid").start()
+                    }
+                    osName.contains("linux") -> {
+                        // Command to list available WiFi networks on Linux using nmcli
+                        process = ProcessBuilder("bash", "-c", "nmcli -t -f SSID dev wifi").start()
+                    }
+                    osName.contains("mac") || osName.contains("darwin") -> {
+                        // Command to list available WiFi networks on macOS using airport
+                        process = ProcessBuilder(
+                            "sh", "-c", "/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport -s"
+                        ).start()
+                    }
+                    else -> {
+                        Log.e("Unsupported operating system: $osName")
+                        return emptyList()
                     }
                 }
 
-                process.waitFor()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-
-            return ssids
-        }
-        fun getAvailableWifiSSIDMac() : List<String> {
-            val ssids = mutableListOf<String>()
-
-            try {
-                // Execute the 'airport' command to scan for WiFi networks
-                val process = ProcessBuilder("sh", "-c",
-                    "/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport -s").start()
                 val reader = BufferedReader(InputStreamReader(process.inputStream))
 
-                // Skip the header line
-                reader.readLine()
-
-                // Read the output line by line
+                // For each OS, parse the output to extract SSIDs
                 reader.useLines { lines ->
                     lines.forEach { line ->
-                        val parts = line.trim().split("\\s+".toRegex())
-                        if (parts.isNotEmpty()) {
-                            // The SSID is typically the first field in the output
-                            val ssid = parts[0]
-                            if (ssid.isNotEmpty()) {
-                                Log.i("SSID is ", ssid)
-                                ssids.add(ssid)
+                        when {
+                            osName.contains("windows") -> {
+                                // Windows: SSID is typically in the line that starts with 'SSID '
+                                if (line.trim().startsWith("SSID ")) {
+                                    val ssid = line.substringAfter(":").trim()
+                                    if (ssid.isNotEmpty()) {
+                                        Log.i("SSID is ", ssid)
+                                        ssids.add(ssid)
+                                    }
+                                }
+                            }
+                            osName.contains("linux") -> {
+                                // Linux: nmcli output contains SSIDs directly, so add them
+                                val ssid = line.trim()
+                                if (ssid.isNotEmpty()) {
+                                    Log.i("SSID is ", ssid)
+                                    ssids.add(ssid)
+                                }
+                            }
+                            osName.contains("mac") || osName.contains("darwin") -> {
+                                // macOS: SSID is typically the first column in the airport command output
+                                val parts = line.trim().split("\\s+".toRegex())
+                                if (parts.isNotEmpty()) {
+                                    val ssid = parts[0]
+                                    if (ssid.isNotEmpty()) {
+                                        Log.i("SSID is ", ssid)
+                                        ssids.add(ssid)
+                                    }
+                                }
                             }
                         }
                     }
@@ -112,6 +124,7 @@ class Core {
 
             return ssids
         }
+
         fun connectToWifi(data: JsonObject): Boolean {
             var success = false
             if (!data.isEmpty) {
@@ -119,10 +132,28 @@ class Core {
                 val pass = data.get("pass").asString
                 try {
                     // Create the nmcli command to connect to a WiFi network
-                    val command = "nmcli dev wifi connect '$ssid' password '$pass'"
+                    lateinit var command: String
+                    lateinit var processBuilder: ProcessBuilder
+                    when {
+                        osName.contains("windows") -> {
+                            command = "netsh wlan connect name=\"$ssid\" key=\"$pass\""
+                            processBuilder = ProcessBuilder("cmd.exe", "/c", command)
+                        }
+                        osName.contains("linux") -> {
+                            command = "nmcli dev wifi connect '$ssid' password '$pass'"
+                            processBuilder = ProcessBuilder("bash", "-c", command)
+                        }
+                        osName.contains("mac") || osName.contains("darwin") -> {
+                            command = "networksetup -setairportnetwork en0 '$ssid' '$pass'"
+                            processBuilder = ProcessBuilder("bash", "-c", command)
+                        }
+                        else -> {
+                            Log.e("Unsupported operating system: $osName")
+                            return false
+                        }
+                    }
 
                     // Execute the command
-                    val processBuilder = ProcessBuilder("bash", "-c", command)
                     processBuilder.redirectErrorStream(true) // Combine stdout and stderr
 
                     // Start the process
@@ -155,9 +186,30 @@ class Core {
         private fun checkWiFiStatus(): String {
             return try {
                 // Command to check if Wi-Fi is enabled or disabled
-                val command = "nmcli -t -f WIFI g"
+                lateinit var command: String
+                lateinit var processBuilder: ProcessBuilder
+                when {
+                    osName.contains("windows") -> {
+                        // Command to check WiFi status on Windows
+                        command = "netsh interface show interface name=\"Wi-Fi\""
+                        processBuilder = ProcessBuilder("cmd.exe", "/c", command)
+                    }
+                    osName.contains("linux") -> {
+                        // Command to check WiFi status on Linux
+                        command = "nmcli -t -f WIFI g"
+                        processBuilder = ProcessBuilder("bash", "-c", command)
+                    }
+                    osName.contains("mac") || osName.contains("darwin") -> {
+                        // Command to check WiFi status on macOS
+                        command = "networksetup -getairportpower en0"
+                        processBuilder = ProcessBuilder("bash", "-c", command)
+                    }
+                    else -> {
+                        Log.e("Unsupported operating system: $osName")
+                        return "unsupported"
+                    }
+                }
 
-                val processBuilder = ProcessBuilder("bash", "-c", command)
                 processBuilder.redirectErrorStream(true)
 
                 val process = processBuilder.start()
@@ -166,20 +218,62 @@ class Core {
 
                 process.waitFor() // Wait for the process to finish
 
-                status?.trim() ?: "unknown" // Return status
+                // Return the Wi-Fi status based on the command's result
+                return if (status != null && status.isNotEmpty()) {
+                    when {
+                        osName.contains("windows") -> {
+                            // Windows specific: check if the interface is connected
+                            if (status.contains("Connected", ignoreCase = true)) "enabled" else "disabled"
+                        }
+                        osName.contains("linux") -> {
+                            // Linux specific: nmcli returns 'enabled' or 'disabled'
+                            status.trim()
+                        }
+                        osName.contains("mac") || osName.contains("darwin") -> {
+                            // macOS specific: check if WiFi is on or off
+                            if (status.contains("On", ignoreCase = true)) "enabled" else "disabled"
+                        }
+                        else -> "unknown"
+                    }
+                } else {
+                    "unknown"
+                }
+
             } catch (e: Exception) {
                 e.printStackTrace()
                 "error"
             }
         }
 
+
         // Method to check the active Wi-Fi connection (SSID)
         private fun getActiveWiFiConnection(): String {
             return try {
                 // Command to check active Wi-Fi connection and SSID
-                val command = "nmcli -t -f ACTIVE,SSID dev wifi | grep '^yes'"
+                lateinit var command: String
+                lateinit var processBuilder: ProcessBuilder
+                when {
+                    osName.contains("windows") -> {
+                        // Command to get active WiFi connection on Windows
+                        command = "netsh wlan show interfaces | findstr /R /C:\" SSID\""
+                        processBuilder = ProcessBuilder("cmd.exe", "/c", command)
+                    }
+                    osName.contains("linux") -> {
+                        // Command to get active WiFi connection on Linux
+                        command = "nmcli -t -f ACTIVE,SSID dev wifi | grep '^yes'"
+                        processBuilder = ProcessBuilder("bash", "-c", command)
+                    }
+                    osName.contains("mac") || osName.contains("darwin") -> {
+                        // Command to get active WiFi connection on macOS
+                        command = "networksetup -getairportnetwork en0 | awk '{print \$4}'"
+                        processBuilder = ProcessBuilder("bash", "-c", command)
+                    }
+                    else -> {
+                        Log.e("Unsupported operating system: $osName")
+                        return "unsupported"
+                    }
+                }
 
-                val processBuilder = ProcessBuilder("bash", "-c", command)
                 processBuilder.redirectErrorStream(true)
 
                 val process = processBuilder.start()
@@ -191,8 +285,10 @@ class Core {
                 // Extract SSID from the result (if available)
                 if (result != null && result.isNotEmpty()) {
                     val parts = result.split(":")
-                    if (parts.size == 2 && parts[0] == "yes") {
-                        return parts[1] // SSID
+                    return if (parts.isNotEmpty() && parts[0] == "yes") {
+                        parts[1] // SSID
+                    } else {
+                        parts[0]
                     }
                 }
 
@@ -232,33 +328,53 @@ class Core {
             var previousSSID = ""
 
             // Periodically check the Wi-Fi connection every 5 seconds
-            //fixedRateTimer("WiFiStatusTimer", initialDelay = 0, period = 5000) {
-                val wifiStatus = checkWiFiStatus()
-                val activeSSID = getActiveWiFiConnection()
-                val ipAddress = getWiFiIPAddress()
+            val wifiStatus = checkWiFiStatus()
+            val activeSSID = getActiveWiFiConnection()
+            val ipAddress = getWiFiIPAddress()
 
-                // Check if the status or connection has changed
-                if (wifiStatus != previousStatus || activeSSID != previousSSID) {
-                    Log.i("Wi-Fi Status: $wifiStatus")
-                    Log.i("Connected to: $activeSSID")
-                    Log.d("IP Address: $ipAddress")
+            // Check if the status or connection has changed
+            if (wifiStatus != previousStatus || activeSSID != previousSSID) {
+                Log.i("Wi-Fi Status: $wifiStatus")
+                Log.i("Connected to: $activeSSID")
+                Log.d("IP Address: $ipAddress")
 
-                    previousStatus = wifiStatus
-                    previousSSID = activeSSID
-                    map["status"] = "connected"
-                    map["ssid"] = previousSSID
-                    map["ip"] = ipAddress!!
-                }
-            //}
+                previousStatus = wifiStatus
+                previousSSID = activeSSID
+                map["status"] = "connected"
+                map["ssid"] = previousSSID
+                map["ip"] = ipAddress!!
+            }
             return gson.toJson(map)
         }
         // Method to disconnect from the current Wi-Fi network
         fun wifiDisconnect(): Boolean {
             return try {
                 // Command to disconnect the current Wi-Fi connection
-                val command = "nmcli connection down id $(nmcli -t -f NAME connection show --active)"
+                lateinit var command: String
+                lateinit var processBuilder: ProcessBuilder
+                when {
+                    osName.contains("windows") -> {
+                        // Command to disconnect from WiFi on Windows
+                        command = "netsh wlan disconnect"
+                        processBuilder = ProcessBuilder("cmd.exe", "/c", command)
+                    }
+                    osName.contains("linux") -> {
+                        // Command to disconnect from WiFi on Linux using nmcli
+                        command = "nmcli connection down id $(nmcli -t -f NAME connection show --active)"
+                        processBuilder = ProcessBuilder("bash", "-c", command)
+                    }
+                    osName.contains("mac") || osName.contains("darwin") -> {
+                        // Command to disconnect from WiFi on macOS
+                        command = "networksetup -removepreferredwirelessnetwork en0 '$(networksetup -getairportnetwork en0 | awk '{print $4}')'"
+                        processBuilder = ProcessBuilder("bash", "-c", command)
+                    }
+                    else -> {
+                        Log.e("Unsupported operating system: $osName")
+                        return false
+                    }
+                }
 
-                val processBuilder = ProcessBuilder("bash", "-c", command)
+
                 processBuilder.redirectErrorStream(true)
 
                 val process = processBuilder.start()
@@ -270,8 +386,8 @@ class Core {
                 if (result.isEmpty()) true else false
             } catch (e: Exception) {
                 e.printStackTrace()
-                "error"
-            } as Boolean
+                false
+            }
         }
     }
 }

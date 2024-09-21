@@ -5,13 +5,13 @@ import kotlin.test.assertEquals
 
 class CoreTest {
     @Test
-    fun `Must retrieve available Wifi SSID in Linux`() {
-        val notEmpty = Core.getAvailableWifiSSIDsLinux()
+    fun `Automatically detect OS and gets wifi SSIDs`() {
+        val notEmpty = Core.getAvailableWifiSSID()
         assertEquals(true, notEmpty.isNotEmpty())
     }
     @Test
-    fun `Must retrieve available Wifi SSID in Mac`() {
-        val notEmpty = Core.getAvailableWifiSSIDMac()
-        assertEquals(true, notEmpty.isNotEmpty())
+    fun `This will return the status of wifi connection`() {
+        val status = Core.getWifiStatus()
+        assertEquals(true, status.isNotEmpty())
     }
 }

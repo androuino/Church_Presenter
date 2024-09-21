@@ -39,11 +39,10 @@ class Themes : Table<Theme>() {
     fun getThemes() : List<String> {
         val list = ArrayList<String>()
         val data = table.get().toListMap()
-        Log.i("THE DATA IS ", data)
-        data.forEach {
-            Log.i(it["theme_name"].toString())
+        data.forEach { theme ->
+            list.add(theme["theme_name"].toString())
         }
-        return emptyList()
+        return if (list.isNotEmpty()) list else emptyList()
     }
     fun deleteTheme(id: Int): Boolean {
         var success = false

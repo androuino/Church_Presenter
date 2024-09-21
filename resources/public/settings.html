@@ -15,7 +15,6 @@
     <nav id="settingsNav">
         <span id="navFontSettings" class="gicon">font_download</span>
         <span id="navLocationSettings" class="gicon">subject</span>
-        <span id="navMediaSettings" class="gicon">perm_media</span>
         <span id="navThemeList" class="gicon">format_list_numbered</span>
     </nav>
     <section id="mainSettings">
@@ -81,25 +80,24 @@
                         <span id="fontAlignLeft" class="gicon">format_align_left</span>
                     </aside>
                     <button id="buttonResetOffset" class="btn">Reset offset</button>
+                    <aside id="themeContainer">
+                        <p>Theme List</p>
+                        <select name="themes" id="themeList"></select>
+                        <aside id="mediaControl">
+                            <p>Set background media from file</p>
+                            <button id="buttonOpenFile" class="btn">Choose file</button>
+                            <label for="mediaLink">Set background media from external link</label>
+                            <input id="mediaLink" type="text" placeholder="https://">
+                            <button id="buttonSetPlay" class="btn">Set and play</button>
+                            <button id="buttonClearMedia" class="btn">Clear / remove media</button>
+                        </aside>
+                    </aside>
                 </section>
                 <section id="sectionPreviewLocation">
                     <p>Preview</p>
                     <aside id="previewContainer"><p id="previewText"></p></aside>
                     <!--iframe id="livePreview" src="" width="100%" height="400" style="border: none;"></iframe-->
                 </section>
-            </li>
-            <li id="settingMedia">
-                <aside id="themeContainer">
-                    <p>Theme List</p>
-                    <select name="themes" id="themeList"></select>
-                    <aside id="mediaControl">
-
-                    </aside>
-                </aside>
-                <aside id="mediaPreview">
-                    <p>Preview</p>
-                    <aside id="previewMedia"></aside>
-                </aside>
             </li>
             <li id="settingThemeList"></li>
         </ol>

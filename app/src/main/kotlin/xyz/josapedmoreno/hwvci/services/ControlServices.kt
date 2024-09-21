@@ -319,7 +319,7 @@ class ControlServices : ServiciableMultiple {
             fun doCall(request: Request): String {
                 var success = false
                 val map = LinkedHashMap<String, Any>(1)
-                val data = Core.getAvailableWifiSSIDsLinux()
+                val data = Core.getAvailableWifiSSID()
                 if (data.isNotEmpty()) {
                     success = true
                     map["data"] = data
