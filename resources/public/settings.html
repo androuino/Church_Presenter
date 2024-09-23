@@ -82,14 +82,19 @@
                     <button id="buttonResetOffset" class="btn">Reset offset</button>
                     <aside id="themeContainer">
                         <p>Theme List</p>
-                        <select name="themes" id="themeList"></select>
+                        <div id="themeSettingContainer">
+                            <select name="themes" id="themeList"></select>
+                            <button id="buttonSetTheme" class="btn">Set this theme</button>
+                        </div>
                         <aside id="mediaControl">
                             <p>Set background media from file</p>
                             <button id="buttonOpenFile" class="btn">Choose file</button>
                             <label for="mediaLink">Set background media from external link</label>
                             <input id="mediaLink" type="text" placeholder="https://">
-                            <button id="buttonSetPlay" class="btn">Set and play</button>
-                            <button id="buttonClearMedia" class="btn">Clear / remove media</button>
+                            <div>
+                                <button id="buttonSetPlay" class="btn">Set and play</button>
+                                <button id="buttonClearMedia" class="btn">Clear / remove media</button>
+                            </div>
                         </aside>
                     </aside>
                 </section>
@@ -101,7 +106,7 @@
             </li>
             <li id="settingThemeList"></li>
         </ol>
-        <aside>
+        <aside id="saveThemeContainer">
             <input id="inputThemeName" type="text" placeholder="Theme's name">
             <button id="buttonSaveTheme" class="btn">Save this settings as a theme</button>
         </aside>

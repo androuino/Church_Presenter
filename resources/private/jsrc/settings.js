@@ -22,6 +22,16 @@ m2d2.ready($ => {
     var isItalic = false;
     var isStrikeThrough = false;
     var alignment = "center";
+    var justifyContent = "";
+    var alignItems = "";
+    const mainSettings = $("#mainSettings", {
+        onload : function(ev) {
+            const data = {
+                theme : "Default",
+            };
+            getTheme(data);
+        }
+    });
     const previewMedia = $("#previewMedia");
     const videoPlayback = $("#videoPlayback");
     const selectFont = $("#selectFont", {
@@ -222,11 +232,13 @@ m2d2.ready($ => {
                     leftBottomOffset: leftBottomOffset.value,
                     middleBottomOffset: middleBottomOffset.value,
                     rightBottomOffset: rightBottomOffset.value,
-                    textAlign: alignment
+                    textAlign: alignment,
+                    justifyContent: justifyContent,
+                    alignItems: alignItems
                 };
                 $.put("/savetheme", data, res => {
                     if (res.ok) {
-                        $.success("New theme saved.");
+                        $.success("Theme saved.");
                         inputThemeName.value = "";
                     } else {
                         $.failure("An error occurred!");
@@ -549,12 +561,19 @@ m2d2.ready($ => {
             }
         },
         items : [],
+        onchange : function(ev) {
+            const data = {
+                theme : ev.target.value,
+            };
+            getTheme(data);
+        }
     });
     const buttonOpenFile = $("#buttonOpenFile", {
         onclick : function(ev) {
             // todo: open the file dialog and choose the media - set it and play
         }
     });
+    const themes = $("#themes");
     const mediaLink = $("#mediaLink");
     const buttonSetPlay = $("#buttonSetPlay", {
         onclick : function(ev) {
@@ -562,6 +581,25 @@ m2d2.ready($ => {
                 $.failure("You did not provide a proper link.");
             } else {
                 // todo: set the media as background
+            }
+        }
+    });
+    const buttonSetTheme = $("#buttonSetTheme", {
+        onclick : function(ev) {
+            const theme = themeList.value;
+            if (theme === "") {
+                $.failure("Please choose a theme");
+            } else {
+                const data = {
+                    theme : theme,
+                };
+                $.post("/settheme", data, res => {
+                    if (res.ok) {
+                        $.success("Theme set.");
+                    } else {
+                        $.failure("Error setting theme.");
+                    }
+                }, true);
             }
         }
     });
@@ -596,6 +634,100 @@ m2d2.ready($ => {
     function changeLocation(x, y) {
         previewContainer.style.justifyContent = x;
         previewContainer.style.alignItems = y;
+        justifyContent = x;
+        alignItems = y;
+        console.log("justify content is ", x);
+        console.log("align items is ", y);
+    }
+    function getTheme(data) {
+        $.post("/gettheme", data, res => {
+            if (res.ok) {
+                console.log(res.data);
+                const font = res.data.select_font;
+                const fontSize = res.data.font_size;
+                const fontColor = res.data.font_color;
+                const bold = res.data.bold;
+                const italic = res.data.italic;
+                const strikeThrough = res.data.strike_through;
+                const topLeftOffset = res.data.top_left_offset;
+                const topMiddleOffset = res.data.top_middle_offset;
+                const topRightOffset = res.data.top_right_offset;
+                const leftUpperOffset = res.data.left_upper_offset;
+                const rightUpperOffset = res.data.right_upper_offset;
+                const leftMiddleOffset = res.data.left_middle_offset;
+                const rightMiddleOffset = res.data.right_middle_offset;
+                const leftLowerOffset = res.data.left_lower_offset;
+                const rightLowerOffset = res.data.right_lower_offset;
+                const leftBottomOffset = res.data.left_bottom_offset;
+                const middleBottomOffset = res.data.middle_bottom_offset;
+                const rightBottomOffset = res.data.right_bottom_offset;
+                const textAlign = res.data.text_align;
+                const justifyContent = res.data.justify_content;
+                const alignItems = res.data.align_items;
+
+                selectFont.value = font;
+                previewText.style.fontFamily = font;
+                inputFontSize.value = fontSize;
+                previewText.style.fontSize = fontSize;
+                colorPicker.value = fontColor;
+                previewText.style.fontColor = fontColor;
+                // fixme: this doesn't work yet
+                if (bold) {
+                    fontBold.classList.add("active");
+                    previewText.style.fontWeight = "bold";
+                }
+                if (italic) {
+                    fontItalic.classList.add("active");
+                    previewText.style.fontStyle = "italic";
+                }
+                if (strikeThrough) {
+                    fontStrikeThrough.classList.add("active");
+                    previewText.style.textDecoration = "line-through";
+                }
+                topLeftOffset.value = topLeftOffset;
+                topMiddleOffset.value = topMiddleOffset;
+                topRightOffset.value = topRightOffset;
+                leftUpperOffset.value = leftUpperOffset;
+                rightUpperOffset.value = rightUpperOffset;
+                leftMiddleOffset.value = leftMiddleOffset;
+                rightMiddleOffset.value = rightMiddleOffset;
+                leftLowerOffset.value = leftLowerOffset;
+                rightLowerOffset.value = rightLowerOffset;
+                leftBottomOffset.value = leftBottomOffset;
+                middleBottomOffset.value = middleBottomOffset;
+                rightBottomOffset.value = middleBottomOffset;
+                switch (textAlign) {
+                    case "center":
+                        fontAlignCenter.classList.add("active");
+                        previewText.style.textAlign = "center";
+                        break;
+                    case "end":
+                        fontAlignHorRight.classList.add("active");
+                        previewText.style.textAlign = "end";
+                        break;
+                    case "justify":
+                        fontAlignJustify.classList.add("active");
+                        previewText.style.textAlign = "justify";
+                        break;
+                    case "start":
+                        fontAlignHorLeft.classList.add("active");
+                        previewText.style.textAlign = "start";
+                        break;
+                    case "right":
+                        fontAlignRight.classList.add("active");
+                        previewText.style.textAlign = "right";
+                        break;
+                    case "left":
+                        fontAlignLeft.classList.add("active");
+                        previewText.style.textAlign = "left";
+                        break;
+                    default:
+                        previewText.style.textAlign = "center";
+                        console.error("Unknown text alignment");
+                }
+                changeLocation(justifyContent, alignItems);
+            }
+        }, true);
     }
     tippy('#navFontSettings', {
         content: "Font settings (Font style and size)",

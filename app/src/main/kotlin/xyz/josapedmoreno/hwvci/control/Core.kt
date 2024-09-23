@@ -3,6 +3,8 @@ package xyz.josapedmoreno.hwvci.control
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.intellisrc.core.Log
+import xyz.josapedmoreno.hwvci.services.SSENotifier
+import xyz.josapedmoreno.hwvci.table.Themes
 import java.awt.GraphicsEnvironment
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -388,6 +390,12 @@ class Core {
                 e.printStackTrace()
                 false
             }
+        }
+
+        fun setTheme(data: JsonObject) {
+            val themeTheme = data.get("theme").asString
+            val theme = Themes().getByThemeName(themeTheme)
+            SSENotifier.setTheme(gson.toJson(theme))
         }
     }
 }

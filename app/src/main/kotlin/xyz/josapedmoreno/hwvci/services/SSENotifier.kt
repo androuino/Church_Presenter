@@ -1,5 +1,7 @@
 package xyz.josapedmoreno.hwvci.services
 
+import xyz.josapedmoreno.hwvci.model.Theme
+
 class SSENotifier(private val sseEventService: SSEEventService?) : Thread() {
     private val taskQueue = ArrayDeque<() -> Unit>()
     private val lock = Object()  // A lock object for synchronization
@@ -29,6 +31,10 @@ class SSENotifier(private val sseEventService: SSEEventService?) : Thread() {
         sseEventService?.lyricsChangerNotifier(lyrics)
     }
 
+    fun setTheme(data: String) {
+        sseEventService?.setThemeNotifier(data)
+    }
+
     companion object {
         @Volatile
         private var instance: SSENotifier? = null
@@ -42,6 +48,13 @@ class SSENotifier(private val sseEventService: SSEEventService?) : Thread() {
         fun sendLyrics(lyrics: String) {
             instance?.postTask {
                 instance?.send(lyrics) ?: throw IllegalStateException("SSENotifier is not initialized")
+            }
+        }
+
+        @Synchronized
+        fun setTheme(data: String) {
+            instance?.postTask {
+                instance?.setTheme(data) ?: throw IllegalStateException("SSENotifier is not initialized")
             }
         }
     }

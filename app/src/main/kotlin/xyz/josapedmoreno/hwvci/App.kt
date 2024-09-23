@@ -13,6 +13,7 @@ import xyz.josapedmoreno.hwvci.services.ControlServices
 import xyz.josapedmoreno.hwvci.services.SSEEventService
 import xyz.josapedmoreno.hwvci.services.SSENotifier
 import xyz.josapedmoreno.hwvci.services.WifiNotifier
+import xyz.josapedmoreno.hwvci.table.Themes
 import xyz.josapedmoreno.hwvci.table.Users
 
 class App : SysService() {
@@ -35,6 +36,9 @@ class App : SysService() {
 
         if (Users().createAdmin()) {
             Log.i("Admin is created")
+        }
+        if (Themes().createDefaultTheme()) {
+            Log.i("Default theme is created")
         }
     }
 
