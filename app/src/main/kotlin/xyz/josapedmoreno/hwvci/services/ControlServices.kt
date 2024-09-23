@@ -2,6 +2,7 @@ package xyz.josapedmoreno.hwvci.services
 
 import com.google.gson.Gson
 import com.google.gson.JsonObject
+import com.intellisrc.core.Log
 import com.intellisrc.web.service.Request
 import com.intellisrc.web.service.Service
 import com.intellisrc.web.service.ServiciableMultiple
@@ -67,6 +68,8 @@ class ControlServices : ServiciableMultiple {
         services.add(wifiDisconnectService())
         services.add(saveThemeService())
         services.add(getThemeService())
+        services.add(getThemesService())
+        services.add(setThemeService())
         return services
     }
 
@@ -396,15 +399,49 @@ class ControlServices : ServiciableMultiple {
 
     private fun getThemeService(): Service {
         val service = Service()
+        service.method = HttpMethod.POST
+        service.allow = getUserAllow()
+        service.path = "/gettheme"
+        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
+            fun doCall(request: Request): String {
+                val map = LinkedHashMap<String, Any>(1)
+                val data = gson.fromJson(request.body(), JsonObject::class.java)
+                map["ok"] = true
+                map["data"] = Themes().getTheme(data)
+                return gson.toJson(map)
+            }
+        }
+        return service
+    }
+
+    private fun getThemesService(): Service {
+        val service = Service()
         service.method = HttpMethod.GET
         service.allow = getUserAllow()
         service.path = "/getthemes"
         service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
             fun doCall(request: Request): String {
                 val map = LinkedHashMap<String, Any>(1)
-                val data = gson.fromJson(request.body, JsonObject::class.java)
+                val data = gson.fromJson(request.body(), JsonObject::class.java)
                 map["ok"] = true
                 map["data"] = Themes().getThemes()
+                return gson.toJson(map)
+            }
+        }
+        return service
+    }
+
+    private fun setThemeService(): Service {
+        val service = Service()
+        service.method = HttpMethod.POST
+        service.allow = getUserAllow()
+        service.path = "/settheme"
+        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
+            fun doCall(request: Request): String {
+                val map = LinkedHashMap<String, Any>(1)
+                val data = gson.fromJson(request.body(), JsonObject::class.java)
+                Core.setTheme(data)
+                map["ok"] = true
                 return gson.toJson(map)
             }
         }

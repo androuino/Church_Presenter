@@ -29,6 +29,8 @@ class Themes : Table<Theme>() {
         theme.middleBottomOffset = data.get("middleBottomOffset").asInt
         theme.rightBottomOffset = data.get("rightBottomOffset").asInt
         theme.textAlign = data.get("textAlign").asString
+        theme.justifyContent = data.get("justifyContent").asString
+        theme.alignItems = data.get("alignItems").asString
         success = if (checkDuplicate(theme.themeName)) {
             table.update(theme.toMap(), mutableListOf("id"))
         } else {
@@ -36,17 +38,39 @@ class Themes : Table<Theme>() {
         }
         return success
     }
+    fun getTheme(data: JsonObject) : MutableMap<String, Any?> {
+        val themeName = data.get("theme").asString
+        val theme = find("theme_name", themeName).toMap()
+        return if (theme.isEmpty())
+            mutableMapOf()
+        else
+            theme
+    }
     fun getThemes() : List<String> {
         val list = ArrayList<String>()
         val data = table.get().toListMap()
         data.forEach { theme ->
             list.add(theme["theme_name"].toString())
         }
-        return if (list.isNotEmpty()) list else emptyList()
+        return list.ifEmpty { emptyList() }
     }
     fun deleteTheme(id: Int): Boolean {
         var success = false
         return success
+    }
+    fun createDefaultTheme(): Boolean {
+        var success = false
+        if (!checkDuplicate("Default")) {
+            success = table.insert(Theme().toMap())
+        }
+        return success
+    }
+    fun getByThemeName(themeName: String): MutableMap<String, Any?> {
+        val data = find("theme_name", themeName).toMap()
+        return if (data.isEmpty())
+            mutableMapOf()
+        else
+            data
     }
     private fun checkDuplicate(themeName: String): Boolean {
         var success = false

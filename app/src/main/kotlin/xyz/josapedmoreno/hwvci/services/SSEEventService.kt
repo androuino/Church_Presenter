@@ -16,6 +16,10 @@ class SSEEventService : ServerSentEvent() {
         broadcast(status, "wifi")
     }
 
+    fun setThemeNotifier(data: String) {
+        broadcast(data, "theme")
+    }
+
     companion object {
         private val gson = Gson().newBuilder().create()
         private val map = LinkedHashMap<String, Any>(1)

@@ -13,7 +13,7 @@ class Theme : Model() {
     @Column
     var fontSize: Int = 24
     @Column
-    var fontColor: String = "#ffffff"
+    var fontColor: String = "#000000"
     @Column
     var bold: Boolean = false
     @Column
@@ -46,6 +46,10 @@ class Theme : Model() {
     var rightBottomOffset: Int = 0
     @Column
     var textAlign: String = "center"
+    @Column
+    var justifyContent: String = "center"
+    @Column
+    var alignItems: String = "center"
 
     override fun toMap(): MutableMap<String, Any?> {
         return mutableMapOf(
@@ -69,7 +73,9 @@ class Theme : Model() {
             "left_bottom_offset" to leftBottomOffset,
             "middle_bottom_offset" to middleBottomOffset,
             "right_bottom_offset" to rightBottomOffset,
-            "text_align" to textAlign
+            "text_align" to textAlign,
+            "justify_content" to justifyContent,
+            "align_items" to alignItems
         )
     }
 }
