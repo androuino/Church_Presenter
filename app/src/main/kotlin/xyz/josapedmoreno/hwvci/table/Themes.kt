@@ -9,6 +9,7 @@ class Themes : Table<Theme>() {
     fun saveTheme(data: JsonObject): Boolean {
         var success = false
         val theme = Theme()
+        theme.id = data.get("id").asInt
         theme.themeName = data.get("themeName").asString
         theme.font = data.get("font").asString
         theme.fontSize = data.get("fontSize").asInt
@@ -32,7 +33,7 @@ class Themes : Table<Theme>() {
         theme.justifyContent = data.get("justifyContent").asString
         theme.alignItems = data.get("alignItems").asString
         success = if (checkDuplicate(theme.themeName)) {
-            table.update(theme.toMap(), mutableListOf("id"))
+            update(theme, mutableListOf("id"))
         } else {
             table.insert(theme.toMap())
         }
@@ -46,11 +47,11 @@ class Themes : Table<Theme>() {
         else
             theme
     }
-    fun getThemes() : List<String> {
-        val list = ArrayList<String>()
+    fun getThemes() : List<Map<String, Any>> {
+        val list = mutableListOf<Map<String, Any>>()
         val data = table.get().toListMap()
         data.forEach { theme ->
-            list.add(theme["theme_name"].toString())
+            list.add(mapOf("id" to theme["id"].toString().toInt(), "themeName" to theme["theme_name"].toString()))
         }
         return list.ifEmpty { emptyList() }
     }

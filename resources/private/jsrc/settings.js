@@ -26,14 +26,23 @@ m2d2.ready($ => {
     var alignItems = "";
     const mainSettings = $("#mainSettings", {
         onload : function(ev) {
+            $.get("/getthemes", res => {
+                if (res.ok) {
+                    themeList.items.clear();
+                    res.data.forEach(item => {
+                        themeList.items.push({
+                            dataset : { id : item.id },
+                            text : item.themeName,
+                        });
+                    });
+                }
+            }, true);
             const data = {
                 theme : "Default",
             };
             getTheme(data);
         }
     });
-    const previewMedia = $("#previewMedia");
-    const videoPlayback = $("#videoPlayback");
     const selectFont = $("#selectFont", {
         template : {
             font : {
@@ -107,17 +116,6 @@ m2d2.ready($ => {
             const protocol = window.location.protocol; // Get the current protocol (http or https)
             const url = `${host}:5555`; // Construct the full URL
             //livePreview.src = `/`; todo: uncomment if needed
-
-            $.get("/getthemes", res => {
-                if (res.ok) {
-                    themeList.items.clear();
-                    res.data.forEach(item => {
-                        themeList.items.push({
-                            text : item,
-                        });
-                    });
-                }
-            }, true);
         },
     });
     const settingThemeList = $("#settingThemeList", {
@@ -212,7 +210,10 @@ m2d2.ready($ => {
             if (inputThemeName.value === "") {
                 $.failure("Please type-in a theme's name");
             } else {
+                const selected = themeList.options[themeList.selectedIndex];
+                const id = selected.dataset.id;
                 const data = {
+                    id : id,
                     themeName: inputThemeName.value,
                     font: selectFont.value,
                     fontSize: inputFontSize.value,
@@ -398,14 +399,14 @@ m2d2.ready($ => {
     });
     const radioTopMiddle = $("#radioTopMiddle", {
         onclick : function(ev) {
-            changeLocation("flex-start", "center");
+            changeLocation("center", "flex-start");
             resetOffset();
             disabledOffset(true,false,true,true,true,true,true,true,true,true,true,true);
         }
     });
     const radioTopRight = $("#radioTopRight", {
         onclick : function(ev) {
-            changeLocation("flex-start", "flex-end");
+            changeLocation("center", "flex-end");
             resetOffset();
             disabledOffset(true,true,false,true,false,true,true,true,true,true,true,true);
         }
@@ -573,7 +574,6 @@ m2d2.ready($ => {
             // todo: open the file dialog and choose the media - set it and play
         }
     });
-    const themes = $("#themes");
     const mediaLink = $("#mediaLink");
     const buttonSetPlay = $("#buttonSetPlay", {
         onclick : function(ev) {
@@ -639,6 +639,19 @@ m2d2.ready($ => {
         console.log("justify content is ", x);
         console.log("align items is ", y);
     }
+    function setLocation(x, y) {
+        if (x === "center" && y === "center") {
+            radioCenter.checked = false;
+        } else if (x === "flex-start" && y === "flex-start") {
+            radioTopLeft.checked = false;
+        } else if (x === "flex-start" && y === "center") {
+            radioTopMiddle.checked = false;
+        } else if (x === "center" && y === "flex-start") {
+            tadioLeftMiddle.checked = false;
+        } else if (x === "flex-end" && y === "flex-end") {
+            radioRightBottom.checked = false;
+        }
+    }
     function getTheme(data) {
         $.post("/gettheme", data, res => {
             if (res.ok) {
@@ -671,18 +684,33 @@ m2d2.ready($ => {
                 previewText.style.fontSize = fontSize;
                 colorPicker.value = fontColor;
                 previewText.style.fontColor = fontColor;
-                // fixme: this doesn't work yet
+                taFontPreview.style.fontColor = fontColor;
                 if (bold) {
-                    fontBold.classList.add("active");
+                    fontBold.classList.toggle("active");
                     previewText.style.fontWeight = "bold";
+                    taFontPreview.style.fontWeight = "bold";
+                } else {
+                    fontBold.classList.remove("active");
+                    previewText.style.fontWeight = "";
+                    taFontPreview.style.fontWeight = "";
                 }
                 if (italic) {
-                    fontItalic.classList.add("active");
+                    fontItalic.classList.toggle("active");
                     previewText.style.fontStyle = "italic";
+                    taFontPreview.style.fontStyle = "italic";
+                } else {
+                    fontItalic.classList.remove("active");
+                    previewText.style.fontStyle = "";
+                    taFontPreview.style.fontStyle = "";
                 }
                 if (strikeThrough) {
-                    fontStrikeThrough.classList.add("active");
+                    fontStrikeThrough.classList.toggle("active");
                     previewText.style.textDecoration = "line-through";
+                    taFontPreview.style.textDecoration = "line-through";
+                } else {
+                    fontStrikeThrough.classList.remove("active");
+                    previewText.style.textDecoration = "";
+                    taFontPreview.style.textDecoration = "";
                 }
                 topLeftOffset.value = topLeftOffset;
                 topMiddleOffset.value = topMiddleOffset;
