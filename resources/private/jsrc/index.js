@@ -22,13 +22,19 @@ m2d2.ready($ => {
     const lyrics = $("#lyrics");
     const evtSource = new EventSource('/events');
     evtSource.addEventListener("lyrics", function (ev) {
-        // Check for escaped newlines and convert to actual line breaks
-        const parse = ev.data.replace(/\\n/g, '\n').replace(/\n/g, '<br>');
-        const clean = parse.replaceAll('"', '');
-        const remove = clean.replace(/\$[a-zA-Z]/, '');
-        lyrics.innerHTML = remove;
+        let evData = ev.data;
+        let lines = evData.split("\\n");
+        lines.shift();
+        const join = lines.join("\n");
+        const formattedText = join.replace(/\\n/g, '\n');
+        const clean = formattedText.replace(/\$[a-zA-Z]/, '');
+        const finalText = clean.replaceAll('"', '');
+        lyrics.textContent = finalText;
     });
     evtSource.addEventListener("settings", function (ev) {
+    });
+    evtSource.addEventListener("clear", function (ev) {
+        lyrics.textContent = "";
     });
     evtSource.addEventListener("theme", function (ev) {
         var data = JSON.parse(JSON.parse(ev.data));
@@ -68,7 +74,7 @@ m2d2.ready($ => {
 
         lyrics.style.fontFamily = font;
         lyrics.style.fontSize = fontSize + "px";
-        lyrics.style.fontColor = fontColor;
+        lyrics.style.color = fontColor;
         if (bold) {
             lyrics.style.fontWeight = "bold";
         }

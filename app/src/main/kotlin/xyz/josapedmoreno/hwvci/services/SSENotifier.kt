@@ -35,6 +35,10 @@ class SSENotifier(private val sseEventService: SSEEventService?) : Thread() {
         sseEventService?.setThemeNotifier(data)
     }
 
+    fun liveClear() {
+        sseEventService?.notifyLiveClear()
+    }
+
     companion object {
         @Volatile
         private var instance: SSENotifier? = null
@@ -55,6 +59,13 @@ class SSENotifier(private val sseEventService: SSEEventService?) : Thread() {
         fun setTheme(data: String) {
             instance?.postTask {
                 instance?.setTheme(data) ?: throw IllegalStateException("SSENotifier is not initialized")
+            }
+        }
+
+        @Synchronized
+        fun liveClear() {
+            instance?.postTask {
+                instance?.liveClear() ?: throw IllegalStateException("SSENotifier is not initialized")
             }
         }
     }

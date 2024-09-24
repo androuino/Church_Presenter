@@ -604,18 +604,18 @@ m2d2.ready($ => {
         }
     });
     function resetOffset() {
-        topLeftOffset.value = "0";
-        topMiddleOffset.value = "0";
-        topRightOffset.value = "0";
-        leftUpperOffset.value = "0";
-        rightUpperOffset.value = "0";
-        leftMiddleOffset.value = "0";
-        rightMiddleOffset.value = "0";
-        leftLowerOffset.value = "0";
-        rightLowerOffset.value = "0";
-        leftBottomOffset.value = "0";
-        middleBottomOffset.value = "0";
-        rightBottomOffset.value = "0";
+        topLeftOffset.value = 0;
+        topMiddleOffset.value = 0;
+        topRightOffset.value = 0;
+        leftUpperOffset.value = 0;
+        rightUpperOffset.value = 0;
+        leftMiddleOffset.value = 0;
+        rightMiddleOffset.value = 0;
+        leftLowerOffset.value = 0;
+        rightLowerOffset.value = 0;
+        leftBottomOffset.value = 0;
+        middleBottomOffset.value = 0;
+        rightBottomOffset.value = 0;
     }
     function disabledOffset(topLeft,topMiddle,topRight,leftUpper,rightUpper,leftMiddle,rightMiddle,leftLower,rightLower,leftBottom,middleBottom,rightBottom) {
         topLeftOffset.disabled = topLeft;
@@ -728,8 +728,8 @@ m2d2.ready($ => {
                 inputFontSize.value = fontSize;
                 previewText.style.fontSize = fontSize;
                 colorPicker.value = fontColor;
-                previewText.style.fontColor = fontColor;
-                taFontPreview.style.fontColor = fontColor;
+                previewText.style.color = fontColor;
+                taFontPreview.style.color = fontColor;
                 if (bold) {
                     fontBold.classList.toggle("active");
                     previewText.style.fontWeight = "bold";

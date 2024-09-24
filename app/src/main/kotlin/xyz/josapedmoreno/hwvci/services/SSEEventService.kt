@@ -20,6 +20,10 @@ class SSEEventService : ServerSentEvent() {
         broadcast(data, "theme")
     }
 
+    fun notifyLiveClear() {
+        broadcast("clear", "clear")
+    }
+
     companion object {
         private val gson = Gson().newBuilder().create()
         private val map = LinkedHashMap<String, Any>(1)

@@ -22,11 +22,34 @@ m2d2.ready($ => {
     var select = null;
     var songId = null;
     var songTitle = "";
+    var isResizing = false;
     const header = $("#header");
     const container = $(".container");
     const mainControl = $("#mainControl");
     const bubbles = $("#bubbles");
     const tableSong = $("#tableSong");
+    const songs = $("#songs");
+    const live = $("#live");
+    const resizer = $("#resizer", {
+        onmousedown : function(ev) {
+            isResizing = true;
+            document.body.style.cursor = 'col-resize';
+        }
+    });
+    document.addEventListener('mousemove', (e) => {
+        if (!isResizing) return;
+
+        const containerRect = wrapper.getBoundingClientRect();
+        const newWidth = e.clientX - containerRect.left; // Calculate the new width for section1
+
+        songs.style.flexBasis = `${newWidth}px`;
+        live.style.flexBasis = `calc(100% - ${newWidth}px - 4px)`; // Adjust section2 width
+    });
+
+    document.addEventListener('mouseup', () => {
+        isResizing = false;
+        document.body.style.cursor = 'default';
+    });
     const ulLiveLyrics = $("#ulLiveLyrics", {
         template : {
             li : {
@@ -561,6 +584,13 @@ m2d2.ready($ => {
             if (ulLiveLyrics.items.length > 0) {
                 $.confirm("Confirm to clear.", res => {
                     if (res) {
+                        $.post("/liveclear", res => {
+                            if (res.ok) {
+                                console.debug("Live cleared.");
+                            }
+                        }, error => {
+                            console.error("Error clearing live.", error);
+                        }, true);
                         ulLiveLyrics.items.clear();
                         ulSongs.items.forEach(row => {
                             const p = row.children[0];
