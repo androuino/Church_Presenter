@@ -406,14 +406,14 @@ m2d2.ready($ => {
     });
     const radioTopRight = $("#radioTopRight", {
         onclick : function(ev) {
-            changeLocation("center", "flex-end");
+            changeLocation("flex-end", "flex-start");
             resetOffset();
             disabledOffset(true,true,false,true,false,true,true,true,true,true,true,true);
         }
     });
     const radioLefMiddle = $("#radioLefMiddle", {
         onclick : function(ev) {
-            changeLocation("center", "flex-start");
+            changeLocation("flex-start", "center");
             resetOffset();
             disabledOffset(true,true,true,true,true,false,true,true,true,true,true,true);
         }
@@ -431,28 +431,28 @@ m2d2.ready($ => {
     });
     const radioRightMiddle = $("#radioRightMiddle", {
         onclick : function(ev) {
-            changeLocation("center", "flex-end");
+            changeLocation("flex-end", "center");
             resetOffset();
             disabledOffset(true,true,true,true,true,true,false,true,true,true,true,true);
         }
     });
     const radioLeftBottom = $("#radioLeftBottom", {
         onclick : function(ev) {
-            changeLocation("flex-end", "flex-start");
+            changeLocation("flex-start", "end");
             resetOffset();
             disabledOffset(true,true,true,true,true,true,true,false,true,false,true,true);
         }
     });
     const radioMiddleBottom = $("#radioMiddleBottom", {
         onclick : function(ev) {
-            changeLocation("flex-end", "center");
+            changeLocation("center", "end");
             resetOffset();
             disabledOffset(true,true,true,true,true,true,true,true,true,true,false,true);
         }
     });
     const radioRightBottom = $("#radioRightBottom", {
         onclick : function(ev) {
-            changeLocation("flex-end", "flex-end");
+            changeLocation("flex-end", "end");
             resetOffset();
             disabledOffset(true,true,true,true,true,true,true,true,false,true,true,false);
         }
@@ -640,43 +640,79 @@ m2d2.ready($ => {
         console.log("align items is ", y);
     }
     function setLocation(x, y) {
-        if (x === "center" && y === "center") {
-            radioCenter.checked = false;
-        } else if (x === "flex-start" && y === "flex-start") {
-            radioTopLeft.checked = false;
-        } else if (x === "flex-start" && y === "center") {
-            radioTopMiddle.checked = false;
+        if (x === "flex-start" && y === "flex-start") {
+            radioTopLeft.checked = true;
+            disabledOffset(false,true,true,false,true,true,true,true,true,true,true,true);
         } else if (x === "center" && y === "flex-start") {
-            tadioLeftMiddle.checked = false;
-        } else if (x === "flex-end" && y === "flex-end") {
-            radioRightBottom.checked = false;
+            radioTopMiddle.checked = true;
+            disabledOffset(true,false,true,true,true,true,true,true,true,true,true,true);
+        } else if (x === "flex-end" && y === "flex-start") {
+            radioTopRight.checked = true;
+            disabledOffset(true,true,false,true,false,true,true,true,true,true,true,true);
+        } else if (x === "flex-start" && y === "center") {
+            radioLefMiddle.checked = true;
+            disabledOffset(true,true,true,true,true,false,true,true,true,true,true,true);
+        } else if (x === "center" && y === "center") {
+            radioCenter.checked = true;
+            disabledOffset(true,false,true,true,true,false,false,true,true,true,false,true);
+        } else if (x === "flex-end" && y === "center") {
+            radioRightMiddle.checked = true;
+            disabledOffset(true,true,true,true,true,true,false,true,true,true,true,true);
+        } else if (x === "flex-start" && y === "end") {
+            radioLeftBottom.checked = true;
+            disabledOffset(true,true,true,true,true,true,true,false,true,false,true,true);
+        } else if (x === "center" && y === "end") {
+            radioMiddleBottom.checked = true;
+            disabledOffset(true,true,true,true,true,true,true,true,true,true,false,true);
+        } else if (x === "flex-end" && y === "end") {
+            radioRightBottom.checked = true;
+            disabledOffset(true,true,true,true,true,true,true,true,false,true,true,false);
         }
     }
     function getTheme(data) {
         $.post("/gettheme", data, res => {
             if (res.ok) {
                 console.log(res.data);
-                const font = res.data.select_font;
+                const font = res.data.font;
                 const fontSize = res.data.font_size;
                 const fontColor = res.data.font_color;
                 const bold = res.data.bold;
                 const italic = res.data.italic;
                 const strikeThrough = res.data.strike_through;
-                const topLeftOffset = res.data.top_left_offset;
-                const topMiddleOffset = res.data.top_middle_offset;
-                const topRightOffset = res.data.top_right_offset;
-                const leftUpperOffset = res.data.left_upper_offset;
-                const rightUpperOffset = res.data.right_upper_offset;
-                const leftMiddleOffset = res.data.left_middle_offset;
-                const rightMiddleOffset = res.data.right_middle_offset;
-                const leftLowerOffset = res.data.left_lower_offset;
-                const rightLowerOffset = res.data.right_lower_offset;
-                const leftBottomOffset = res.data.left_bottom_offset;
-                const middleBottomOffset = res.data.middle_bottom_offset;
-                const rightBottomOffset = res.data.right_bottom_offset;
+                const topLeft = res.data.top_left_offset;
+                const topMiddle = res.data.top_middle_offset;
+                const topRight = res.data.top_right_offset;
+                const leftUpper = res.data.left_upper_offset;
+                const rightUpper = res.data.right_upper_offset;
+                const leftMiddle = res.data.left_middle_offset;
+                const rightMiddle = res.data.right_middle_offset;
+                const leftLower = res.data.left_lower_offset;
+                const rightLower = res.data.right_lower_offset;
+                const leftBottom = res.data.left_bottom_offset;
+                const middleBottom = res.data.middle_bottom_offset;
+                const rightBottom = res.data.right_bottom_offset;
                 const textAlign = res.data.text_align;
                 const justifyContent = res.data.justify_content;
                 const alignItems = res.data.align_items;
+
+                topLeftOffset.value = topLeft;
+                leftUpperOffset.value = leftUpper;
+
+                topMiddleOffset.value = topMiddle;
+
+                topRightOffset.value = topRight;
+                rightUpperOffset.value = rightUpper;
+
+                leftMiddleOffset.value = leftMiddle;
+                rightMiddleOffset.value = rightMiddle;
+
+                leftLowerOffset.value = leftLower;
+                leftBottomOffset.value = leftBottom;
+
+                middleBottomOffset.value = middleBottom;
+
+                rightLowerOffset.value = rightLower;
+                rightBottomOffset.value = rightBottom;
 
                 selectFont.value = font;
                 previewText.style.fontFamily = font;
@@ -689,6 +725,7 @@ m2d2.ready($ => {
                     fontBold.classList.toggle("active");
                     previewText.style.fontWeight = "bold";
                     taFontPreview.style.fontWeight = "bold";
+                    isBold = true;
                 } else {
                     fontBold.classList.remove("active");
                     previewText.style.fontWeight = "";
@@ -698,6 +735,7 @@ m2d2.ready($ => {
                     fontItalic.classList.toggle("active");
                     previewText.style.fontStyle = "italic";
                     taFontPreview.style.fontStyle = "italic";
+                    isItalic = true;
                 } else {
                     fontItalic.classList.remove("active");
                     previewText.style.fontStyle = "";
@@ -707,23 +745,12 @@ m2d2.ready($ => {
                     fontStrikeThrough.classList.toggle("active");
                     previewText.style.textDecoration = "line-through";
                     taFontPreview.style.textDecoration = "line-through";
+                    isStrikeThrough = true;
                 } else {
                     fontStrikeThrough.classList.remove("active");
                     previewText.style.textDecoration = "";
                     taFontPreview.style.textDecoration = "";
                 }
-                topLeftOffset.value = topLeftOffset;
-                topMiddleOffset.value = topMiddleOffset;
-                topRightOffset.value = topRightOffset;
-                leftUpperOffset.value = leftUpperOffset;
-                rightUpperOffset.value = rightUpperOffset;
-                leftMiddleOffset.value = leftMiddleOffset;
-                rightMiddleOffset.value = rightMiddleOffset;
-                leftLowerOffset.value = leftLowerOffset;
-                rightLowerOffset.value = rightLowerOffset;
-                leftBottomOffset.value = leftBottomOffset;
-                middleBottomOffset.value = middleBottomOffset;
-                rightBottomOffset.value = middleBottomOffset;
                 switch (textAlign) {
                     case "center":
                         fontAlignCenter.classList.add("active");
@@ -754,6 +781,7 @@ m2d2.ready($ => {
                         console.error("Unknown text alignment");
                 }
                 changeLocation(justifyContent, alignItems);
+                setLocation(justifyContent, alignItems);
             }
         }, true);
     }
