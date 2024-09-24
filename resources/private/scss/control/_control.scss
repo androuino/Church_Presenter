@@ -79,7 +79,6 @@ body :-ms-input-placeholder {
 #mainControl {
     display: flex;
     flex-direction: row;
-    flex-wrap: wrap;
     width: 100%;
     height: calc(100vh - 20px);
     background: linear-gradient(to bottom right, #2f2f2f 0, #17332f 100%);
@@ -103,7 +102,7 @@ body :-ms-input-placeholder {
     #songs {
         display: flex;
         flex-direction: column;
-        width: calc(100% - 50% - (35px/2));
+        width: calc(100% - 50% - (37px/2));
         background: black;
         border-right: 1px solid white;
         #searchContainer {
@@ -164,10 +163,15 @@ body :-ms-input-placeholder {
             }
         }
     }
+    #resizer {
+        width: 4px;
+        background: gray;
+        cursor: col-resize;
+    }
     #live {
         display: flex;
         flex-direction: row;
-        width: calc(100% - 50% - (35px/2));
+        width: calc(100% - 50% - (37px/2));
         background: black;
         #clearLive {
             position: absolute;

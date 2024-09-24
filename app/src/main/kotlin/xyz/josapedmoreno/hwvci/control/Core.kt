@@ -397,5 +397,9 @@ class Core {
             val theme = Themes().getByThemeName(themeTheme)
             SSENotifier.setTheme(gson.toJson(theme))
         }
+
+        fun liveClear() {
+            SSENotifier.liveClear()
+        }
     }
 }

@@ -70,6 +70,7 @@ class ControlServices : ServiciableMultiple {
         services.add(getThemeService())
         services.add(getThemesService())
         services.add(setThemeService())
+        services.add(liveClearService())
         return services
     }
 
@@ -146,7 +147,7 @@ class ControlServices : ServiciableMultiple {
         service.allow = getUserAllow()
         service.path = "/getsongs"
         service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(request: Request): String {
+            fun doCall(): String {
                 var success = false
                 val map = LinkedHashMap<String, Any>(1)
                 val data = SongTable().getAllSongs()
@@ -209,10 +210,9 @@ class ControlServices : ServiciableMultiple {
         service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
             fun doCall(request: Request): String {
                 var success = false
-                var data = ""
                 val map = LinkedHashMap<String, Any>(1)
-                val id = request.params("id")
-                val lyrics = SongTable().getSongLyricsById(id.toInt())
+                val id: String = request.params("id")
+                val lyrics: String = SongTable().getSongLyricsById(id.toInt())
                 if (lyrics.isNotEmpty()) {
                     success = true
                     map["data"] = lyrics
@@ -303,7 +303,7 @@ class ControlServices : ServiciableMultiple {
         service.allow = getUserAllow()
         service.path = "/getfonts"
         service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(request: Request): String {
+            fun doCall(): String {
                 val map = LinkedHashMap<String, Any>(1)
                 map["ok"] = true
                 map["data"] = Core.getFonts()
@@ -319,7 +319,7 @@ class ControlServices : ServiciableMultiple {
         service.allow = getUserAllow()
         service.path = "/getssid"
         service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(request: Request): String {
+            fun doCall(): String {
                 var success = false
                 val map = LinkedHashMap<String, Any>(1)
                 val data = Core.getAvailableWifiSSID()
@@ -372,7 +372,7 @@ class ControlServices : ServiciableMultiple {
         service.allow = getUserAllow()
         service.path = "/wifidisconnect"
         service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(request: Request): String {
+            fun doCall(): String {
                 val map = LinkedHashMap<String, Any>(1)
                 map["ok"] = Core.wifiDisconnect()
                 return gson.toJson(map)
@@ -422,7 +422,6 @@ class ControlServices : ServiciableMultiple {
         service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
             fun doCall(request: Request): String {
                 val map = LinkedHashMap<String, Any>(1)
-                val data = gson.fromJson(request.body(), JsonObject::class.java)
                 map["ok"] = true
                 map["data"] = Themes().getThemes()
                 return gson.toJson(map)
@@ -448,6 +447,22 @@ class ControlServices : ServiciableMultiple {
         return service
     }
 
+    private fun liveClearService(): Service {
+        val service = Service()
+        service.method = HttpMethod.POST
+        service.allow = getUserAllow()
+        service.path = "/liveclear"
+        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
+            fun doCall(): String {
+                val map = LinkedHashMap<String, Any>(1)
+                Core.liveClear()
+                map["ok"] = true
+                return gson.toJson(map)
+            }
+        }
+        return service
+    }
+
     companion object {
         fun getUserAllow() = Service.Allow { request ->
             if (request.session() != null) {
@@ -457,6 +472,5 @@ class ControlServices : ServiciableMultiple {
             }
         }
         private val gson = Gson().newBuilder().create()
-        private val sseEventService = SSEEventService()
     }
 }
