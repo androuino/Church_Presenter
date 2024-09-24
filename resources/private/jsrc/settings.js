@@ -672,7 +672,6 @@ m2d2.ready($ => {
     function getTheme(data) {
         $.post("/gettheme", data, res => {
             if (res.ok) {
-                console.log(res.data);
                 const font = res.data.font;
                 const fontSize = res.data.font_size;
                 const fontColor = res.data.font_color;
@@ -713,6 +712,16 @@ m2d2.ready($ => {
 
                 rightLowerOffset.value = rightLower;
                 rightBottomOffset.value = rightBottom;
+
+                const marginTop = topLeft + topMiddle + topRight;
+                const marginBottom = leftBottom + middleBottom + rightBottom;
+                const marginLeft = leftUpper + leftMiddle + leftLower;
+                const marginRight = rightUpper + rightMiddle + rightLower;
+
+                previewText.style.marginTop = marginTop + "px";
+                previewText.style.marginBottom = marginBottom + "px";
+                previewText.style.marginLeft = marginLeft + "px";
+                previewText.style.marginRight = marginRight + "px";
 
                 selectFont.value = font;
                 previewText.style.fontFamily = font;

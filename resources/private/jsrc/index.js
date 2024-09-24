@@ -33,21 +33,52 @@ m2d2.ready($ => {
     evtSource.addEventListener("theme", function (ev) {
         var data = JSON.parse(JSON.parse(ev.data));
         console.log(data);
-        lyrics.dataset.id = data.id;
-        lyrics.style.fontFamily = data.font;
-        lyrics.style.fontSize = data.font_size + "px";
-        lyrics.style.fontColor = data.font_color;
-        if (data.bold) {
+        const id = data.id;
+        const font = data.font;
+        const fontSize = data.font_size;
+        const fontColor = data.font_color;
+        const bold = data.bold;
+        const italic = data.italic;
+        const strikeThrough = data.strike_through;
+        const topLeft = data.top_left_offset;
+        const topMiddle = data.top_middle_offset;
+        const topRight = data.top_right_offset;
+        const leftUpper = data.left_upper_offset;
+        const rightUpper = data.right_upper_offset;
+        const leftMiddle = data.left_middle_offset;
+        const rightMiddle = data.right_middle_offset;
+        const leftLower = data.left_lower_offset;
+        const rightLower = data.right_lower_offset;
+        const leftBottom = data.left_bottom_offset;
+        const middleBottom = data.middle_bottom_offset;
+        const rightBottom = data.right_bottom_offset;
+        const textAlign = data.text_align;
+        const justifyContent = data.justify_content;
+        const alignItems = data.align_items;
+
+        const marginTop = topLeft + topMiddle + topRight;
+        const marginBottom = leftBottom + middleBottom + rightBottom;
+        const marginLeft = leftUpper + leftMiddle + leftLower;
+        const marginRight = rightUpper + rightMiddle + rightLower;
+
+        lyrics.style.marginTop = marginTop + "px";
+        lyrics.style.marginBottom = marginBottom + "px";
+        lyrics.style.marginLeft = marginLeft + "px";
+        lyrics.style.marginRight = marginRight + "px";
+
+        lyrics.style.fontFamily = font;
+        lyrics.style.fontSize = fontSize + "px";
+        lyrics.style.fontColor = fontColor;
+        if (bold) {
             lyrics.style.fontWeight = "bold";
-        } else if (data.italic) {
+        }
+        if (italic) {
             lyrics.style.fontStyle = "italic";
-        } else if (data.strike_through) {
+        }
+        if (strikeThrough) {
             lyrics.style.textDecoration = "line-through";
         }
-        lyrics.style.marginTop = data.top_left_offset;
-        lyrics.style.marginLeft = data.left_middle_offset;
-        lyrics.style.marginBottom = data.left_bottom_offset;
-        lyrics.style.marginRight = data.left_middle_offset;
+
         lyrics.style.textAlign = data.text_align;
         main.style.justifyContent = data.justify_content;
         main.style.alignItems = data.align_items;
