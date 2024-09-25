@@ -54,7 +54,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:1.9.23"
     implementation "com.sparkjava:spark-core:${sparkVer}"
     implementation "org.apache.commons:commons-imaging:1.0-alpha3"
-    implementation "org.github.crosswire:jsword:${jSwordVer}"
+    implementation "com.github.crosswire:jsword:${jSwordVer}"
     //implementation files('libs/jsoup-1.17.2.jar')
     //implementation files('libs/LCMS4J.jar')
     // Database
