@@ -1,5 +1,7 @@
 package xyz.josapedmoreno.hwvci.control
 
+import com.google.gson.Gson
+import com.google.gson.JsonObject
 import com.intellisrc.core.Log
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -14,7 +16,9 @@ class BookApiTest {
     @Test
     fun `Installed Bible version mus return a verse`() {
         var success = false
-        val res = BookApi.getBook("KJV", "Genesis 1:1-5")
+        val initials = arrayListOf<String>("KJV")
+        val gson = Gson().newBuilder().create()
+        val res = BookApi.getBook(gson.toJson(initials), "Genesis 1:1-5")
         if (res.isNotEmpty())
             success = true
         res.entries.forEach { (k, v) ->
@@ -24,7 +28,9 @@ class BookApiTest {
     }
     @Test
     fun `Must return installed Bibles`() {
-        BookApi.getInstalledBooks()
+        BookApi.getInstalledBooks().entries.forEach { (k, v) ->
+            Log.i("$k : $v")
+        }
     }
     @Test
     fun `Should install the default Bible versions`() {
@@ -34,5 +40,12 @@ class BookApiTest {
     @Test
     fun `Will get all available Bible versions for download and install`() {
         BookApi.listAvailableBibles()
+    }
+    @Test
+    fun `Will uninstall a book`() {
+        BookApi.uninstallBook("SpaTDP")
+        BookApi.getInstalledBooks().entries.forEach { (k, v) ->
+            Log.i("$k : $v")
+        }
     }
 }

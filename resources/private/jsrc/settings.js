@@ -25,6 +25,7 @@ m2d2.ready($ => {
     var justifyContent = "";
     var alignItems = "";
     var bibleVersionInstalled;
+    var versionList = [];
     const mainSettings = $("#mainSettings", {
         onload : function(ev) {
             $.get("/getthemes", res => {
@@ -666,10 +667,167 @@ m2d2.ready($ => {
     const inputVerseSearch = $("#inputVerseSearch", {
         onkeydown : function(ev) {
             if (ev.key === "Enter") {
-                $.alert("Enter is pressed");
+                versionList = [];
+                if (version1.show === true) {
+                    versionList.push(selectVersion1.value.split(":")[0].trim());
+                }
+                if (version2.show === true) {
+                    versionList.push(selectVersion2.value.split(":")[0].trim());
+                }
+                if (version3.show === true) {
+                    versionList.push(selectVersion3.value.split(":")[0].trim());
+                }
+                searchBible(this.value, versionList);
             }
         }
     });
+    const bibleVersions = $("#bibleVersions", {
+        template : {
+            option : {
+                tagName : "option",
+                style : {
+                    borderBottom : "1px solid black"
+                }
+            }
+        },
+        items : [],
+    });
+    const versionsInstalled = $("#versionsInstalled", {
+        template : {
+            option : {
+                tagName : "option",
+                style : {
+                    borderBottom : "1px solid black"
+                }
+            }
+        },
+        items : [],
+    });
+    const version1 = $("#version1");
+    const version2 = $("#version2", {
+        show : false,
+    });
+    const version3 = $("#version3", {
+        show : false,
+    });
+    const selectVersion1 = $("#selectVersion1", {
+        template : {
+            option : {
+                tagName : "option",
+                style : {
+                    borderBottom : "1px solid black"
+                }
+            }
+        },
+        items : [],
+    });
+    const selectVersion2 = $("#selectVersion2", {
+        template : {
+            option : {
+                tagName : "option",
+                style : {
+                    borderBottom : "1px solid black"
+                }
+            }
+        },
+        items : [],
+    });
+    const selectVersion3 = $("#selectVersion3", {
+        template : {
+            option : {
+                tagName : "option",
+                style : {
+                    borderBottom : "1px solid black"
+                }
+            }
+        },
+        items : [],
+    });
+    const selectVersionsToProject = $("#selectVersionsToProject", {
+        onload : function(ev) {
+            if (ev.target.value === "1") {
+                version1.enabled = true;
+                version2.enabled = false;
+                version3.enabled = false;
+            }
+        },
+        onchange : function(ev) {
+            if (ev.target.value === "1") {
+                version1.show = true;
+                version2.show = false;
+                version3.show = false;
+            } else if (ev.target.value === "2") {
+                version1.show = true;
+                version2.show = true;
+                version3.show = false;
+            } else if (ev.target.value === "3") {
+                version1.show = true;
+                version2.show = true;
+                version3.show = true;
+            }
+        }
+    });
+    const buttonInstall = $("#buttonInstall", {
+        onclick : function(ev) {
+            const book = bibleVersions.value;
+            if (book === "") {
+                $.failure("I didn't get that. Empty!");
+            } else {
+                $.confirm("Please confirm Bible version installation.", yes => {
+                    if (yes) {
+                        var initials = book.split(":")[0].trim();
+                        const data = {
+                            initials : initials,
+                        };
+                        $.post("/installbook", data, res => {
+                            if (res.ok) {
+                                $.success("Installation is still in progress. Please refresh after 5 minutes.")
+                            }
+                        }, error => {
+                            console.error("Error installing book", error);
+                        }, true);
+                    }
+                });
+            }
+        }
+    });
+    const buttonUninstall = $("#buttonUninstall", {
+        onclick : function(ev) {
+            const book = versionsInstalled.value;
+            if (book === "") {
+                $.failure("I did not get that. Empty!");
+            } else {
+                $.confirm("Please confirm on uninstalling version?", yes => {
+                    if (yes) {
+                        var initials = book.split(":")[0].trim();
+                        const data = {
+                            initials : initials,
+                        };
+                        $.delete("/uninstallbook", data, res => {
+                            if (res.ok) {
+                                $.success("Uninstall is still in progress. Please refresh after 5 minutes.")
+                            }
+                        }, error => {
+                            console.error("Error uninstalling book", error);
+                        }, true);
+                    }
+                });
+            }
+        }
+    });
+    function searchBible(verse, versions) {
+        const data = {
+            verse : verse,
+            versions : versions,
+        };
+        $.get("/searchbibleverse", data, res => {
+            if (res.ok) {
+                // todo: do something with the search result
+            }
+        }, error => {
+            console.error("Error search verse:", error);
+        }, true);
+    }
     function resetOffset() {
         topLeftOffset.value = 0;
         topMiddleOffset.value = 0;
@@ -861,92 +1019,6 @@ m2d2.ready($ => {
             }
         }, true);
     }
-    const bibleVersions = $("#bibleVersions", {
-        template : {
-            option : {
-                tagName : "option",
-                style : {
-                    borderBottom : "1px solid black"
-                }
-            }
-        },
-        items : [],
-    });
-    const versionsInstalled = $("#versionsInstalled", {
-        template : {
-            option : {
-                tagName : "option",
-                style : {
-                    borderBottom : "1px solid black"
-                }
-            }
-        },
-        items : [],
-    });
-    const version1 = $("#version1");
-    const version2 = $("#version2", {
-        show : false,
-    });
-    const version3 = $("#version3", {
-        show : false,
-    });
-    const selectVersion1 = $("#selectVersion1", {
-        template : {
-            option : {
-                tagName : "option",
-                style : {
-                    borderBottom : "1px solid black"
-                }
-            }
-        },
-        items : [],
-    });
-    const selectVersion2 = $("#selectVersion2", {
-        template : {
-            option : {
-                tagName : "option",
-                style : {
-                    borderBottom : "1px solid black"
-                }
-            }
-        },
-        items : [],
-    });
-    const selectVersion3 = $("#selectVersion3", {
-        template : {
-            option : {
-                tagName : "option",
-                style : {
-                    borderBottom : "1px solid black"
-                }
-            }
-        },
-        items : [],
-    });
-    const selectVersionsToProject = $("#selectVersionsToProject", {
-        onload : function(ev) {
-            if (ev.target.value === "1") {
-                version1.enabled = true;
-                version2.enabled = false;
-                version3.enabled = false;
-            }
-        },
-        onchange : function(ev) {
-            if (ev.target.value === "1") {
-                version1.show = true;
-                version2.show = false;
-                version3.show = false;
-            } else if (ev.target.value === "2") {
-                version1.show = true;
-                version2.show = true;
-                version3.show = false;
-            } else if (ev.target.value === "3") {
-                version1.show = true;
-                version2.show = true;
-                version3.show = true;
-            }
-        }
-    });
     tippy('#navFontSettings', {
         content: "Font settings (Font style and size)",
         interactive: true,
