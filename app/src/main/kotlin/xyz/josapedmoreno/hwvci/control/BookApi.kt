@@ -1,5 +1,6 @@
 package xyz.josapedmoreno.hwvci.control
 
+import com.google.gson.JsonArray
 import com.intellisrc.core.Log
 import org.crosswire.jsword.book.Book
 import org.crosswire.jsword.book.BookCategory
@@ -46,7 +47,7 @@ class BookApi {
                 Log.i("Available Bible Versions:")
                 bibles.forEach { book ->
                     val metaData = book.bookMetaData as SwordBookMetaData
-                    Log.i("${metaData.initials} - ${metaData.name}")
+                    Log.d("${metaData.initials} - ${metaData.name}")
                     map[metaData.initials] = metaData.name
                 }
             } catch (e: Exception) {
@@ -106,32 +107,34 @@ class BookApi {
             }
             return success
         }
-        fun getBook(bookInitials: String, verseRef: String): Map<String, String> {
+        fun getBook(bookInitials: JsonArray, verseRef: String): Map<String, String> {
             val versesMap = mutableMapOf<String, String>()
 
             try {
-                // Load the installed Bible
-                val book: Book? = Books.installed().getBook(bookInitials)
-                if (book == null) {
-                    println("Bible version not found: $bookInitials")
-                    return versesMap
-                }
+                bookInitials.forEach { initial ->
+                    // Load the installed Bible
+                    val book: Book? = Books.installed().getBook(initial.asString)
+                    if (book == null) {
+                        println("Bible version not found: $bookInitials")
+                        return versesMap
+                    }
 
-                // Get the key representing the verse or passage using the provided reference
-                val key: Key = book.getKey(verseRef)
+                    // Get the key representing the verse or passage using the provided reference
+                    val key: Key = book.getKey(verseRef)
 
-                // Iterate through the key to handle multiple verses
-                for (verseKey in key) {
-                    val data = BookData(book, verseKey)
+                    // Iterate through the key to handle multiple verses
+                    for (verseKey in key) {
+                        val data = BookData(book, verseKey)
 
-                    // Get the verse reference (e.g., Genesis 1:1)
-                    val verseReference = verseKey.name
+                        // Get the verse reference (e.g., Genesis 1:1)
+                        val verseReference = verseKey.name
 
-                    // Extract the canonical text (i.e., plain text of the verse)
-                    val verseText = OSISUtil.getCanonicalText(data.osisFragment)
+                        // Extract the canonical text (i.e., plain text of the verse)
+                        val verseText = OSISUtil.getCanonicalText(data.osisFragment)
 
-                    // Add the verse reference and text to the map
-                    versesMap[verseReference] = verseText
+                        // Add the verse reference and text to the map
+                        versesMap[verseReference] = verseText
+                    }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -166,7 +169,37 @@ class BookApi {
             */
             return map
         }
-        fun checkIfVersionExist(version: String): Boolean {
+        fun uninstallBook(bookInitials: String): Boolean {
+            var success = false
+            // Get the installed book by initials
+            val book: Book? = Books.installed().getBook(bookInitials)
+
+            if (book != null) {
+                // Locate the JSword books installation directory
+                val jswordDir = System.getProperty("user.home") + "/.sword/modules/texts/ztext"
+
+                // Find the directory for the specific book
+                val bookDir = File(jswordDir, bookInitials.lowercase())
+                Log.w(bookDir.path)
+                if (bookDir.exists()) {
+                    // Delete the book directory and its contents
+                    val deleted = bookDir.deleteRecursively()
+                    if (deleted) {
+                        Log.i("Book $bookInitials has been uninstalled successfully.")
+                        Books.installed().removeBook(book)
+                        success = true
+                    } else {
+                        Log.w("Failed to delete the book directory.")
+                    }
+                } else {
+                    Log.w("The book directory does not exist for: $bookInitials")
+                }
+            } else {
+                Log.w("Book not found: $bookInitials")
+            }
+            return success
+        }
+        private fun checkIfVersionExist(version: String): Boolean {
             var success = false
             for (book in Books.installed().books)
                 if (book.initials == version)

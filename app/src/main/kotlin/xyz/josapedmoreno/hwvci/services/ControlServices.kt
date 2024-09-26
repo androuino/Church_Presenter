@@ -75,6 +75,7 @@ class ControlServices : ServiciableMultiple {
         services.add(getBooksService())
         services.add(getInstalledVersionsService())
         services.add(installBookService())
+        services.add(uninstallBookService())
         return services
     }
 
@@ -507,8 +508,45 @@ class ControlServices : ServiciableMultiple {
         service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
             fun doCall(request: Request): String {
                 val map = LinkedHashMap<String, Any>(1)
+                val data = gson.fromJson(request.body(), JsonObject::class.java)
                 map["ok"] = true
-                map["data"] = BookApi.listAvailableBibles()
+                map["data"] = BookApi.install(data.get("initials").asString)
+                return gson.toJson(map)
+            }
+        }
+        return service
+    }
+
+    private fun uninstallBookService(): Service {
+        val service = Service()
+        service.method = HttpMethod.DELETE
+        service.allow = getUserAllow()
+        service.path = "/uninstallbook"
+        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
+            fun doCall(request: Request): String {
+                val map = LinkedHashMap<String, Any>(1)
+                val data = gson.fromJson(request.body(), JsonObject::class.java)
+                map["ok"] = true
+                map["data"] = BookApi.uninstallBook(data.get("initials").asString)
+                return gson.toJson(map)
+            }
+        }
+        return service
+    }
+
+    private fun searchBibleVerseService(): Service {
+        val service = Service()
+        service.method = HttpMethod.GET
+        service.allow = getUserAllow()
+        service.path = "/searchbibleverse"
+        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
+            fun doCall(request: Request): String {
+                val map = LinkedHashMap<String, Any>(1)
+                val data = gson.fromJson(request.body(), JsonObject::class.java)
+                val bookInitials = data.get("versions").asJsonArray
+                val verse = data.get("verse").asString
+                map["ok"] = true
+                map["data"] = BookApi.getBook(bookInitials, verse)
                 return gson.toJson(map)
             }
         }

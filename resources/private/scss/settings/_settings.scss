@@ -381,6 +381,10 @@ main {
                             display: flex;
                             width: calc(100% / 3);
                             flex-direction: column;
+                            border: 1px solid white;
+                            label {
+                                background: #004daf;
+                            }
                             .select-version {
                                 width: 100%;
                             }
