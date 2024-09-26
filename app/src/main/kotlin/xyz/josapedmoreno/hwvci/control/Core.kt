@@ -8,8 +8,12 @@ import xyz.josapedmoreno.hwvci.table.Themes
 import java.awt.GraphicsEnvironment
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import java.net.HttpURLConnection
 import java.net.InetAddress
+import java.net.InetSocketAddress
 import java.net.NetworkInterface
+import java.net.Socket
+import java.net.URL
 import kotlin.concurrent.fixedRateTimer
 
 class Core {
@@ -400,6 +404,21 @@ class Core {
 
         fun liveClear() {
             SSENotifier.liveClear()
+        }
+
+        fun isConnectedToInternet(): Boolean {
+            return try {
+                val url = URL("http://www.google.com")
+                val connection = url.openConnection() as HttpURLConnection
+                connection.requestMethod = "GET"
+                connection.connectTimeout = 1500  // Timeout for connection
+                connection.connect()              // Try to connect
+
+                // Check for a successful response code (200–299 means success)
+                connection.responseCode in 200..299
+            } catch (e: Exception) {
+                false  // Any exception means no connection
+            }
         }
     }
 }

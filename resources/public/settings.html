@@ -16,6 +16,7 @@
         <span id="navFontSettings" class="gicon">font_download</span>
         <span id="navLocationSettings" class="gicon">subject</span>
         <span id="navThemeList" class="gicon">format_list_numbered</span>
+        <span id="navBibleSettings" class="gicon">menu_book</span>
     </nav>
     <section id="mainSettings">
         <ol>
@@ -105,6 +106,42 @@
                 </section>
             </li>
             <li id="settingThemeList"></li>
+            <li id="settingBible">
+                <section id="bibleControlContainer">
+                    <label for="bibleVersions">List of available Bible versions</label>
+                    <select name="versions" id="bibleVersions"></select>
+                    <button id="buttonInstall" class="btn">Install</button>
+                    <label for="versionsInstalled">Bible versions installed</label>
+                    <select name="versionsInstalled" id="versionsInstalled"></select>
+                </section>
+                <section id="bibleSearchContainer">
+                    <p>Search and project the Bible verse</p>
+                    <label for="inputVerseSearch">Search the Bible like this "Genesis 1:1" without the quotes.</label>
+                    <input id="inputVerseSearch" type="text" placeholder="Genesis 1:1">
+                    <p>How many Bible versions do you want to project on the screen?</p>
+                    <select name="numberOfVersions" id="selectVersionsToProject">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                    </select>
+                    <aside id="versionsContainer">
+                        <div id="version1">
+                            <label for="selectVersion1">Bible version 1</label>
+                            <select name="version1" id="selectVersion1" class="select-version"></select>
+                        </div>
+                        <div id="version2">
+                            <label for="selectVersion2">Bible version 2</label>
+                            <select name="version2" id="selectVersion2" class="select-version"></select>
+                        </div>
+                        <div id="version3">
+                            <label for="selectVersion3">Bible version 3</label>
+                            <select name="version3" id="selectVersion3" class="select-version"></select>
+                        </div>
+                    </aside>
+                    <button id="buttonSearch" class="btn">Search</button>
+                    <ul id="verseList"></ul>
+                </section>
+            </li>
         </ol>
         <aside id="saveThemeContainer">
             <input id="inputThemeName" type="text" placeholder="Theme's name">

@@ -8,6 +8,7 @@ import com.intellisrc.web.service.Service
 import com.intellisrc.web.service.ServiciableMultiple
 import groovy.lang.Closure
 import org.eclipse.jetty.http.HttpMethod
+import xyz.josapedmoreno.hwvci.control.BookApi
 import xyz.josapedmoreno.hwvci.control.Core
 import xyz.josapedmoreno.hwvci.control.Paths.Companion.publicResources
 import xyz.josapedmoreno.hwvci.table.SongTable
@@ -71,6 +72,9 @@ class ControlServices : ServiciableMultiple {
         services.add(getThemesService())
         services.add(setThemeService())
         services.add(liveClearService())
+        services.add(getBooksService())
+        services.add(getInstalledVersionsService())
+        services.add(installBookService())
         return services
     }
 
@@ -457,6 +461,54 @@ class ControlServices : ServiciableMultiple {
                 val map = LinkedHashMap<String, Any>(1)
                 Core.liveClear()
                 map["ok"] = true
+                return gson.toJson(map)
+            }
+        }
+        return service
+    }
+
+    private fun getBooksService(): Service {
+        val service = Service()
+        service.method = HttpMethod.GET
+        service.allow = getUserAllow()
+        service.path = "/getbooks"
+        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
+            fun doCall(request: Request): String {
+                val map = LinkedHashMap<String, Any>(1)
+                map["ok"] = true
+                map["data"] = BookApi.listAvailableBibles()
+                return gson.toJson(map)
+            }
+        }
+        return service
+    }
+
+    private fun getInstalledVersionsService(): Service {
+        val service = Service()
+        service.method = HttpMethod.GET
+        service.allow = getUserAllow()
+        service.path = "/getversions"
+        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
+            fun doCall(request: Request): String {
+                val map = LinkedHashMap<String, Any>(1)
+                map["ok"] = true
+                map["data"] = BookApi.getInstalledBooks()
+                return gson.toJson(map)
+            }
+        }
+        return service
+    }
+
+    private fun installBookService(): Service {
+        val service = Service()
+        service.method = HttpMethod.POST
+        service.allow = getUserAllow()
+        service.path = "/installbook"
+        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
+            fun doCall(request: Request): String {
+                val map = LinkedHashMap<String, Any>(1)
+                map["ok"] = true
+                map["data"] = BookApi.listAvailableBibles()
                 return gson.toJson(map)
             }
         }

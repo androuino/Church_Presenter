@@ -7,6 +7,7 @@ import com.intellisrc.core.SysService
 import com.intellisrc.db.Database
 import com.intellisrc.thread.Tasks
 import com.intellisrc.web.WebService
+import xyz.josapedmoreno.hwvci.control.BookApi
 import xyz.josapedmoreno.hwvci.control.Paths.Companion.publicResources
 import xyz.josapedmoreno.hwvci.services.AuthService
 import xyz.josapedmoreno.hwvci.services.ControlServices
@@ -39,6 +40,9 @@ class App : SysService() {
         }
         if (Themes().createDefaultTheme()) {
             Log.i("Default theme is created")
+        }
+        if (BookApi.installDefaultBibleVersions()) { // This needs internet connection
+            Log.i("Bible versions are installed")
         }
     }
 
