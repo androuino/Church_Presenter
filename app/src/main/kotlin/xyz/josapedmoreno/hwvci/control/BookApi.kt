@@ -2,6 +2,7 @@ package xyz.josapedmoreno.hwvci.control
 
 import com.intellisrc.core.Log
 import org.crosswire.jsword.book.Book
+import org.crosswire.jsword.book.BookCategory
 import org.crosswire.jsword.book.BookData
 import org.crosswire.jsword.book.BookException
 import org.crosswire.jsword.book.Books
@@ -9,12 +10,71 @@ import org.crosswire.jsword.book.OSISUtil
 import org.crosswire.jsword.book.install.InstallException
 import org.crosswire.jsword.book.install.InstallManager
 import org.crosswire.jsword.book.install.Installer
+import org.crosswire.jsword.book.sword.SwordBookMetaData
 import org.crosswire.jsword.book.sword.SwordBookPath
 import org.crosswire.jsword.passage.Key
 import java.io.File
 
 class BookApi {
     companion object {
+        fun listAvailableBibles(): MutableMap<String, Any> {
+            val map = mutableMapOf<String, Any>()
+            try {
+                // Create an InstallManager to manage repositories
+                val installManager = InstallManager()
+
+                // Get the default CrossWire repository installer
+                val installer: Installer = installManager.getInstaller("CrossWire")
+
+                // Get all available modules (books) from the repository
+                val availableBooks: List<Book> = installer.books
+
+                // Filter books that are valid and are in the Bible category
+                val bibles = availableBooks.filter { book ->
+                    try {
+                        // Only include valid books with correct metadata and in the Bible category
+                        book.bookMetaData is SwordBookMetaData &&
+                                book.bookCategory == BookCategory.BIBLE
+                    } catch (e: Exception) {
+                        // Log the error for malformed books and skip them
+                        Log.w("Skipping unsupported book: ${book.initials}, error: ${e.message}")
+                        false
+                    }
+                }
+
+                // Display available Bible versions
+                Log.i("Available Bible Versions:")
+                bibles.forEach { book ->
+                    val metaData = book.bookMetaData as SwordBookMetaData
+                    Log.i("${metaData.initials} - ${metaData.name}")
+                    map[metaData.initials] = metaData.name
+                }
+            } catch (e: Exception) {
+                Log.e("Error retrieving books.", e.printStackTrace())
+            }
+            return map
+        }
+        fun installDefaultBibleVersions(): Boolean {
+            var success = false
+            var i = 0
+            if (Core.isConnectedToInternet()) {
+                val versions = listOf<String>("KJV", "JapBungo", "TagAngBiblia")
+                versions.forEach {
+                    if (!checkIfVersionExist(it)) {
+                        install(it)
+                        i++
+                    } else
+                        Log.i("Bible $it already exists.")
+                }
+                if (i >= 2)
+                    success = true
+                else
+                    Log.i("Bible versions are already installed")
+            } else {
+                Log.w("Internet is not connected.")
+            }
+            return success
+        }
         fun install(bookInitials: String): Boolean {
             var success = false
             try {
@@ -35,9 +95,9 @@ class BookApi {
                     ?: throw BookException("Bible version not found")
 
                 // Install the book
-                println("Installing ${bookToInstall.initials}")
+                Log.i("Installing ${bookToInstall.initials}")
                 installer.install(bookToInstall)
-                println("Installation complete!")
+                Log.i("Installation complete!")
                 success = true
             } catch (e: InstallException) {
                 e.printStackTrace()
@@ -46,28 +106,41 @@ class BookApi {
             }
             return success
         }
-        fun getBook(bookInitials: String, verseRef: String): String {
-            var verse = ""
+        fun getBook(bookInitials: String, verseRef: String): Map<String, String> {
+            val versesMap = mutableMapOf<String, String>()
+
             try {
                 // Load the installed Bible
                 val book: Book? = Books.installed().getBook(bookInitials)
                 if (book == null) {
                     println("Bible version not found: $bookInitials")
-                    return verse
+                    return versesMap
                 }
 
-                // Get the verse using the provided reference
+                // Get the key representing the verse or passage using the provided reference
                 val key: Key = book.getKey(verseRef)
-                val data: BookData = BookData(book, key)
 
-                // Extract the canonical text (i.e., plain text)
-                verse = OSISUtil.getCanonicalText(data.osisFragment)
+                // Iterate through the key to handle multiple verses
+                for (verseKey in key) {
+                    val data = BookData(book, verseKey)
+
+                    // Get the verse reference (e.g., Genesis 1:1)
+                    val verseReference = verseKey.name
+
+                    // Extract the canonical text (i.e., plain text of the verse)
+                    val verseText = OSISUtil.getCanonicalText(data.osisFragment)
+
+                    // Add the verse reference and text to the map
+                    versesMap[verseReference] = verseText
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-            return verse
+
+            return versesMap
         }
-        fun getInstalledBooks() {
+        fun getInstalledBooks(): Map<String, Any> {
+            val map = mutableMapOf<String, Any>()
             // Get a list of all installed books (Bibles, commentaries, dictionaries, etc.)
             val books: List<Book> = Books.installed().books
 
@@ -75,24 +148,30 @@ class BookApi {
             val searchVersion = "Philippine Bible Society (1905)" // You can also search by initials like "TAB"
 
             // Get all installed books
-            /*
             for (book in Books.installed().books) {
                 // Check if this is the desired Bible version
+                map[book.initials] = book.name
+                /*
                 if (book.name == searchVersion) {
-                    Log.i("Bible initials: ${book.initials}")
-                    Log.i("Bible Version Found: ${book.name}")
-
+                    //Log.i("Bible initials: ${book.initials}")
+                    //Log.i("Bible Version Found: ${book.name}")
                     // Get the list of all book names (e.g., Genesis, Exodus, etc.)
-                    /*val globalKeyList: Key = book.globalKeyList
-                    for (key in globalKeyList) {
-                        Log.i("Book Name: ${key.name}")
-                    }*/
                 }
+                */
             }
-            */
+            /*
             for (book in Books.installed().books) {
                 Log.i(book.initials)
             }
+            */
+            return map
+        }
+        fun checkIfVersionExist(version: String): Boolean {
+            var success = false
+            for (book in Books.installed().books)
+                if (book.initials == version)
+                    success = true
+            return success
         }
     }
 }

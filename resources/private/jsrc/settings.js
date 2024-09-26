@@ -24,6 +24,7 @@ m2d2.ready($ => {
     var alignment = "center";
     var justifyContent = "";
     var alignItems = "";
+    var bibleVersionInstalled;
     const mainSettings = $("#mainSettings", {
         onload : function(ev) {
             $.get("/getthemes", res => {
@@ -36,6 +37,42 @@ m2d2.ready($ => {
                         });
                     });
                 }
+            }, true);
+            $.get("/getbooks", res => {
+                if (res.ok) {
+                    bibleVersions.items.clear();
+                    Object.entries(res.data).forEach(([k,v]) => {
+                        bibleVersions.items.push({
+                            text : `${k} : ${v}`,
+                        });
+                    });
+                }
+            }, error => {
+                console.error("Error getting books", error);
+            }, true);
+            $.get("/getversions", res => {
+                if (res.ok) {
+                    versionsInstalled.items.clear();
+                    selectVersion1.items.clear();
+                    selectVersion2.items.clear();
+                    selectVersion3.items.clear();
+                    Object.entries(res.data).forEach(([k,v]) => {
+                        versionsInstalled.items.push({
+                            text : `${k} : ${v}`,
+                        });
+                        selectVersion1.items.push({
+                            text : `${k} : ${v}`,
+                        });
+                        selectVersion2.items.push({
+                            text : `${k} : ${v}`,
+                        });
+                        selectVersion3.items.push({
+                            text : `${k} : ${v}`,
+                        });
+                    });
+                }
+            }, error => {
+                console.error("Error getting installed books", error);
             }, true);
             const data = {
                 theme : "Default",
@@ -105,6 +142,7 @@ m2d2.ready($ => {
         onshow : function(ev) {
             settingLocation.show = false;
             settingThemeList.show = false;
+            settingBible.show = false;
         },
     });
     const settingLocation = $("#settingLocation", {
@@ -112,6 +150,7 @@ m2d2.ready($ => {
         onshow : function(ev) {
             settingFont.show = false;
             settingThemeList.show = false;
+            settingBible.show = false;
             const host = window.location.hostname; // Get the current host
             const protocol = window.location.protocol; // Get the current protocol (http or https)
             const url = `${host}:5555`; // Construct the full URL
@@ -123,6 +162,15 @@ m2d2.ready($ => {
         onshow : function(ev) {
             settingFont.show = false;
             settingLocation.show = false;
+            settingBible.show = false;
+        }
+    });
+    const settingBible = $("#settingBible", {
+        show : false,
+        onshow : function(ev) {
+            settingFont.show = false;
+            settingLocation.show = false;
+            settingThemeList.show = false;
         }
     });
     const navFontSettings = $("#navFontSettings", {
@@ -134,6 +182,7 @@ m2d2.ready($ => {
             this.classList.add("active");
             navLocationSettings.classList.remove("active");
             navThemeList.classList.remove("active");
+            navBibleSettings.classList.remove("active");
         },
     });
     const navLocationSettings = $("#navLocationSettings", {
@@ -142,6 +191,7 @@ m2d2.ready($ => {
             this.classList.add("active");
             navFontSettings.classList.remove("active");
             navThemeList.classList.remove("active");
+            navBibleSettings.classList.remove("active");
         }
     });
     const navThemeList = $("#navThemeList", {
@@ -150,6 +200,16 @@ m2d2.ready($ => {
             this.classList.add("active");
             navFontSettings.classList.remove("active");
             navLocationSettings.classList.remove("active");
+            navBibleSettings.classList.remove("active");
+        }
+    });
+    const navBibleSettings = $("#navBibleSettings", {
+        onclick : function(ev) {
+            settingBible.show = true;
+            this.classList.add("active");
+            navFontSettings.classList.remove("active");
+            navLocationSettings.classList.remove("active");
+            navThemeList.classList.remove("active");
         }
     });
     const fontBold = $("#fontBold", {
@@ -603,6 +663,13 @@ m2d2.ready($ => {
             }
         }
     });
+    const inputVerseSearch = $("#inputVerseSearch", {
+        onkeydown : function(ev) {
+            if (ev.key === "Enter") {
+                $.alert("Enter is pressed");
+            }
+        }
+    });
     function resetOffset() {
         topLeftOffset.value = 0;
         topMiddleOffset.value = 0;
@@ -794,6 +861,92 @@ m2d2.ready($ => {
             }
         }, true);
     }
+    const bibleVersions = $("#bibleVersions", {
+        template : {
+            option : {
+                tagName : "option",
+                style : {
+                    borderBottom : "1px solid black"
+                }
+            }
+        },
+        items : [],
+    });
+    const versionsInstalled = $("#versionsInstalled", {
+        template : {
+            option : {
+                tagName : "option",
+                style : {
+                    borderBottom : "1px solid black"
+                }
+            }
+        },
+        items : [],
+    });
+    const version1 = $("#version1");
+    const version2 = $("#version2", {
+        show : false,
+    });
+    const version3 = $("#version3", {
+        show : false,
+    });
+    const selectVersion1 = $("#selectVersion1", {
+        template : {
+            option : {
+                tagName : "option",
+                style : {
+                    borderBottom : "1px solid black"
+                }
+            }
+        },
+        items : [],
+    });
+    const selectVersion2 = $("#selectVersion2", {
+        template : {
+            option : {
+                tagName : "option",
+                style : {
+                    borderBottom : "1px solid black"
+                }
+            }
+        },
+        items : [],
+    });
+    const selectVersion3 = $("#selectVersion3", {
+        template : {
+            option : {
+                tagName : "option",
+                style : {
+                    borderBottom : "1px solid black"
+                }
+            }
+        },
+        items : [],
+    });
+    const selectVersionsToProject = $("#selectVersionsToProject", {
+        onload : function(ev) {
+            if (ev.target.value === "1") {
+                version1.enabled = true;
+                version2.enabled = false;
+                version3.enabled = false;
+            }
+        },
+        onchange : function(ev) {
+            if (ev.target.value === "1") {
+                version1.show = true;
+                version2.show = false;
+                version3.show = false;
+            } else if (ev.target.value === "2") {
+                version1.show = true;
+                version2.show = true;
+                version3.show = false;
+            } else if (ev.target.value === "3") {
+                version1.show = true;
+                version2.show = true;
+                version3.show = true;
+            }
+        }
+    });
     tippy('#navFontSettings', {
         content: "Font settings (Font style and size)",
         interactive: true,
@@ -810,6 +963,13 @@ m2d2.ready($ => {
     });
     tippy('#navThemeList', {
         content: "List of themes",
+        interactive: true,
+        placement: 'right',
+        animation: 'scale',
+        theme: 'light',
+    });
+    tippy('#navBibleSettings', {
+        content: "Manage Bible versions",
         interactive: true,
         placement: 'right',
         animation: 'scale',

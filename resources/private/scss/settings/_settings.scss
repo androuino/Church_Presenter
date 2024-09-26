@@ -343,6 +343,51 @@ main {
                 width: 100%;
                 display: flex;
             }
+            #settingBible {
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                display: flex;
+                flex-direction: row;
+                #bibleControlContainer {
+                    width: calc(100% / 2);
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                    margin: 2em;
+                    select {
+                        font-size: 1.2em;
+                    }
+                }
+                #bibleSearchContainer {
+                    width: calc(100% / 2);
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                    margin: 2em;
+                    input {
+                        font-size: 1.2em;
+                    }
+                    ul {
+                        list-style: none;
+                    }
+                    select {
+                        width: calc(100% / 3);
+                        font-size: 1.2em;
+                    }
+                    aside {
+                        display: flex;
+                        div {
+                            display: flex;
+                            width: calc(100% / 3);
+                            flex-direction: column;
+                            .select-version {
+                                width: 100%;
+                            }
+                        }
+                    }
+                }
+            }
         }
         #saveThemeContainer {
             display: flex;
