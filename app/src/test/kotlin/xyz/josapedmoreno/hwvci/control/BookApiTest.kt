@@ -1,6 +1,7 @@
 package xyz.josapedmoreno.hwvci.control
 
 import com.google.gson.Gson
+import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.intellisrc.core.Log
 import org.junit.jupiter.api.Test
@@ -14,15 +15,19 @@ class BookApiTest {
         assertEquals(true, isInstalled)
     }
     @Test
-    fun `Installed Bible version mus return a verse`() {
+    fun `Installed Bible version must return a verse`() {
         var success = false
         val initials = arrayListOf<String>("KJV")
-        val gson = Gson().newBuilder().create()
-        val res = BookApi.getBook(gson.toJson(initials), "Genesis 1:1-5")
+        val jsonArray = JsonArray()
+        jsonArray.add("KJV")
+        jsonArray.add("TagAngBiblia")
+        val res = BookApi.getBook(jsonArray, "Genesis 1:1-5")
         if (res.isNotEmpty())
             success = true
-        res.entries.forEach { (k, v) ->
-            Log.i("Verse: $k: $v")
+        res.forEach { version ->
+            version.entries.forEach { (k, v) ->
+                Log.i("Verse: $k: $v")
+            }
         }
         assertEquals(true, success)
     }

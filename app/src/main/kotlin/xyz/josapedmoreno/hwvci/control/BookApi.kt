@@ -53,7 +53,7 @@ class BookApi {
             } catch (e: Exception) {
                 Log.e("Error retrieving books.", e.printStackTrace())
             }
-            return map
+            return map.toSortedMap()
         }
         fun installDefaultBibleVersions(): Boolean {
             var success = false
@@ -107,16 +107,17 @@ class BookApi {
             }
             return success
         }
-        fun getBook(bookInitials: JsonArray, verseRef: String): Map<String, String> {
-            val versesMap = mutableMapOf<String, String>()
+        fun getBook(bookInitials: JsonArray, verseRef: String): List<MutableMap<String, Any>> {
+            val listMap = mutableListOf<MutableMap<String, Any>>()
 
             try {
-                bookInitials.forEach { initial ->
+                bookInitials.forEach { version ->
+                    val map = mutableMapOf<String, Any>()
                     // Load the installed Bible
-                    val book: Book? = Books.installed().getBook(initial.asString)
+                    val book: Book? = Books.installed().getBook(version.asString)
                     if (book == null) {
-                        println("Bible version not found: $bookInitials")
-                        return versesMap
+                        Log.w("Bible version not found: $bookInitials")
+                        return listMap
                     }
 
                     // Get the key representing the verse or passage using the provided reference
@@ -133,14 +134,15 @@ class BookApi {
                         val verseText = OSISUtil.getCanonicalText(data.osisFragment)
 
                         // Add the verse reference and text to the map
-                        versesMap[verseReference] = verseText
+                        map[verseReference] = verseText
                     }
+                    listMap.add(map)
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
 
-            return versesMap
+            return listMap
         }
         fun getInstalledBooks(): Map<String, Any> {
             val map = mutableMapOf<String, Any>()
@@ -167,7 +169,7 @@ class BookApi {
                 Log.i(book.initials)
             }
             */
-            return map
+            return map.toSortedMap()
         }
         fun uninstallBook(bookInitials: String): Boolean {
             var success = false

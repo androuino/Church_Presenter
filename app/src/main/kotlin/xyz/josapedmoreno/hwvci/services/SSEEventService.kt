@@ -4,6 +4,9 @@ import com.google.gson.Gson
 import com.intellisrc.web.service.ServerSentEvent
 
 class SSEEventService : ServerSentEvent() {
+    override fun getAcceptCharset(): String? {
+        return Charsets.UTF_8.name()
+    }
     override fun getPath(): String {
         return "/events"
     }
@@ -22,6 +25,10 @@ class SSEEventService : ServerSentEvent() {
 
     fun notifyLiveClear() {
         broadcast("clear", "clear")
+    }
+
+    fun projectVerse(verse: String) {
+        broadcast(verse, "verse")
     }
 
     companion object {

@@ -368,9 +368,6 @@ main {
                     input {
                         font-size: 1.2em;
                     }
-                    ul {
-                        list-style: none;
-                    }
                     select {
                         width: calc(100% / 3);
                         font-size: 1.2em;
@@ -387,6 +384,14 @@ main {
                             }
                             .select-version {
                                 width: 100%;
+                            }
+                        }
+                    }
+                    ul {
+                        list-style: none;
+                        li {
+                            &:hover {
+                                background-color: gray;
                             }
                         }
                     }

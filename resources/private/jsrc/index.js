@@ -38,7 +38,6 @@ m2d2.ready($ => {
     });
     evtSource.addEventListener("theme", function (ev) {
         var data = JSON.parse(JSON.parse(ev.data));
-        console.log(data);
         const id = data.id;
         const font = data.font;
         const fontSize = data.font_size;
@@ -88,5 +87,12 @@ m2d2.ready($ => {
         lyrics.style.textAlign = data.text_align;
         main.style.justifyContent = data.justify_content;
         main.style.alignItems = data.align_items;
+    });
+    evtSource.addEventListener("verse", function (ev) {
+        console.log("Raw data is", ev.data);
+        let decodedData = decodeURIComponent(escape(ev.data));
+        console.log(decodedData);
+        const verse = decodedData;
+        lyrics.textContent = verse;
     });
 });

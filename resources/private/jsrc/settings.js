@@ -273,6 +273,7 @@ m2d2.ready($ => {
             } else {
                 const selected = themeList.options[themeList.selectedIndex];
                 const id = selected.dataset.id;
+                console.log("the id is", id);
                 const data = {
                     id : id,
                     themeName: inputThemeName.value,
@@ -815,14 +816,83 @@ m2d2.ready($ => {
             }
         }
     });
+    const buttonSearch = $("#buttonSearch", {
+        onclick : function(ev) {
+            versionList = [];
+            if (version1.show === true) {
+                versionList.push(selectVersion1.value.split(":")[0].trim());
+            }
+            if (version2.show === true) {
+                versionList.push(selectVersion2.value.split(":")[0].trim());
+            }
+            if (version3.show === true) {
+                versionList.push(selectVersion3.value.split(":")[0].trim());
+            }
+            searchBible(inputVerseSearch.value, versionList);
+        }
+    });
+    const verseList = $("#verseList", {
+        template : {
+            li : {
+                tagName : "li",
+                style : {
+                    border : "1px solid white",
+                    whiteSpace: "normal",
+                    cursor: "pointer",
+                },
+                preVerse : {
+                    tagName : "pre",
+                    css : "preVerse",
+                    style : {
+                        whiteSpace: "pre-wrap",
+                        wordWrap: "break-word",
+                    },
+                    onclick : function(ev) {
+                        const data = {
+                            verse : this.textContent,
+                        };
+                        $.post("/projectverse", data, res => {
+                            if (res.ok) {
+                                console.debug("Success projecting verse");
+                            }
+                        }, error => {
+                            console.error("Error projecting verse.", error);
+                        }, true);
+                    }
+                }
+            }
+        },
+        items : [],
+    });
     function searchBible(verse, versions) {
         const data = {
             verse : verse,
             versions : versions,
         };
-        $.get("/searchbibleverse", data, res => {
+        $.post("/searchbibleverse", data, res => {
             if (res.ok) {
-                // todo: do something with the search result
+                var newLine = "";
+                const data = res.data;
+                if (data.length > 1) {
+                    newLine = '\n\n';
+                }
+                verseList.items.clear();
+                const numOfMaps = data.length;
+                const numOfKeys = Object.keys(data[0]).length;
+                for (let i = 0; i < numOfKeys; i++) {
+                    // Create an array to hold the combined values for the current index
+                    const combinedValues = [];
+                    var verse = "";
+                    // Iterate through each map to get the value at the current index
+                    for (let j = 0; j < numOfMaps; j++) {
+                        verse += data[j][Object.keys(data[j])[i]] + newLine;
+                    }
+                    verseList.items.push({
+                        preVerse : {
+                            textContent : verse,
+                        }
+                    });
+                }
             }
         }, error => {
             console.error("Error search verse:", error);
