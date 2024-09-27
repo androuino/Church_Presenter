@@ -848,8 +848,19 @@ m2d2.ready($ => {
                         wordWrap: "break-word",
                     },
                     onclick : function(ev) {
+                        versionList = [];
+                        if (version1.show === true) {
+                            versionList.push(selectVersion1.value.split(":")[0].trim());
+                        }
+                        if (version2.show === true) {
+                            versionList.push(selectVersion2.value.split(":")[0].trim());
+                        }
+                        if (version3.show === true) {
+                            versionList.push(selectVersion3.value.split(":")[0].trim());
+                        }
                         const data = {
                             verse : this.textContent,
+                            versions : versionList,
                         };
                         $.post("/projectverse", data, res => {
                             if (res.ok) {
@@ -884,8 +895,15 @@ m2d2.ready($ => {
                     const combinedValues = [];
                     var verse = "";
                     // Iterate through each map to get the value at the current index
+                    /*
                     for (let j = 0; j < numOfMaps; j++) {
                         verse += data[j][Object.keys(data[j])[i]] + newLine;
+                    }
+                    */
+                    for (let j = 0; j < numOfMaps; j++) {
+                        // Get the key at the current index
+                        const key = Object.keys(data[j])[i];
+                        verse = key;  // Concatenate the keys with newline
                     }
                     verseList.items.push({
                         preVerse : {
