@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.intellisrc.core.Log
 import com.intellisrc.web.service.Request
+import com.intellisrc.web.service.Response
 import com.intellisrc.web.service.Service
 import com.intellisrc.web.service.ServiciableMultiple
 import groovy.lang.Closure
@@ -14,6 +15,8 @@ import xyz.josapedmoreno.hwvci.control.Paths.Companion.publicResources
 import xyz.josapedmoreno.hwvci.table.SongTable
 import xyz.josapedmoreno.hwvci.table.Themes
 import java.io.File
+import java.io.PrintWriter
+import java.nio.charset.StandardCharsets
 
 class ControlServices : ServiciableMultiple {
     override fun getPath(): String {
@@ -76,6 +79,8 @@ class ControlServices : ServiciableMultiple {
         services.add(getInstalledVersionsService())
         services.add(installBookService())
         services.add(uninstallBookService())
+        services.add(searchBibleVerseService())
+        services.add(projectVerseService())
         return services
     }
 
@@ -536,7 +541,7 @@ class ControlServices : ServiciableMultiple {
 
     private fun searchBibleVerseService(): Service {
         val service = Service()
-        service.method = HttpMethod.GET
+        service.method = HttpMethod.POST
         service.allow = getUserAllow()
         service.path = "/searchbibleverse"
         service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
@@ -547,6 +552,26 @@ class ControlServices : ServiciableMultiple {
                 val verse = data.get("verse").asString
                 map["ok"] = true
                 map["data"] = BookApi.getBook(bookInitials, verse)
+                return gson.toJson(map)
+            }
+        }
+        return service
+    }
+
+    private fun projectVerseService(): Service {
+        val service = Service()
+        service.method = HttpMethod.POST
+        service.allow = getUserAllow()
+        service.path = "/projectverse"
+        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
+            fun doCall(request: Request, response: Response): String {
+                val map = LinkedHashMap<String, Any>(1)
+                response.characterEncoding = StandardCharsets.UTF_8.name()
+                response.setHeader("Cache-Control", "no-cache")
+                val data = gson.fromJson(request.body(), JsonObject::class.java)
+                val verse = data.get("verse").asString
+                SSENotifier.projectVerse(verse)
+                map["ok"] = true
                 return gson.toJson(map)
             }
         }
