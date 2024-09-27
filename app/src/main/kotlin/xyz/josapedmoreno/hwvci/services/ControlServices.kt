@@ -570,7 +570,8 @@ class ControlServices : ServiciableMultiple {
                 response.setHeader("Cache-Control", "no-cache")
                 val data = gson.fromJson(request.body(), JsonObject::class.java)
                 val verse = data.get("verse").asString
-                SSENotifier.projectVerse(verse)
+                val versions = data.get("versions").asJsonArray
+                SSENotifier.projectVerse(gson.toJson(data))
                 map["ok"] = true
                 return gson.toJson(map)
             }
