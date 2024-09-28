@@ -1,3 +1,6 @@
+html, body {
+    cursor: none;
+}
 body {
     width: 100%;
     min-height: 100%;
@@ -16,4 +19,11 @@ main {
     p {
         color: white;
     }
+}
+#info {
+    z-index: 10;
+    color: white;
+    position: absolute;
+    left: 14px;
+    bottom: 0;
 }

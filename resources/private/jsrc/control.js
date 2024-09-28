@@ -467,7 +467,7 @@ m2d2.ready($ => {
     const navNew = $("#navNew", {
         onclick : function(ev) {
             const newWindowUrl = `${window.location.protocol}/create`;
-            window.open(newWindowUrl, 'newWindow', 'width=800,height=600,toolbar=no,scrollbars=yes,resizable=yes');
+            window.open(newWindowUrl, 'createWindow', 'width=800,height=600,toolbar=no,scrollbars=yes,resizable=yes');
         }
     });
     const navEdit = $("#navEdit", {
@@ -630,7 +630,7 @@ m2d2.ready($ => {
     const navWiFi = $("#navWiFi", {
         onclick : function(ev) {
             const newWindowUrl = `${window.location.protocol}/wifisettings`;
-            window.open(newWindowUrl, 'newWindow', 'width=800,height=400,toolbar=no,scrollbars=yes,resizable=yes');
+            window.open(newWindowUrl, 'wifiSettingWindow', 'width=800,height=400,toolbar=no,scrollbars=yes,resizable=yes');
         }
     });
     // todo
@@ -638,7 +638,7 @@ m2d2.ready($ => {
         onclick : function(ev) {
             $.get("/settings", res => {
                 const newWindowUrl = `${window.location.protocol}/settings`;
-                window.open(newWindowUrl, 'newWindow', 'width=1200,height=700,toolbar=no,scrollbars=yes,resizable=yes');
+                window.open(newWindowUrl, 'settingsWindow', 'width=1200,height=700,toolbar=no,scrollbars=yes,resizable=yes');
             }, true);
         }
     });
@@ -663,7 +663,7 @@ m2d2.ready($ => {
             if (res.ok) {
                 localStorage.setItem("data", JSON.stringify(res.data));
                 const newWindowUrl = `${window.location.protocol}/create`;
-                window.open(newWindowUrl, 'newWindow', 'width=800,height=600,toolbar=no,scrollbars=yes,resizable=yes');
+                window.open(newWindowUrl, 'createWindow', 'width=800,height=600,toolbar=no,scrollbars=yes,resizable=yes');
             }
         });
     }
@@ -673,6 +673,12 @@ m2d2.ready($ => {
             navWiFi.style.color = "green";
         } else {
             navWiFi.style.color = "";
+        }
+    });
+    const controlViewLive = $("#controlViewLive", {
+        onclick : function(ev) {
+            const newWindowUrl = `${window.location.protocol}/`;
+            window.open(newWindowUrl, 'liveWindow', 'width=800,height=600,toolbar=no,scrollbars=yes,resizable=yes');
         }
     });
     tippy('#navNew', {

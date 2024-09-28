@@ -20,6 +20,7 @@ m2d2.load($ => {
 m2d2.ready($ => {
     const main = $("#main");
     const lyrics = $("#lyrics");
+    const info = $("#info");
     const evtSource = new EventSource('/events');
     evtSource.addEventListener("lyrics", function (ev) {
         let evData = ev.data;
@@ -89,10 +90,36 @@ m2d2.ready($ => {
         main.style.alignItems = data.align_items;
     });
     evtSource.addEventListener("verse", function (ev) {
-        console.log("Raw data is", ev.data);
-        let decodedData = decodeURIComponent(escape(ev.data));
-        console.log(decodedData);
-        const verse = decodedData;
-        lyrics.textContent = verse;
+        var data = JSON.parse(JSON.parse(ev.data));
+        $.post("/searchbibleverse", data, res => {
+            if (res.ok) {
+                var newLine = "";
+                var book = "";
+                const data = res.data;
+                if (data.length > 1) {
+                    newLine = '\n\n';
+                }
+                const numOfMaps = data.length;
+                const numOfKeys = Object.keys(data[0]).length;
+                for (let i = 0; i < numOfKeys; i++) {
+                    // Create an array to hold the combined values for the current index
+                    const combinedValues = [];
+                    var verse = "";
+                    // Iterate through each map to get the value at the current index
+                    for (let j = 0; j < numOfMaps; j++) {
+                        verse += data[j][Object.keys(data[j])[i]] + newLine;
+                    }
+                    for (let j = 0; j < numOfMaps; j++) {
+                        // Get the key at the current index
+                        const key = Object.keys(data[j])[i];
+                        book = key;  // Concatenate the keys with newline
+                    }
+                }
+                lyrics.textContent = verse;
+                info.textContent = book;
+            }
+        }, error => {
+            console.error("Error getting verse", error);
+        }, true);
     });
 });

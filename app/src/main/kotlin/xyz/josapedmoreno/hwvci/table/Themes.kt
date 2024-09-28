@@ -33,7 +33,7 @@ class Themes : Table<Theme>() {
         theme.justifyContent = data.get("justifyContent").asString
         theme.alignItems = data.get("alignItems").asString
         success = if (checkDuplicate(theme.themeName)) {
-            update(theme, mutableListOf("id"))
+            update(theme, arrayListOf("id"))
         } else {
             table.insert(theme.toMap())
         }
