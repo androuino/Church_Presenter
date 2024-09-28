@@ -1,6 +1,7 @@
 package xyz.josapedmoreno.hwvci.control
 
 import com.google.gson.JsonArray
+import com.google.gson.JsonParser
 import com.intellisrc.core.Log
 import org.crosswire.jsword.book.Book
 import org.crosswire.jsword.book.BookCategory
@@ -113,6 +114,7 @@ class BookApi {
             try {
                 bookInitials.forEach { version ->
                     val map = mutableMapOf<String, Any>()
+                    Log.w("Book versions is ${version.asString}")
                     // Load the installed Bible
                     val book: Book? = Books.installed().getBook(version.asString)
                     if (book == null) {

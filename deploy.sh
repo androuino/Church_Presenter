@@ -19,10 +19,10 @@ rsync -ia --exclude=app/lib/ deploy/lib/
 if [[ $IP == "" ]]; then
   IP="192.168.20.82"
   DIR="www"
-  rsync -aiv deploy/* --exclude 'deploy/log/' "sem@$IP:$DIR/."
+  rsync -av --exclude='deploy/log/*' deploy/resources/ deploy/*.jar deploy/config.properties deploy/kiosk deploy/run "sem@$IP:$DIR/."
 else
   DIR="www"
-  rsync -aiv deploy/* --exclude 'deploy/log/' "sem@$IP:$DIR/."
+  rsync -av --exclude='deploy/log/*' deploy/resources/ deploy/*.jar deploy/config.properties deploy/kiosk deploy/run "sem@$IP:$DIR/."
 fi
 LOG=log/
 if [[ -f "$LOG" ]]; then

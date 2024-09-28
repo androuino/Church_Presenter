@@ -1,7 +1,6 @@
 package xyz.josapedmoreno.hwvci.services
 
-import com.google.gson.Gson
-import com.google.gson.JsonObject
+import com.google.gson.*
 import com.intellisrc.core.Log
 import com.intellisrc.web.service.Request
 import com.intellisrc.web.service.Response
@@ -542,14 +541,26 @@ class ControlServices : ServiciableMultiple {
     private fun searchBibleVerseService(): Service {
         val service = Service()
         service.method = HttpMethod.POST
-        service.allow = getUserAllow()
         service.path = "/searchbibleverse"
         service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
             fun doCall(request: Request): String {
                 val map = LinkedHashMap<String, Any>(1)
-                val data = gson.fromJson(request.body(), JsonObject::class.java)
-                val bookInitials = data.get("versions").asJsonArray
-                val verse = data.get("verse").asString
+                val data: JsonElement = gson.fromJson(request.body(), JsonElement::class.java)
+                var verse = ""
+                var bookInitials = JsonArray()
+
+                if (data.isJsonObject) {
+                    val jsonObject = data.asJsonObject
+                    verse = jsonObject.get("verse").asString
+                    bookInitials = jsonObject.get("versions").asJsonArray
+                } else if (data.isJsonPrimitive) {
+                    val jsonPrimitive = data.asJsonPrimitive
+                    val jsonObject = JsonParser.parseString(jsonPrimitive.asString).asJsonObject
+                    verse = jsonObject.get("verse").asString
+                    bookInitials = jsonObject.get("versions").asJsonArray
+                } else {
+                    Log.w("Unexpected JSON structure")
+                }
                 map["ok"] = true
                 map["data"] = BookApi.getBook(bookInitials, verse)
                 return gson.toJson(map)
@@ -564,14 +575,10 @@ class ControlServices : ServiciableMultiple {
         service.allow = getUserAllow()
         service.path = "/projectverse"
         service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(request: Request, response: Response): String {
+            fun doCall(request: Request): String {
                 val map = LinkedHashMap<String, Any>(1)
-                response.characterEncoding = StandardCharsets.UTF_8.name()
-                response.setHeader("Cache-Control", "no-cache")
                 val data = gson.fromJson(request.body(), JsonObject::class.java)
-                val verse = data.get("verse").asString
-                val versions = data.get("versions").asJsonArray
-                SSENotifier.projectVerse(gson.toJson(data))
+                SSENotifier.projectVerse(gson.toJson(mapOf("verse" to data.get("verse").asString, "versions" to data.get("versions").asJsonArray)))
                 map["ok"] = true
                 return gson.toJson(map)
             }
