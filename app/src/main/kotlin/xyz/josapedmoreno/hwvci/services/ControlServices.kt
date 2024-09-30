@@ -8,6 +8,7 @@ import com.intellisrc.web.service.Service
 import com.intellisrc.web.service.ServiciableMultiple
 import groovy.lang.Closure
 import org.eclipse.jetty.http.HttpMethod
+import sun.tools.serialver.resources.serialver
 import xyz.josapedmoreno.hwvci.control.BookApi
 import xyz.josapedmoreno.hwvci.control.Core
 import xyz.josapedmoreno.hwvci.control.Paths.Companion.publicResources
@@ -80,6 +81,10 @@ class ControlServices : ServiciableMultiple {
         services.add(uninstallBookService())
         services.add(searchBibleVerseService())
         services.add(projectVerseService())
+        services.add(hideLyricsService())
+        services.add(blackScreenService())
+        services.add(showDesktopService())
+        services.add(showLyricsService())
         return services
     }
 
@@ -579,6 +584,70 @@ class ControlServices : ServiciableMultiple {
                 val map = LinkedHashMap<String, Any>(1)
                 val data = gson.fromJson(request.body(), JsonObject::class.java)
                 SSENotifier.projectVerse(gson.toJson(mapOf("verse" to data.get("verse").asString, "versions" to data.get("versions").asJsonArray)))
+                map["ok"] = true
+                return gson.toJson(map)
+            }
+        }
+        return service
+    }
+
+    private fun hideLyricsService(): Service { // default screen
+        val service = Service()
+        service.method = HttpMethod.POST
+        service.allow = getUserAllow()
+        service.path = "/hidelyrics"
+        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
+            fun doCall(request: Request): String {
+                val map = LinkedHashMap<String, Any>(1)
+                SSENotifier.hideLyrics()
+                map["ok"] = true
+                return gson.toJson(map)
+            }
+        }
+        return service
+    }
+
+    private fun blackScreenService(): Service {
+        val service = Service()
+        service.method = HttpMethod.POST
+        service.allow = getUserAllow()
+        service.path = "/blackscreen"
+        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
+            fun doCall(request: Request): String {
+                val map = LinkedHashMap<String, Any>(1)
+                SSENotifier.blackScreen()
+                map["ok"] = true
+                return gson.toJson(map)
+            }
+        }
+        return service
+    }
+
+    private fun showDesktopService(): Service {
+        val service = Service()
+        service.method = HttpMethod.POST
+        service.allow = getUserAllow()
+        service.path = "/showdesktop"
+        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
+            fun doCall(request: Request): String {
+                val map = LinkedHashMap<String, Any>(1)
+                SSENotifier.showDesktop()
+                map["ok"] = true
+                return gson.toJson(map)
+            }
+        }
+        return service
+    }
+
+    private fun showLyricsService(): Service {
+        val service = Service()
+        service.method = HttpMethod.POST
+        service.allow = getUserAllow()
+        service.path = "/showlyrics"
+        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
+            fun doCall(request: Request): String {
+                val map = LinkedHashMap<String, Any>(1)
+                SSENotifier.showLyrics()
                 map["ok"] = true
                 return gson.toJson(map)
             }

@@ -681,6 +681,50 @@ m2d2.ready($ => {
             window.open(newWindowUrl, 'liveWindow', 'width=800,height=600,toolbar=no,scrollbars=yes,resizable=yes');
         }
     });
+    const controlDefault = $("#controlDefault", {
+        onclick : function(ev) {
+            $.post("/showlyrics", res => {
+                if (res.ok) {
+                    console.debug("lyrics is shown.");
+                }
+            }, error => {
+                console.error("error showing lyrics.", error);
+            }, true);
+        }
+    });
+    const controlBlackScreen = $("#controlBlackScreen", {
+        onclick : function(ev) {
+            $.post("/blackscreen", res => {
+                if (res.ok) {
+                    console.debug("black screen activated.");
+                }
+            }, error => {
+                console.error("error setting screen to black.", error);
+            }, true);
+        }
+    });
+    const controlShowDesktop = $("#controlShowDesktop", {
+        onclick : function(ev) {
+            $.post("/showdesktop", res => {
+                if (res.ok) {
+                    console.debug("showing desktop enabled.");
+                }
+            }, error => {
+                console.error("error showing desktop.", error);
+            }, true);
+        }
+    });
+    const controlHideLyrics = $("#controlHideLyrics", {
+        onclick : function(ev) {
+            $.post("/hidelyrics", res => {
+                if (res.ok) {
+                    console.debug("lyrics is hidden.");
+                }
+            }, error => {
+                console.error("error hiding lyrics.", error);
+            }, true);
+        }
+    });
     tippy('#navNew', {
         content: "Create a new song",
         interactive: true,
@@ -792,3 +836,18 @@ m2d2.ready($ => {
         animation: 'scale',
     });
 });
+/*
+[Unit]
+Description=Your Java Application
+After=local-fs.target
+
+[Service]
+User=pi
+ExecStart=/usr/bin/java -jar /path/to/your/application.jar
+SuccessExitStatus=143
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+*/

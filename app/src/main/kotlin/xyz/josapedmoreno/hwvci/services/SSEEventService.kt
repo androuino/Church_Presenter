@@ -31,6 +31,22 @@ class SSEEventService : ServerSentEvent() {
         broadcast(verse, "verse")
     }
 
+    fun hideLyrics() {
+        broadcast("true", "hidelyrics")
+    }
+
+    fun showLyrics() {
+        broadcast("true", "showlyrics")
+    }
+
+    fun blackScreen() {
+        broadcast("true", "blackscreen")
+    }
+
+    fun showDesktop() {
+        broadcast("true", "showdesktop")
+    }
+
     companion object {
         private val gson = Gson().newBuilder().create()
         private val map = LinkedHashMap<String, Any>(1)
