@@ -703,17 +703,6 @@ m2d2.ready($ => {
             }, true);
         }
     });
-    const controlShowDesktop = $("#controlShowDesktop", {
-        onclick : function(ev) {
-            $.post("/showdesktop", res => {
-                if (res.ok) {
-                    console.debug("showing desktop enabled.");
-                }
-            }, error => {
-                console.error("error showing desktop.", error);
-            }, true);
-        }
-    });
     const controlHideLyrics = $("#controlHideLyrics", {
         onclick : function(ev) {
             $.post("/hidelyrics", res => {
@@ -801,12 +790,6 @@ m2d2.ready($ => {
     });
     tippy('#controlBlackScreen', {
         content: "Set screen to black",
-        interactive: false,
-        placement: 'top',
-        animation: 'scale',
-    });
-    tippy('#controlShowDesktop', {
-        content: "Show desktop",
         interactive: false,
         placement: 'top',
         animation: 'scale',

@@ -156,7 +156,6 @@ m2d2.ready($ => {
         info.show = false;
     });
     evtSource.addEventListener("showdesktop", function (ev) {
-        body.style.opacity = 0;
     });
     // Default
     evtSource.addEventListener("showlyrics", function (ev) {
