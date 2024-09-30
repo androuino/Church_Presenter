@@ -83,7 +83,6 @@ class ControlServices : ServiciableMultiple {
         services.add(projectVerseService())
         services.add(hideLyricsService())
         services.add(blackScreenService())
-        services.add(showDesktopService())
         services.add(showLyricsService())
         return services
     }
@@ -616,22 +615,6 @@ class ControlServices : ServiciableMultiple {
             fun doCall(request: Request): String {
                 val map = LinkedHashMap<String, Any>(1)
                 SSENotifier.blackScreen()
-                map["ok"] = true
-                return gson.toJson(map)
-            }
-        }
-        return service
-    }
-
-    private fun showDesktopService(): Service {
-        val service = Service()
-        service.method = HttpMethod.POST
-        service.allow = getUserAllow()
-        service.path = "/showdesktop"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(request: Request): String {
-                val map = LinkedHashMap<String, Any>(1)
-                SSENotifier.showDesktop()
                 map["ok"] = true
                 return gson.toJson(map)
             }

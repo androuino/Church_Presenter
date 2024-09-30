@@ -55,10 +55,6 @@ class SSENotifier(private val sseEventService: SSEEventService?) : Thread() {
         sseEventService?.blackScreen()
     }
 
-    fun showDesktop() {
-        sseEventService?.showDesktop()
-    }
-
     companion object {
         @Volatile
         private var instance: SSENotifier? = null
@@ -114,13 +110,6 @@ class SSENotifier(private val sseEventService: SSEEventService?) : Thread() {
         fun blackScreen() {
             instance?.postTask {
                 instance?.blackScreen() ?: throw IllegalStateException("SSENotifier is not initialized")
-            }
-        }
-
-        @Synchronized
-        fun showDesktop() {
-            instance?.postTask {
-                instance?.showDesktop() ?: throw IllegalStateException("SSENotifier is not initialized")
             }
         }
     }
