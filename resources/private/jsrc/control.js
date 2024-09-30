@@ -819,18 +819,3 @@ m2d2.ready($ => {
         animation: 'scale',
     });
 });
-/*
-[Unit]
-Description=Your Java Application
-After=local-fs.target
-
-[Service]
-User=pi
-ExecStart=/usr/bin/java -jar /path/to/your/application.jar
-SuccessExitStatus=143
-Restart=on-failure
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-*/
