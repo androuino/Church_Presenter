@@ -264,6 +264,11 @@ m2d2.ready($ => {
             const color = ev.target.value;
             taFontPreview.style.color = color;
             previewText.style.color = color;
+            if (color === "#ffffff" || color === "white") {
+                taFontPreview.style.backgroundColor = "black";
+            } else {
+                taFontPreview.style.backgroundColor = "";
+            }
         }
     });
     const buttonSaveTheme = $("#buttonSaveTheme", {
@@ -302,7 +307,6 @@ m2d2.ready($ => {
                 $.put("/savetheme", data, res => {
                     if (res.ok) {
                         $.success("Theme saved.");
-                        inputThemeName.value = "";
                     } else {
                         $.failure("An error occurred!");
                     }
@@ -522,7 +526,7 @@ m2d2.ready($ => {
     const previewText = $("#previewText", {
         onload : function(ev) {
             this.text = taFontPreview.value;
-        }
+        },
     });
     document.querySelectorAll('input[type="radio"]').forEach(radio => {
         radio.addEventListener('click', (event) => {
@@ -848,6 +852,14 @@ m2d2.ready($ => {
                         wordWrap: "break-word",
                     },
                     onclick : function(ev) {
+                        const preElements = document.querySelectorAll("ul#verseList pre");
+                        preElements.forEach(pre => {
+                            pre.style.backgroundColor = ""; // Reset to original background color
+                            pre.style.color = "";
+                        });
+                        ev.target.style.backgroundColor = "lightgreen";
+                        ev.target.style.color = "black";
+
                         versionList = [];
                         if (version1.show === true) {
                             versionList.push(selectVersion1.value.split(":")[0].trim());
@@ -1043,6 +1055,12 @@ m2d2.ready($ => {
                 colorPicker.value = fontColor;
                 previewText.style.color = fontColor;
                 taFontPreview.style.color = fontColor;
+                if (fontColor === "#ffffff" || color === "white") {
+                    taFontPreview.style.backgroundColor = "black";
+                } else {
+                    taFontPreview.style.backgroundColor = "";
+                }
+
                 if (bold) {
                     fontBold.classList.toggle("active");
                     previewText.style.fontWeight = "bold";

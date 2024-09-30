@@ -18,10 +18,30 @@ m2d2.load($ => {
     });
 });
 m2d2.ready($ => {
+    const splashScreen = $("#splashScreen");
     const main = $("#main");
     const lyrics = $("#lyrics");
-    const info = $("#info");
+    const videoContainer = $("#videoContainer", {
+        show : false,
+    });
+    const imageContainer = $("#imageContainer", {
+        show : false,
+    });
+    const info = $("#info", {
+        show : false,
+    });
     const evtSource = new EventSource('/events');
+    const body = $("body", {
+        onload : function(ev) {
+            setTimeout(function() {
+                splashScreen.style.display = "none";
+                main.style.display = "flex";
+                info.show = true;
+                videoContainer.show = true;
+                videoContainer.src = "assets/tiny.mp4"
+            }, 3000);
+        },
+    });
     evtSource.addEventListener("lyrics", function (ev) {
         let evData = ev.data;
         let lines = evData.split("\\n");
@@ -122,4 +142,36 @@ m2d2.ready($ => {
             console.error("Error getting verse", error);
         }, true);
     });
+    evtSource.addEventListener("media", function (ev) {
+    });
+    evtSource.addEventListener("hidelyrics", function (ev) {
+        lyrics.show = false;
+    });
+    evtSource.addEventListener("blackscreen", function (ev) {
+        lyrics.show = false;
+        videoContainer.src = "";
+        videoContainer.show = false;
+        imageContainer.src = "";
+        imageContainer.show = false;
+        info.show = false;
+    });
+    evtSource.addEventListener("showdesktop", function (ev) {
+        body.style.opacity = 0;
+    });
+    // Default
+    evtSource.addEventListener("showlyrics", function (ev) {
+        lyrics.show = true;
+        info.show = true;
+    });
+    function requestFullScreen() {
+        if (document.body.requestFullscreen) {
+            document.body.requestFullscreen();
+        } else if (document.body.mozRequestFullScreen) { // Firefox
+            document.body.mozRequestFullScreen();
+        } else if (document.body.webkitRequestFullscreen) { // Chrome, Safari, Opera
+            document.body.webkitRequestFullscreen();
+        } else if (document.body.msRequestFullscreen) { // IE/Edge
+            document.body.msRequestFullscreen();
+        }
+    }
 });
