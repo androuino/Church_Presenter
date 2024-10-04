@@ -1,5 +1,6 @@
 package xyz.josapedmoreno.hwvci.services
 
+import com.aspose.cells.Title
 import com.google.gson.Gson
 import com.intellisrc.web.service.ServerSentEvent
 
@@ -41,6 +42,14 @@ class SSEEventService : ServerSentEvent() {
 
     fun blackScreen() {
         broadcast("true", "blackscreen")
+    }
+
+    fun removeBackground() {
+        broadcast("true", "removebackground")
+    }
+
+    fun sendSongTitle(title: String) {
+        broadcast(title, "title")
     }
 
     companion object {

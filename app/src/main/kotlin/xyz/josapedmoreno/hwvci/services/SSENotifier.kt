@@ -55,6 +55,14 @@ class SSENotifier(private val sseEventService: SSEEventService?) : Thread() {
         sseEventService?.blackScreen()
     }
 
+    fun removeBackground() {
+        sseEventService?.removeBackground()
+    }
+
+    fun sendSongTitle(title: String) {
+        sseEventService?.sendSongTitle(title)
+    }
+
     companion object {
         @Volatile
         private var instance: SSENotifier? = null
@@ -110,6 +118,20 @@ class SSENotifier(private val sseEventService: SSEEventService?) : Thread() {
         fun blackScreen() {
             instance?.postTask {
                 instance?.blackScreen() ?: throw IllegalStateException("SSENotifier is not initialized")
+            }
+        }
+
+        @Synchronized
+        fun removeBackground() {
+            instance?.postTask {
+                instance?.removeBackground() ?: throw IllegalStateException("SSENotifier is not initialized")
+            }
+        }
+
+        @Synchronized
+        fun sendSongTitle(title: String) {
+            instance?.postTask {
+                instance?.sendSongTitle(title) ?: throw IllegalStateException("SSENotifier is not initialized")
             }
         }
     }
