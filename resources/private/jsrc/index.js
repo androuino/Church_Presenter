@@ -38,7 +38,7 @@ m2d2.ready($ => {
                 main.style.display = "flex";
                 info.show = true;
                 videoContainer.show = true;
-                videoContainer.src = "assets/tiny.mp4"
+                videoContainer.src = "assets/tiny.mp4";
             }, 3000);
         },
     });
@@ -56,6 +56,7 @@ m2d2.ready($ => {
     });
     evtSource.addEventListener("clear", function (ev) {
         lyrics.textContent = "";
+        info.textContent = "HWVCI Presenter";
     });
     evtSource.addEventListener("theme", function (ev) {
         var data = JSON.parse(JSON.parse(ev.data));
@@ -161,6 +162,13 @@ m2d2.ready($ => {
     evtSource.addEventListener("showlyrics", function (ev) {
         lyrics.show = true;
         info.show = true;
+    });
+    evtSource.addEventListener("removebackground", function (ev) {
+        videoContainer.show = false;
+        videoContainer.src = "";
+    });
+    evtSource.addEventListener("title", function (ev) {
+        info.textContent = ev.data.replaceAll('"', "");
     });
     function requestFullScreen() {
         if (document.body.requestFullscreen) {

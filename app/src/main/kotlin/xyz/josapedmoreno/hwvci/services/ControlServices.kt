@@ -84,6 +84,7 @@ class ControlServices : ServiciableMultiple {
         services.add(hideLyricsService())
         services.add(blackScreenService())
         services.add(showLyricsService())
+        services.add(removeBackgroundService())
         return services
     }
 
@@ -226,6 +227,7 @@ class ControlServices : ServiciableMultiple {
                 val map = LinkedHashMap<String, Any>(1)
                 val id: String = request.params("id")
                 val lyrics: String = SongTable().getSongLyricsById(id.toInt())
+                SSENotifier.sendSongTitle(SongTable().getSongTitleById(id.toInt()))
                 if (lyrics.isNotEmpty()) {
                     success = true
                     map["data"] = lyrics
@@ -631,6 +633,22 @@ class ControlServices : ServiciableMultiple {
             fun doCall(request: Request): String {
                 val map = LinkedHashMap<String, Any>(1)
                 SSENotifier.showLyrics()
+                map["ok"] = true
+                return gson.toJson(map)
+            }
+        }
+        return service
+    }
+
+    private fun removeBackgroundService(): Service {
+        val service = Service()
+        service.method = HttpMethod.POST
+        service.allow = getUserAllow()
+        service.path = "/removebackground"
+        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
+            fun doCall(request: Request): String {
+                val map = LinkedHashMap<String, Any>(1)
+                SSENotifier.removeBackground()
                 map["ok"] = true
                 return gson.toJson(map)
             }

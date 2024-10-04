@@ -613,6 +613,14 @@ m2d2.ready($ => {
                         });
                     }
                 });
+            } else {
+                $.post("/liveclear", res => {
+                    if (res.ok) {
+                        console.debug("Live cleared.");
+                    }
+                }, error => {
+                    console.error("Error clearing live.", error);
+                }, true);
             }
         }
     });
@@ -677,8 +685,18 @@ m2d2.ready($ => {
     });
     const controlViewLive = $("#controlViewLive", {
         onclick : function(ev) {
+            // todo: stream live here
+            $.alert("Sorry, this is not implemented yet.");
+        }
+    });
+    const controlPreview = $("#controlPreview", {
+        onclick : function(ev) {
             const newWindowUrl = `${window.location.protocol}/`;
             window.open(newWindowUrl, 'liveWindow', 'width=800,height=600,toolbar=no,scrollbars=yes,resizable=yes');
+        }
+    });
+    const controlCloseEditMode = $("#controlCloseEditMode", {
+        onclick : function(ev) {
         }
     });
     const controlDefault = $("#controlDefault", {
@@ -711,6 +729,17 @@ m2d2.ready($ => {
                 }
             }, error => {
                 console.error("error hiding lyrics.", error);
+            }, true);
+        }
+    });
+    const controlRemoveBackground = $("#controlRemoveBackground", {
+        onclick : function(ev) {
+            $.post("/removebackground", res => {
+                if (res.ok) {
+                    console.debug("remove background success.");
+                }
+            }, error => {
+                console.error("error removing background", error);
             }, true);
         }
     });
@@ -796,6 +825,12 @@ m2d2.ready($ => {
     });
     tippy('#controlHideLyrics', {
         content: "Hide the lyric",
+        interactive: false,
+        placement: 'top',
+        animation: 'scale',
+    });
+    tippy('#controlRemoveBackground', {
+        content: "Remove the background",
         interactive: false,
         placement: 'top',
         animation: 'scale',
