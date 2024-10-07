@@ -1,5 +1,6 @@
 package xyz.josapedmoreno.hwvci.services
 
+import org.bouncycastle.asn1.x500.style.RFC4519Style.title
 import xyz.josapedmoreno.hwvci.model.Theme
 
 class SSENotifier(private val sseEventService: SSEEventService?) : Thread() {
@@ -61,6 +62,10 @@ class SSENotifier(private val sseEventService: SSEEventService?) : Thread() {
 
     fun sendSongTitle(title: String) {
         sseEventService?.sendSongTitle(title)
+    }
+
+    fun changeBackground(origName: String) {
+        sseEventService?.changeBackground(origName)
     }
 
     companion object {
@@ -132,6 +137,13 @@ class SSENotifier(private val sseEventService: SSEEventService?) : Thread() {
         fun sendSongTitle(title: String) {
             instance?.postTask {
                 instance?.sendSongTitle(title) ?: throw IllegalStateException("SSENotifier is not initialized")
+            }
+        }
+
+        @Synchronized
+        fun changeBackground(origName: String) {
+            instance?.postTask {
+                instance?.changeBackground(origName) ?: throw IllegalStateException("SSENotifier is not initialized")
             }
         }
     }

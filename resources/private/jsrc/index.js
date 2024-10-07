@@ -170,6 +170,11 @@ m2d2.ready($ => {
     evtSource.addEventListener("title", function (ev) {
         info.textContent = ev.data.replaceAll('"', "");
     });
+    evtSource.addEventListener("changebackground", function (ev) {
+        const origName = ev.data.replaceAll('"', "");
+        imageContainer.show = true;
+        imageContainer.src = "/upload/" + origName;
+    });
     function requestFullScreen() {
         if (document.body.requestFullscreen) {
             document.body.requestFullscreen();
