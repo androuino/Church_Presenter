@@ -637,7 +637,38 @@ m2d2.ready($ => {
     });
     const buttonOpenFile = $("#buttonOpenFile", {
         onclick : function(ev) {
-            // todo: open the file dialog and choose the media - set it and play
+            const ups = [];
+            $.upload(ev, {
+                field   : "file",
+                upload  : "/upload",
+                parallel : true,
+                maxFiles : 30,
+                maxSizeMb : 1000,
+                onSelect : (files) => {
+                    let index = 0;
+                    Array.from(files).forEach(file => {
+                        ups[index] = { pct : 0, file : file.name }
+                    });
+                },
+                onUpdate : (pct, file, index) => {
+                    ups[index] = { pct : pct, file : file.name }
+                },
+                onResponse : (response) => {
+                    console.log(response);
+                },
+                onDone : (response, allDone) => {
+                    response.forEach(res => {
+                        ups[res.index] = { pct : 100, file : res.file.name }
+                    });
+                    if(allDone) {
+                        console.log("all done");
+                    }
+                },
+                onError : (response) => {
+                    console.log(response);
+                    console.log("on error");
+                }
+            });
         }
     });
     const mediaLink = $("#mediaLink");

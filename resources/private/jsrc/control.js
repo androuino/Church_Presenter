@@ -624,6 +624,17 @@ m2d2.ready($ => {
             }
         }
     });
+    const controlCloseEditMode = $("#controlCloseEditMode", {
+        onclick : function(ev) {
+            if (lyricsContainer.items.length > 0) {
+                $.confirm("Confirm to close editing?", res => {
+                    if (res) {
+                        lyricsContainer.items.clear();
+                    }
+                });
+            }
+        }
+    });
     const controlClearSongList = $("#controlClearSongList", {
         onclick : function(ev) {
             if (ulSongs.items.length > 0) {
@@ -692,11 +703,7 @@ m2d2.ready($ => {
     const controlPreview = $("#controlPreview", {
         onclick : function(ev) {
             const newWindowUrl = `${window.location.protocol}/`;
-            window.open(newWindowUrl, 'liveWindow', 'width=800,height=600,toolbar=no,scrollbars=yes,resizable=yes');
-        }
-    });
-    const controlCloseEditMode = $("#controlCloseEditMode", {
-        onclick : function(ev) {
+            window.open(newWindowUrl, 'previewWindow', 'width=800,height=600,toolbar=no,scrollbars=yes,resizable=yes');
         }
     });
     const controlDefault = $("#controlDefault", {
@@ -831,6 +838,12 @@ m2d2.ready($ => {
     });
     tippy('#controlRemoveBackground', {
         content: "Remove the background",
+        interactive: false,
+        placement: 'top',
+        animation: 'scale',
+    });
+    tippy('#controlCloseEditMode', {
+        content: "Clear editing",
         interactive: false,
         placement: 'top',
         animation: 'scale',
