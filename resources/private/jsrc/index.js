@@ -21,9 +21,7 @@ m2d2.ready($ => {
     const splashScreen = $("#splashScreen");
     const main = $("#main");
     const lyrics = $("#lyrics");
-    const videoContainer = $("#videoContainer", {
-        show : false,
-    });
+    const mediaContainer = $("#mediaContainer");
     const imageContainer = $("#imageContainer", {
         show : false,
     });
@@ -37,8 +35,7 @@ m2d2.ready($ => {
                 splashScreen.style.display = "none";
                 main.style.display = "flex";
                 info.show = true;
-                videoContainer.show = true;
-                videoContainer.src = "assets/tiny.mp4";
+                mediaContainer("assets/tiny.mp4")
             }, 3000);
         },
     });
@@ -150,8 +147,7 @@ m2d2.ready($ => {
     });
     evtSource.addEventListener("blackscreen", function (ev) {
         lyrics.show = false;
-        videoContainer.src = "";
-        videoContainer.show = false;
+        mediaContainer("");
         imageContainer.src = "";
         imageContainer.show = false;
         info.show = false;
@@ -164,8 +160,7 @@ m2d2.ready($ => {
         info.show = true;
     });
     evtSource.addEventListener("removebackground", function (ev) {
-        videoContainer.show = false;
-        videoContainer.src = "";
+        mediaContainer("");
     });
     evtSource.addEventListener("title", function (ev) {
         info.textContent = ev.data.replaceAll('"', "");
@@ -184,6 +179,22 @@ m2d2.ready($ => {
             document.body.webkitRequestFullscreen();
         } else if (document.body.msRequestFullscreen) { // IE/Edge
             document.body.msRequestFullscreen();
+        }
+    }
+    function loadMedia(file) {
+        mediaContainer.innerHTML = ''; // Clear any previous content
+
+        if (file.endsWith('.mp4')) {
+            mediaContainer.innerHTML = `
+                <video id="player" autoplay muted loop>
+                    <source src="${file}" type="video/mp4" />
+                </video>
+            `;
+            const player = new Plyr('#player'); // Initialize Plyr
+        } else if (file.endsWith('.jpeg') || file.endsWith('.jpg') || file.endsWith('.png')) {
+            mediaContainer.innerHTML = `<img src="${file}" alt="Image"/>`;
+        } else {
+            mediaContainer.innerHTML = "";
         }
     }
 });
