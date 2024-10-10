@@ -22,9 +22,6 @@ m2d2.ready($ => {
     const main = $("#main");
     const lyrics = $("#lyrics");
     const mediaContainer = $("#mediaContainer");
-    const imageContainer = $("#imageContainer", {
-        show : false,
-    });
     const info = $("#info", {
         show : false,
     });
@@ -35,7 +32,7 @@ m2d2.ready($ => {
                 splashScreen.style.display = "none";
                 main.style.display = "flex";
                 info.show = true;
-                mediaContainer("assets/tiny.mp4")
+                loadMedia("assets/tiny.mp4");
             }, 3000);
         },
     });
@@ -148,8 +145,6 @@ m2d2.ready($ => {
     evtSource.addEventListener("blackscreen", function (ev) {
         lyrics.show = false;
         mediaContainer("");
-        imageContainer.src = "";
-        imageContainer.show = false;
         info.show = false;
     });
     evtSource.addEventListener("showdesktop", function (ev) {
@@ -167,8 +162,9 @@ m2d2.ready($ => {
     });
     evtSource.addEventListener("changebackground", function (ev) {
         const origName = ev.data.replaceAll('"', "");
-        imageContainer.show = true;
-        imageContainer.src = "/upload/" + origName;
+        const file = "/upload/" + origName;
+        loadMedia(file);
+
     });
     function requestFullScreen() {
         if (document.body.requestFullscreen) {
@@ -184,15 +180,28 @@ m2d2.ready($ => {
     function loadMedia(file) {
         mediaContainer.innerHTML = ''; // Clear any previous content
 
-        if (file.endsWith('.mp4')) {
+        if (file.endsWith('.mp4') || file.endsWith('.webm') || file.endsWith('.ogg')) {
+            let mimeType = '';
+
+            // Determine the correct MIME type based on the file extension
+            if (file.endsWith('.mp4')) {
+                mimeType = 'video/mp4';
+            } else if (file.endsWith('.webm')) {
+                mimeType = 'video/webm';
+            } else if (file.endsWith('.ogg')) {
+                mimeType = 'video/ogg';
+            }
+
+            // Insert the video element with the appropriate MIME type
             mediaContainer.innerHTML = `
-                <video id="player" autoplay muted loop>
-                    <source src="${file}" type="video/mp4" />
+                <video id="player" style="object-fit: cover;" autoplay muted loop>
+                    <source src="${file}" type="${mimeType}" />
+                    Your browser does not support the video tag.
                 </video>
             `;
             const player = new Plyr('#player'); // Initialize Plyr
         } else if (file.endsWith('.jpeg') || file.endsWith('.jpg') || file.endsWith('.png')) {
-            mediaContainer.innerHTML = `<img src="${file}" alt="Image"/>`;
+            mediaContainer.innerHTML = `<img id="imgContainer" style="object-fit: cover;" src="${file}" alt="Image"/>`;
         } else {
             mediaContainer.innerHTML = "";
         }
