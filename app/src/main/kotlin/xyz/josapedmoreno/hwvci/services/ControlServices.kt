@@ -10,6 +10,7 @@ import groovy.lang.Closure
 import org.eclipse.jetty.http.HttpMethod
 import xyz.josapedmoreno.hwvci.control.BookApi
 import xyz.josapedmoreno.hwvci.control.Core
+import xyz.josapedmoreno.hwvci.control.Paths
 import xyz.josapedmoreno.hwvci.control.Paths.Companion.publicResources
 import xyz.josapedmoreno.hwvci.table.SongTable
 import xyz.josapedmoreno.hwvci.table.Themes
@@ -663,7 +664,10 @@ class ControlServices : ServiciableMultiple {
         service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
             fun doCall(file: UploadFile): String {
                 val map = LinkedHashMap<String, Any>(1)
-                val targetFile: File = File("resources${File.separator}upload", file.originalName)
+                if (!Paths.uploadDir.exists())
+                    Paths.uploadDir.mkdirs()
+                // fixme: error file not found exception (is a directory)
+                val targetFile = File("${Paths.uploadDir}", file.originalName)
                 Files.move(file.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
                 SSENotifier.changeBackground(file.originalName)
                 map["ok"] = targetFile.exists()
