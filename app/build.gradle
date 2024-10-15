@@ -20,7 +20,7 @@ repositories {
 }
 
 dependencies {
-    def commonVer = "2.9.1"
+    def commonVer = "2.9.2"
     def groovyVer = "4.0.15"
     def gsonVer = "2.8.9"
     def sqlVer = "8.0.28"
@@ -29,7 +29,6 @@ dependencies {
     def derbyVer = "10.15.2.0"
     def asposeVer = "23.5"
     def opencsvVer = "4.4"
-    def mariadbVer = "3.1.2"
     def metaApiVer = "14.0.8"
     def kjwtCore = "0.9.0"
     def arrow = "1.2.4"
@@ -41,6 +40,7 @@ dependencies {
     implementation "com.intellisrc:core:${commonVer}"
     implementation "com.intellisrc:db:${commonVer}"
     implementation "com.intellisrc:web:${commonVer}"
+    implementation "com.intellisrc:etc:${commonVer}"
     implementation "com.intellisrc:thread:${commonVer}"
     implementation "com.intellisrc:crypt:${commonVer}"
     implementation "com.intellisrc:log:${commonVer}"
@@ -59,7 +59,6 @@ dependencies {
     //implementation files('libs/LCMS4J.jar')
     // Database
     implementation "org.xerial:sqlite-jdbc:${sqLiteVer}"
-    implementation "org.mariadb.jdbc:mariadb-java-client:${mariadbVer}"
     // UNIT TESTS
     testImplementation "org.codehaus.groovy:groovy-all:2.4.15"
     testImplementation "org.jetbrains.kotlin:kotlin-test:1.7.21"

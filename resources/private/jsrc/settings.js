@@ -678,6 +678,16 @@ m2d2.ready($ => {
                 $.failure("You did not provide a proper link.");
             } else {
                 // todo: set the media as background
+                const data = {
+                    link: mediaLink.value
+                };
+                $.post("/bglink", data, res => {
+                    if (res.ok) {
+                        console.debug("Setting bg with link success.");
+                    }
+                }, error => {
+                    console.error("Error setting background with provided link.", error);
+                }, true);
             }
         }
     });

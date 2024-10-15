@@ -1,7 +1,7 @@
 package xyz.josapedmoreno.hwvci.services
 
-import org.bouncycastle.asn1.x500.style.RFC4519Style.title
-import xyz.josapedmoreno.hwvci.model.Theme
+import com.google.gson.JsonObject
+import com.intellisrc.etc.Cache
 
 class SSENotifier(private val sseEventService: SSEEventService?) : Thread() {
     private val taskQueue = ArrayDeque<() -> Unit>()
@@ -66,6 +66,12 @@ class SSENotifier(private val sseEventService: SSEEventService?) : Thread() {
 
     fun changeBackground(origName: String) {
         sseEventService?.changeBackground(origName)
+    }
+
+    fun setBgLink(data: JsonObject, cache: Cache<Any>) {
+        val link = data.get("link").asString
+        cache.set("link", link)
+        sseEventService?.changeBackground("link")
     }
 
     companion object {
@@ -144,6 +150,13 @@ class SSENotifier(private val sseEventService: SSEEventService?) : Thread() {
         fun changeBackground(origName: String) {
             instance?.postTask {
                 instance?.changeBackground(origName) ?: throw IllegalStateException("SSENotifier is not initialized")
+            }
+        }
+
+        @Synchronized
+        fun setBgLink(data: JsonObject, cache: Cache<Any>) {
+            instance?.postTask {
+                instance?.setBgLink(data, cache) ?: throw IllegalStateException("SSENotifier is not initialized")
             }
         }
     }
