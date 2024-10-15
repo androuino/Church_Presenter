@@ -3,6 +3,7 @@ package xyz.josapedmoreno.hwvci.control
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.intellisrc.core.Log
+import com.intellisrc.etc.Cache
 import xyz.josapedmoreno.hwvci.services.SSENotifier
 import xyz.josapedmoreno.hwvci.table.Themes
 import java.awt.GraphicsEnvironment
@@ -10,11 +11,8 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.InetAddress
-import java.net.InetSocketAddress
 import java.net.NetworkInterface
-import java.net.Socket
 import java.net.URL
-import kotlin.concurrent.fixedRateTimer
 
 class Core {
     companion object {
@@ -419,6 +417,14 @@ class Core {
             } catch (e: Exception) {
                 false  // Any exception means no connection
             }
+        }
+
+        fun getLink(cache: Cache<Any>): String {
+            var link = ""
+            val data = cache.get("link").toString()
+            if (data.isNotEmpty())
+                link = data
+            return link
         }
     }
 }

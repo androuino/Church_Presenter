@@ -162,9 +162,22 @@ m2d2.ready($ => {
     });
     evtSource.addEventListener("changebackground", function (ev) {
         const origName = ev.data.replaceAll('"', "");
-        const file = "/upload/" + origName;
-        loadMedia(file);
-
+        console.log(ev.data);
+        if (origName === "link") {
+            $.get("/getlink", res => {
+                if (res.ok) {
+                    console.log(res.link);
+                    loadMedia(res.link);
+                } else {
+                    console.log("Failed to get link");
+                }
+            }, error => {
+                console.error("Error get bg link", error);
+            }, true);
+        } else {
+            const file = "/upload/" + origName;
+            loadMedia(bgData);
+        }
     });
     function requestFullScreen() {
         if (document.body.requestFullscreen) {
@@ -177,7 +190,7 @@ m2d2.ready($ => {
             document.body.msRequestFullscreen();
         }
     }
-    function loadMedia(file) {
+    function loadMediaOld(file) {
         mediaContainer.innerHTML = ''; // Clear any previous content
 
         if (file.endsWith('.mp4') || file.endsWith('.webm') || file.endsWith('.ogg')) {
@@ -204,6 +217,44 @@ m2d2.ready($ => {
             mediaContainer.innerHTML = `<img id="imgContainer" style="object-fit: cover;" src="${file}" alt="Image"/>`;
         } else {
             mediaContainer.innerHTML = "";
+        }
+    }
+
+    function loadMedia(fileOrLink) {
+        mediaContainer.innerHTML = ''; // Clear any previous content
+
+        // Check if the input is a URL (link)
+        const isLink = fileOrLink.startsWith('http://') || fileOrLink.startsWith('https://') || fileOrLink.startsWith('www.');
+
+        // Check if the input is a video (file or link)
+        if (fileOrLink.endsWith('.mp4') || fileOrLink.endsWith('.webm') || fileOrLink.endsWith('.ogg') || (isLink && (fileOrLink.includes('.mp4') || fileOrLink.includes('.webm') || fileOrLink.includes('.ogg')))) {
+            let mimeType = '';
+
+            // Determine the correct MIME type based on the file extension or URL
+            if (fileOrLink.endsWith('.mp4') || (isLink && fileOrLink.includes('.mp4'))) {
+                mimeType = 'video/mp4';
+            } else if (fileOrLink.endsWith('.webm') || (isLink && fileOrLink.includes('.webm'))) {
+                mimeType = 'video/webm';
+            } else if (fileOrLink.endsWith('.ogg') || (isLink && fileOrLink.includes('.ogg'))) {
+                mimeType = 'video/ogg';
+            }
+
+            // Insert the video element with the appropriate MIME type
+            mediaContainer.innerHTML = `
+                <video id="player" style="object-fit: cover;" autoplay muted loop>
+                    <source src="${fileOrLink}" type="${mimeType}" />
+                    Your browser does not support the video tag.
+                </video>
+            `;
+            const player = new Plyr('#player'); // Initialize Plyr for enhanced video controls
+        }
+        // Check if the input is an image (file or link)
+        else if (fileOrLink.endsWith('.jpeg') || fileOrLink.endsWith('.jpg') || fileOrLink.endsWith('.png') || (isLink && (fileOrLink.includes('.jpeg') || fileOrLink.includes('.jpg') || fileOrLink.includes('.png')))) {
+            mediaContainer.innerHTML = `<img id="imgContainer" style="object-fit: cover;" src="${fileOrLink}" alt="Image"/>`;
+        }
+        // If it's neither video nor image, show nothing or error message
+        else {
+            mediaContainer.innerHTML = "Unsupported media format.";
         }
     }
 });

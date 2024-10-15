@@ -344,9 +344,9 @@ form input:hover {
     background-color: rgba(255, 255, 255, 0.4);
 }
 form input:focus {
-    background-color: white;
+    background-color: rgba(255, 255, 255, 0.2);
     width: 300px;
-    color: #53e3a6;
+    color: white;
 }
 form button {
     appearance: none;

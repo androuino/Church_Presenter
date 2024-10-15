@@ -6,6 +6,7 @@ import com.intellisrc.web.service.Request
 import com.intellisrc.web.service.Service
 import com.intellisrc.web.service.ServiciableMultiple
 import com.intellisrc.web.service.UploadFile
+import com.intellisrc.etc.Cache
 import groovy.lang.Closure
 import org.eclipse.jetty.http.HttpMethod
 import xyz.josapedmoreno.hwvci.control.BookApi
@@ -86,6 +87,8 @@ class ControlServices : ServiciableMultiple {
         services.add(showLyricsService())
         services.add(removeBackgroundService())
         services.add(uploadService())
+        services.add(bgLinkService())
+        services.add(getLinkService())
         return services
     }
 
@@ -676,6 +679,42 @@ class ControlServices : ServiciableMultiple {
         return service
     }
 
+    private fun bgLinkService(): Service {
+        val service = Service()
+        service.method = HttpMethod.POST
+        service.path = "/bglink"
+        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
+            fun doCall(request: Request): String {
+                val map = LinkedHashMap<String, Any>(1)
+                val data = gson.fromJson(request.body(), JsonObject::class.java)
+                SSENotifier.setBgLink(data, cache)
+                map["ok"] = true
+                return gson.toJson(map)
+            }
+        }
+        return service
+    }
+
+    private fun getLinkService(): Service {
+        val service = Service()
+        service.method = HttpMethod.GET
+        service.path = "/getlink"
+        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
+            fun doCall(request: Request): String {
+                var success = false
+                val map = LinkedHashMap<String, Any>(1)
+                var link = Core.getLink(cache)
+                if (link.isNotEmpty()) {
+                    map["link"] = link
+                    success = true
+                }
+                map["ok"] = success
+                return gson.toJson(map)
+            }
+        }
+        return service
+    }
+
     companion object {
         fun getUserAllow() = Service.Allow { request ->
             if (request.session() != null) {
@@ -685,5 +724,6 @@ class ControlServices : ServiciableMultiple {
             }
         }
         private val gson = Gson().newBuilder().create()
+        private val cache = Cache<Any>()
     }
 }
