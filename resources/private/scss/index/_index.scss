@@ -48,6 +48,9 @@ main {
         display: flex;
         z-index: -1;
         overflow: hidden;
+        div {
+            width: 100%;
+        }
         .plyr__video-wrapper {
             object-fit: cover;
         }

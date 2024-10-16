@@ -219,15 +219,41 @@ m2d2.ready($ => {
             mediaContainer.innerHTML = "";
         }
     }
-
     function loadMedia(fileOrLink) {
         mediaContainer.innerHTML = ''; // Clear any previous content
 
         // Check if the input is a URL (link)
         const isLink = fileOrLink.startsWith('http://') || fileOrLink.startsWith('https://') || fileOrLink.startsWith('www.');
 
+        // Check if the input is a YouTube link
+        const isYouTubeLink = fileOrLink.includes('youtube.com') || fileOrLink.includes('youtu.be');
+
+        // If it's a YouTube link, embed it in an iframe
+        if (isYouTubeLink) {
+            let videoId = '';
+
+            // Extract the video ID from the YouTube URL
+            if (fileOrLink.includes('youtu.be')) {
+                // Handle shortened youtu.be links
+                videoId = fileOrLink.split('/').pop();
+            } else if (fileOrLink.includes('youtube.com')) {
+                // Handle regular youtube.com links
+                const urlParams = new URLSearchParams(new URL(fileOrLink).search);
+                videoId = urlParams.get('v'); // Get the video ID from the 'v' parameter
+            }
+
+            if (videoId) {
+                // Insert the iframe to play the YouTube video
+                mediaContainer.innerHTML = `
+                    <iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1"
+                        frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                `;
+            } else {
+                mediaContainer.innerHTML = "Invalid YouTube link.";
+            }
+        }
         // Check if the input is a video (file or link)
-        if (fileOrLink.endsWith('.mp4') || fileOrLink.endsWith('.webm') || fileOrLink.endsWith('.ogg') || (isLink && (fileOrLink.includes('.mp4') || fileOrLink.includes('.webm') || fileOrLink.includes('.ogg')))) {
+        else if (fileOrLink.endsWith('.mp4') || fileOrLink.endsWith('.webm') || fileOrLink.endsWith('.ogg') || (isLink && (fileOrLink.includes('.mp4') || fileOrLink.includes('.webm') || fileOrLink.includes('.ogg')))) {
             let mimeType = '';
 
             // Determine the correct MIME type based on the file extension or URL
