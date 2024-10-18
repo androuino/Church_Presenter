@@ -162,7 +162,6 @@ m2d2.ready($ => {
     });
     evtSource.addEventListener("changebackground", function (ev) {
         const origName = ev.data.replaceAll('"', "");
-        console.log(ev.data);
         if (origName === "link") {
             $.get("/getlink", res => {
                 if (res.ok) {
