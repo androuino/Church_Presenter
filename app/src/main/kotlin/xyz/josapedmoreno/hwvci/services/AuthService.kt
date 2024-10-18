@@ -61,6 +61,7 @@ class AuthService: ServiciableAuth {
         if (message == "success") {
             success = true
             mapToServer["username"] = user
+            SSENotifier.controllerConnected(success)
         }
 
         mapToClient["ok"] = success

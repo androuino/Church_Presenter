@@ -57,6 +57,14 @@ class SSEEventService : ServerSentEvent() {
         broadcast(origName, "changebackground")
     }
 
+    fun controllerConnected(success: Boolean) {
+        broadcast("$success", "connected")
+    }
+
+    fun apModeActivated(ipAddress: String) {
+        broadcast(ipAddress, "apmode")
+    }
+
     companion object {
         private val gson = Gson().newBuilder().create()
         private val map = LinkedHashMap<String, Any>(1)

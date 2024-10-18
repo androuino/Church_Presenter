@@ -7,7 +7,13 @@ import com.intellisrc.core.SysService
 import com.intellisrc.db.Database
 import com.intellisrc.thread.Tasks
 import com.intellisrc.web.WebService
+import xyz.josapedmoreno.hwvci.ap.APModeChecker
+import xyz.josapedmoreno.hwvci.ap.ConfigFileChecker
+import xyz.josapedmoreno.hwvci.ap.IPAddressFetcher
+import xyz.josapedmoreno.hwvci.ap.IPForwardingChecker
+import xyz.josapedmoreno.hwvci.ap.PackageChecker
 import xyz.josapedmoreno.hwvci.control.BookApi
+import xyz.josapedmoreno.hwvci.control.Core
 import xyz.josapedmoreno.hwvci.control.Paths.Companion.publicResources
 import xyz.josapedmoreno.hwvci.services.AuthService
 import xyz.josapedmoreno.hwvci.services.ControlServices
@@ -43,6 +49,28 @@ class App : SysService() {
         }
         if (BookApi.installDefaultBibleVersions()) { // This needs internet connection
             Log.i("Bible versions are installed")
+        }
+        if (!Core.getWifiConnectionStatus()) {
+            Log.w("Switching to AP mode")
+            // Check if packages are installed
+            PackageChecker.installPackagesIfNecessary()
+            // Check if configuration files are set
+            ConfigFileChecker.setupConfigurationFiles()
+            // Check if IP forwarding is enabled
+            IPForwardingChecker.enableIPForwardingIfNecessary()
+            // Check if Access Point is active
+            APModeChecker.startAccessPointIfNecessary()
+            Log.i("Access point setup complete")
+
+            val ipAddress = IPAddressFetcher.getIPAddress("wlan0") // Replace with the correct interface
+            if (ipAddress != null) {
+                Log.i("Access Point IP Address: $ipAddress")
+                SSENotifier.apModeActivated(ipAddress)
+            } else {
+                Log.w("Unable to fetch the IP address.")
+            }
+        } else {
+            Log.i("Device is connected to wifi")
         }
     }
 

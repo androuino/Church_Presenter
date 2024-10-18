@@ -89,6 +89,7 @@ class ControlServices : ServiciableMultiple {
         services.add(uploadService())
         services.add(bgLinkService())
         services.add(getLinkService())
+        services.add(getIpService())
         return services
     }
 
@@ -706,6 +707,26 @@ class ControlServices : ServiciableMultiple {
                 var link = Core.getLink(cache)
                 if (link.isNotEmpty()) {
                     map["link"] = link
+                    success = true
+                }
+                map["ok"] = success
+                return gson.toJson(map)
+            }
+        }
+        return service
+    }
+
+    private fun getIpService(): Service {
+        val service = Service()
+        service.method = HttpMethod.GET
+        service.path = "/getip"
+        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
+            fun doCall(request: Request): String {
+                var success = false
+                val map = LinkedHashMap<String, Any>(1)
+                var data = gson.fromJson(Core.getWifiStatus(), JsonObject::class.java)
+                if (!data.isEmpty) {
+                    map["data"] = data
                     success = true
                 }
                 map["ok"] = success
