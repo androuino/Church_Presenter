@@ -8,6 +8,8 @@ import xyz.josapedmoreno.hwvci.services.SSENotifier
 import xyz.josapedmoreno.hwvci.table.Themes
 import java.awt.GraphicsEnvironment
 import java.io.BufferedReader
+import java.io.FileWriter
+import java.io.IOException
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.InetAddress
@@ -321,9 +323,9 @@ class Core {
                     }
                 }
             } catch (ex: Exception) {
-                ex.printStackTrace()
+                Log.e("Error getting wifi address.", ex.printStackTrace())
             }
-            return null
+            return ""
         }
         fun getWifiStatus(): String {
             var status = "disconnected"
@@ -344,7 +346,9 @@ class Core {
 
                 previousStatus = wifiStatus
                 previousSSID = activeSSID
-                map["status"] = "connected"
+                if (activeSSID != "disconnected")
+                    status = "connected"
+                map["status"] = status
                 map["ssid"] = previousSSID
                 map["ip"] = ipAddress!!
             }
@@ -392,6 +396,12 @@ class Core {
                 e.printStackTrace()
                 false
             }
+        }
+
+        fun getWifiConnectionStatus(): Boolean {
+            val data = gson.fromJson(getWifiStatus(), JsonObject::class.java)
+            val status = data.get("status").asString
+            return status == "connected"
         }
 
         fun setTheme(data: JsonObject) {

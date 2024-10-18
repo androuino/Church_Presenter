@@ -33,6 +33,17 @@ m2d2.ready($ => {
                 main.style.display = "flex";
                 info.show = true;
                 loadMedia("assets/tiny.mp4");
+
+                $.get("/getip", res => {
+                    console.log(res);
+                    if (res.ok) {
+                        if (res.data.status === "connected") {
+                            info.textContent = res.data.ip;
+                        }
+                    }
+                }, error => {
+                    console.error("Error getting ip.", error);
+                }, true);
             }, 3000);
         },
     });
@@ -177,6 +188,16 @@ m2d2.ready($ => {
             const file = "/upload/" + origName;
             loadMedia(bgData);
         }
+    });
+    evtSource.addEventListener("connected", function (ev) {
+        const res = ev.data.replaceAll('"', "");
+        if (res === "true") {
+            info.textContent = "info";
+        }
+    });
+    evtSource.addEventListener("apmode", function (ev) {
+        const res = ev.data.replaceAll('"', "");
+        info.textContent = res;
     });
     function requestFullScreen() {
         if (document.body.requestFullscreen) {
