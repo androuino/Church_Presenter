@@ -643,7 +643,7 @@ m2d2.ready($ => {
                 upload  : "/upload",
                 parallel : true,
                 maxFiles : 30,
-                maxSizeMb : 1000,
+                maxSizeMb : 5000,
                 onSelect : (files) => {
                     let index = 0;
                     Array.from(files).forEach(file => {
