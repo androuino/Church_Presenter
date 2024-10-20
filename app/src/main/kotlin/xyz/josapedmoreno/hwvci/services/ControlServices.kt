@@ -16,6 +16,7 @@ import xyz.josapedmoreno.hwvci.control.Paths.Companion.publicResources
 import xyz.josapedmoreno.hwvci.table.SongTable
 import xyz.josapedmoreno.hwvci.table.Themes
 import java.io.File
+import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 
@@ -660,7 +661,7 @@ class ControlServices : ServiciableMultiple {
         }
         return service
     }
-
+    // fixme: still having trouble saving file here.
     private fun uploadService(): Service {
         val service = Service()
         service.method = HttpMethod.POST

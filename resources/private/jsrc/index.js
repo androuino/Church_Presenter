@@ -186,7 +186,7 @@ m2d2.ready($ => {
             }, true);
         } else {
             const file = "/upload/" + origName;
-            loadMedia(bgData);
+            loadMedia(file);
         }
     });
     evtSource.addEventListener("connected", function (ev) {
