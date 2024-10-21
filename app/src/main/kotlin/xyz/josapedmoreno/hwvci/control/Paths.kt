@@ -9,6 +9,6 @@ class Paths {
         val privateResources = File(resources.path, "private")
         val cssDir = File(publicResources.path, "css")
         val arduinoSketchPath = File(privateResources.path, "res")
-        val uploadDir = File(publicResources.path, "upload")
+        val uploadDir = File(publicResources.path, "uploaded")
     }
 }

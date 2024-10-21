@@ -671,9 +671,10 @@ class ControlServices : ServiciableMultiple {
                 val map = LinkedHashMap<String, Any>(1)
                 if (!Paths.uploadDir.exists())
                     Paths.uploadDir.mkdirs()
-                val targetFile = File(Paths.uploadDir.path, file.originalName)
+                val newFileName = file.originalName.replace("\\s".toRegex(), "_")
+                val targetFile = File(Paths.uploadDir.path, newFileName)
                 Files.move(file.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
-                SSENotifier.changeBackground(file.originalName)
+                SSENotifier.changeBackground(newFileName)
                 map["ok"] = targetFile.exists()
                 return gson.toJson(map)
             }
