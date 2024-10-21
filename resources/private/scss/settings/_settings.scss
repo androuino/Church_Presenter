@@ -342,6 +342,17 @@ main {
                 padding: 0;
                 width: 100%;
                 display: flex;
+                #themeControlContainer {
+                    display: flex;
+                    flex-direction: row;
+                    width: 100%;
+                    gap: 8px;
+                    margin: 8px;
+                    height: fit-content;
+                    select {
+                            width: -webkit-fill-available;
+                    }
+                }
             }
             #settingBible {
                 margin: 0;

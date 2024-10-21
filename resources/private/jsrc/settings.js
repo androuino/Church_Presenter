@@ -31,8 +31,13 @@ m2d2.ready($ => {
             $.get("/getthemes", res => {
                 if (res.ok) {
                     themeList.items.clear();
+                    themeList2.items.clear();
                     res.data.forEach(item => {
                         themeList.items.push({
+                            dataset : { id : item.id },
+                            text : item.themeName,
+                        });
+                        themeList2.items.push({
                             dataset : { id : item.id },
                             text : item.themeName,
                         });
@@ -635,6 +640,15 @@ m2d2.ready($ => {
             getTheme(data);
         }
     });
+    const themeList2 = $("#themeList2", {
+        template : {
+            optionTheme2 : {
+                tagName : "option",
+                id : "optionTheme2"
+            }
+        },
+        items : [],
+    });
     const buttonOpenFile = $("#buttonOpenFile", {
         onclick : function(ev) {
             const ups = [];
@@ -927,6 +941,28 @@ m2d2.ready($ => {
             }
         },
         items : [],
+    });
+    const buttonDeleteTheme = $("#buttonDeleteTheme", {
+        onclick : function(ev) {
+            $.confirm("Confirm deleting this theme?", yes => {
+                if (yes) {
+                    if (themeList2.value === "Default") {
+                        $.failure("Cannot delete Default theme");
+                    } else {
+                        const selected = themeList2.options[themeList2.selectedIndex];
+                        const id = selected.dataset.id;
+                        console.log("selected id is", id);
+                        $.post("/deletetheme/" + id, res => {
+                            if (res.ok) {
+                                $.success("Deleting theme success.");
+                            }
+                        }, error => {
+                            $.failure("Error deleting a theme.", error);
+                        }, true);
+                    }
+                }
+            });
+        }
     });
     function searchBible(verse, versions) {
         const data = {
