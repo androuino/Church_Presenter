@@ -57,6 +57,8 @@ class Themes : Table<Theme>() {
     }
     fun deleteTheme(id: Int): Boolean {
         var success = false
+        if (themeExists(id))
+            success = delete(id)
         return success
     }
     fun createDefaultTheme(): Boolean {
@@ -77,6 +79,13 @@ class Themes : Table<Theme>() {
         var success = false
         val item = find("theme_name", themeName)
         if (item != null)
+            success = true
+        return success
+    }
+    private fun themeExists(id: Int) : Boolean {
+        var success = false
+        val item = find("id", id)
+        if (item.id == id)
             success = true
         return success
     }

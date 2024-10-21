@@ -91,6 +91,7 @@ class ControlServices : ServiciableMultiple {
         services.add(bgLinkService())
         services.add(getLinkService())
         services.add(getIpService())
+        services.add(deleteThemeService())
         return services
     }
 
@@ -732,6 +733,22 @@ class ControlServices : ServiciableMultiple {
                     success = true
                 }
                 map["ok"] = success
+                return gson.toJson(map)
+            }
+        }
+        return service
+    }
+
+    private fun deleteThemeService(): Service {
+        val service = Service()
+        service.method = HttpMethod.POST
+        service.path = "/deletetheme/:id"
+        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
+            fun doCall(request: Request): String {
+                var success = false
+                val map = LinkedHashMap<String, Any>(1)
+                val id = request.params("id").toInt()
+                map["ok"] = Themes().deleteTheme(id)
                 return gson.toJson(map)
             }
         }
