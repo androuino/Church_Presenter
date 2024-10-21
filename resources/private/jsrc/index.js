@@ -185,7 +185,7 @@ m2d2.ready($ => {
                 console.error("Error get bg link", error);
             }, true);
         } else {
-            const file = "/upload/" + origName;
+            const file = "uploaded/" + origName;
             loadMedia(file);
         }
     });
