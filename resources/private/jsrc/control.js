@@ -71,10 +71,15 @@ m2d2.ready($ => {
                             }, true);
                         }
                     });
-                }
+                },
             },
         },
         items : [],
+        onkeyup : function(ev) {
+            this.getElementsByTagName("li");
+            let selectedIndex = -1;
+            console.log(ev.key);
+        }
     });
     const ulSongs = $("#ulSongs", {
         template : {
@@ -213,6 +218,10 @@ m2d2.ready($ => {
                                     let trimmedBlock = block.trim();
                                     if (trimmedBlock) {  // Make sure the block is not empty
                                         ulLiveLyrics.items.push({
+                                            pre : {
+                                                tagName : "pre",
+                                                text : trimmedBlock
+                                            },
                                             innerHTML : trimmedBlock.replace(/\n/g, '<br>'),
                                         });
                                     }
@@ -750,6 +759,50 @@ m2d2.ready($ => {
             }, true);
         }
     });
+    const liElements = ulLiveLyrics.getElementsByTagName('li');
+    let selectedIndex = -1;
+    document.addEventListener('keydown', function(event) {
+        console.log(event.key);
+        if (event.key === 'ArrowDown') {
+            // Prevent default scroll behavior
+            event.preventDefault();
+            // Move to the next item if not already at the last one
+            if (selectedIndex < liElements.length - 1) {
+                changeSelection(1);
+            }
+        } else if (event.key === 'ArrowUp') {
+            // Prevent default scroll behavior
+            event.preventDefault();
+            // Move to the previous item if not already at the first one
+            if (selectedIndex > 0) {
+                changeSelection(-1);
+            }
+        }
+    });
+    function changeSelection(direction) {
+        // Remove the class from the currently selected item
+        if (selectedIndex >= 0) {
+            liElements[selectedIndex].classList.remove("active");
+        }
+        // Update the selected index
+        selectedIndex += direction;
+        const currentlySelected = liElements[selectedIndex];
+        // Add the class to the newly selected item
+        currentlySelected.classList.add("active");
+        // Scroll the item into view if necessary (optional)
+        currentlySelected.scrollIntoView({ block: 'nearest' });
+
+        console.log(currentlySelected);
+
+        /*const data = {
+            lyrics : row.text
+        };
+        $.post("/stream", data, res => {
+            if (res.ok) {
+                console.debug("lyrics sent.");
+            }
+        }, true);*/
+    }
     tippy('#navNew', {
         content: "Create a new song",
         interactive: true,
