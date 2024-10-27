@@ -79,8 +79,7 @@ class Core {
                         ).start()
                     }
                     else -> {
-                        Log.e("Unsupported operating system: $osName")
-                        return emptyList()
+                        process = ProcessBuilder("bash", "-c", "nmcli device wifi list").start()
                     }
                 }
 
@@ -154,8 +153,8 @@ class Core {
                             processBuilder = ProcessBuilder("bash", "-c", command)
                         }
                         else -> {
-                            Log.e("Unsupported operating system: $osName")
-                            return false
+                            command = "nmcli device wifi connect '$ssid' password '$pass'"
+                            processBuilder = ProcessBuilder("bash", "-c", command)
                         }
                     }
 
@@ -181,7 +180,7 @@ class Core {
                         success = true
                     } else {
                         Log.e("Failed to connect to WiFi. Exit code: $exitCode")
-                    }
+1                    }
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
