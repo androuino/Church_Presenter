@@ -973,6 +973,8 @@ m2d2.ready($ => {
                             if (res.ok) {
                                 $.success("Success!");
                                 this.text = "Enable projector";
+                            } else {
+                                $.failure("Something's wrong disabling the service.");
                             }
                         }, error => {
                             console.error("Error disabling kiosk service.", error);
@@ -982,6 +984,8 @@ m2d2.ready($ => {
                             if (res.ok) {
                                 $.success("Success!");
                                 this.text = "Disable projector";
+                            } else {
+                                $.failure("Something's wrong enabling the service.");
                             }
                         }, error => {
                             console.error("Error enabling kiosk service.", error);
