@@ -92,6 +92,8 @@ class ControlServices : ServiciableMultiple {
         services.add(getLinkService())
         services.add(getIpService())
         services.add(deleteThemeService())
+        services.add(disableService())
+        services.add(enableService())
         return services
     }
 
@@ -755,6 +757,35 @@ class ControlServices : ServiciableMultiple {
         return service
     }
 
+    private fun disableService(): Service {
+        val service = Service()
+        service.method = HttpMethod.POST
+        service.path = "/disableservice"
+        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
+            fun doCall(request: Request): String {
+                var success = false
+                val map = LinkedHashMap<String, Any>(1)
+                map["ok"] = Core.disableService()
+                return gson.toJson(map)
+            }
+        }
+        return service
+    }
+
+    private fun enableService(): Service {
+        val service = Service()
+        service.method = HttpMethod.POST
+        service.path = "/enableservice"
+        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
+            fun doCall(request: Request): String {
+                var success = false
+                val map = LinkedHashMap<String, Any>(1)
+                map["ok"] = Core.enableService()
+                return gson.toJson(map)
+            }
+        }
+        return service
+    }
     companion object {
         fun getUserAllow() = Service.Allow { request ->
             if (request.session() != null) {

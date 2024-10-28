@@ -964,6 +964,33 @@ m2d2.ready($ => {
             });
         }
     });
+    const buttonDisableService = $("#buttonDisableService", {
+        onclick : function(ev) {
+            $.confirm("Confirm to disable projector service?", yes => {
+                if (yes) {
+                    if (this.text === "Disable projector") {
+                        $.post("/disableservice", res => {
+                            if (res.ok) {
+                                $.success("Success!");
+                                this.text = "Enable projector";
+                            }
+                        }, error => {
+                            console.error("Error disabling kiosk service.", error);
+                        }, true);
+                    } else {
+                        $.post("/enableservice", res => {
+                            if (res.ok) {
+                                $.success("Success!");
+                                this.text = "Disable projector";
+                            }
+                        }, error => {
+                            console.error("Error enabling kiosk service.", error);
+                        }, true);
+                    }
+                }
+            });
+        }
+    });
     function searchBible(verse, versions) {
         const data = {
             verse : verse,
