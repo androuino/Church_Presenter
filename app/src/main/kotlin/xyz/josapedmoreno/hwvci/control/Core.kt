@@ -145,7 +145,7 @@ class Core {
                             processBuilder = ProcessBuilder("cmd.exe", "/c", command)
                         }
                         osName.contains("linux") -> {
-                            command = "nmcli dev wifi connect '$ssid' password '$pass'"
+                            command = "sudo nmcli dev wifi connect '$ssid' password '$pass'"
                             processBuilder = ProcessBuilder("bash", "-c", command)
                         }
                         osName.contains("mac") || osName.contains("darwin") -> {
@@ -153,7 +153,7 @@ class Core {
                             processBuilder = ProcessBuilder("bash", "-c", command)
                         }
                         else -> {
-                            command = "nmcli device wifi connect '$ssid' password '$pass'"
+                            command = "sudo nmcli device wifi connect '$ssid' password '$pass'"
                             processBuilder = ProcessBuilder("bash", "-c", command)
                         }
                     }
@@ -434,6 +434,70 @@ class Core {
             if (data.isNotEmpty())
                 link = data
             return link
+        }
+
+        fun disableService(serviceName: String = "kiosk.service"): Boolean {
+            var success = false
+            val command = "./disable_service.sh $serviceName" // Call the script
+
+            try {
+                // Create a process builder
+                val processBuilder = ProcessBuilder("bash", "-c", command)
+                processBuilder.redirectErrorStream(true) // Combine stdout and stderr
+
+                // Start the process
+                val process = processBuilder.start()
+
+                // Read the output
+                BufferedReader(InputStreamReader(process.inputStream)).use { reader ->
+                    reader.lines().forEach { line -> println(line) }
+                }
+
+                // Wait for the process to finish
+                val exitCode = process.waitFor()
+                if (exitCode == 0) {
+                    Log.d("Service $serviceName disabled successfully.")
+                    success = true
+                } else {
+                    println("Failed to disable service $serviceName. Exit code: $exitCode")
+                }
+
+            } catch (e: Exception) {
+                Log.e("Error disabling kiosk.service", e.printStackTrace())
+            }
+            return success
+        }
+
+        fun enableService(serviceName: String = "kiosk.service"): Boolean {
+            var success = false
+            val command = "./enable_service.sh $serviceName" // Call the script
+
+            try {
+                // Create a process builder
+                val processBuilder = ProcessBuilder("bash", "-c", command)
+                processBuilder.redirectErrorStream(true) // Combine stdout and stderr
+
+                // Start the process
+                val process = processBuilder.start()
+
+                // Read the output
+                BufferedReader(InputStreamReader(process.inputStream)).use { reader ->
+                    reader.lines().forEach { line -> println(line) }
+                }
+
+                // Wait for the process to finish
+                val exitCode = process.waitFor()
+                if (exitCode == 0) {
+                    Log.d("Service $serviceName disabled successfully.")
+                    success = true
+                } else {
+                    println("Failed to disable service $serviceName. Exit code: $exitCode")
+                }
+
+            } catch (e: Exception) {
+                Log.e("Error disabling kiosk.service", e.printStackTrace())
+            }
+            return success
         }
     }
 }
