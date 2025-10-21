@@ -42,17 +42,17 @@ m2d2.ready($ => {
                        "<p>How great is our God</p>" +
                        "<p>$b</p>" +
                        "<p>Name above all names.</p>";
-    let placeholder = "v\n" +
+    let placeholder = "$v\n" +
                       "The splendor of a King,\n" +
                       "clothed in majesty\n" +
                       "Let all the earth rejoice\n" +
                       "...\n" +
-                      "c\n" +
+                      "$c\n" +
                       "How great is our God\n" +
                       "sing with me\n" +
                       "How great is our God\n" +
                       "...\n" +
-                      "b\n" +
+                      "$b\n" +
                       "Name above all names\n" +
                       "Worthy of our praise\n" +
                       "..."
@@ -60,8 +60,8 @@ m2d2.ready($ => {
     var songId = 0;
     $("body", {
         onload : function(ev) {
-            if (localStorage.getItem("data") != null) {
-                const data = JSON.parse(localStorage.getItem("data"));
+            const data = JSON.parse(localStorage.getItem("data"));
+            if (data != null) {
                 songId = data.id;
                 inputAuthor.value = data.author;
                 inputSongTitle.value = data.songTitle;

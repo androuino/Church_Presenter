@@ -9,7 +9,6 @@ class Themes : Table<Theme>() {
     fun saveTheme(data: JsonObject): Boolean {
         var success = false
         val theme = Theme()
-        theme.id = data.get("id").asInt
         theme.themeName = data.get("themeName").asString
         theme.font = data.get("font").asString
         theme.fontSize = data.get("fontSize").asInt
@@ -33,6 +32,7 @@ class Themes : Table<Theme>() {
         theme.justifyContent = data.get("justifyContent").asString
         theme.alignItems = data.get("alignItems").asString
         success = if (checkDuplicate(theme.themeName)) {
+            theme.id = data.get("id").asInt
             update(theme, arrayListOf("id"))
         } else {
             table.insert(theme.toMap())
@@ -42,10 +42,7 @@ class Themes : Table<Theme>() {
     fun getTheme(data: JsonObject) : MutableMap<String, Any?> {
         val themeName = data.get("theme").asString
         val theme = find("theme_name", themeName).toMap()
-        return if (theme.isEmpty())
-            mutableMapOf()
-        else
-            theme
+        return theme.ifEmpty { mutableMapOf() }
     }
     fun getThemes() : List<Map<String, Any>> {
         val list = mutableListOf<Map<String, Any>>()
@@ -70,10 +67,7 @@ class Themes : Table<Theme>() {
     }
     fun getByThemeName(themeName: String): MutableMap<String, Any?> {
         val data = find("theme_name", themeName).toMap()
-        return if (data.isEmpty())
-            mutableMapOf()
-        else
-            data
+        return data.ifEmpty { mutableMapOf() }
     }
     private fun checkDuplicate(themeName: String): Boolean {
         var success = false

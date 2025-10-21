@@ -104,7 +104,7 @@ m2d2.ready($ => {
                         $.get("/getsonglyrics/" + id, res => {
                             if (res.ok) {
                                 lyricsContainer.items.clear();
-                                let blocks = res.data.match(/\$\w[\s\S]*?(?=\$\w|$)/g);
+                                let blocks = (res.data?.match(/\$\w[\s\S]*?(?=\$\w|$)/g)) || [];
                                 blocks.forEach(block => {
                                     let trimmedBlock = block.trim();
                                     if (trimmedBlock) {  // Make sure the block is not empty
@@ -213,7 +213,7 @@ m2d2.ready($ => {
                         $.get("/getsonglyrics/" + selectedSongId, res => {
                             if (res.ok) {
                                 ulLiveLyrics.items.clear();
-                                let blocks = res.data.match(/\$\w[\s\S]*?(?=\$\w|$)/g);
+                                let blocks = (res.data?.match(/\$\w[\s\S]*?(?=\$\w|$)/g)) || [];
                                 blocks.forEach(block => {
                                     let trimmedBlock = block.trim();
                                     if (trimmedBlock) {  // Make sure the block is not empty
