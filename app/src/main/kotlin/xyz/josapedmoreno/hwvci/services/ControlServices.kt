@@ -465,6 +465,7 @@ class ControlServices : ServiciableMultiple {
                 val data = gson.fromJson(request.body(), JsonObject::class.java)
                 Core.setTheme(data)
                 map["ok"] = true
+                map["data"] = Themes().getTheme(data)
                 return gson.toJson(map)
             }
         }

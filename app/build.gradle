@@ -95,6 +95,12 @@ run {
     systemProperty 'java.library.path', file('libs').absolutePath
 }
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11)
+    }
+}
+
 compileKotlin {
     kotlinOptions.jvmTarget = '11'
 }

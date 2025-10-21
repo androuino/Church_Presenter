@@ -28,8 +28,9 @@ m2d2.ready($ => {
     var versionList = [];
     const mainSettings = $("#mainSettings", {
         onload : function(ev) {
-            $.get("/getthemes", res => {
+                $.get("/getthemes", res => {
                 if (res.ok) {
+                    console.log("Themes is", res.data)
                     themeList.items.clear();
                     themeList2.items.clear();
                     res.data.forEach(item => {
@@ -81,9 +82,9 @@ m2d2.ready($ => {
                 console.error("Error getting installed books", error);
             }, true);
             const data = {
-                theme : "Default",
+                theme : "default",
             };
-            getTheme(data);
+            setTheme(data);
         }
     });
     const selectFont = $("#selectFont", {
@@ -286,7 +287,7 @@ m2d2.ready($ => {
                 console.log("the id is", id);
                 const data = {
                     id : id,
-                    themeName: inputThemeName.value,
+                    themeName: inputThemeName.value.toLowerCase(),
                     font: selectFont.value,
                     fontSize: inputFontSize.value,
                     fontColor: colorPicker.value,
@@ -311,6 +312,7 @@ m2d2.ready($ => {
                 };
                 $.put("/savetheme", data, res => {
                     if (res.ok) {
+                        console.log("data is", data);
                         $.success("Theme saved.");
                     } else {
                         $.failure("An error occurred!");
@@ -637,7 +639,7 @@ m2d2.ready($ => {
             const data = {
                 theme : ev.target.value,
             };
-            getTheme(data);
+            setTheme(data);
         }
     });
     const themeList2 = $("#themeList2", {
@@ -1102,9 +1104,10 @@ m2d2.ready($ => {
             disabledOffset(true,true,true,true,true,true,true,true,false,true,true,false);
         }
     }
-    function getTheme(data) {
-        $.post("/gettheme", data, res => {
+    function setTheme(data) {
+        $.post("/settheme", data, res => {
             if (res.ok) {
+                console.log("theme to set is", res.data);
                 const font = res.data.font;
                 const fontSize = res.data.font_size;
                 const fontColor = res.data.font_color;
@@ -1163,7 +1166,7 @@ m2d2.ready($ => {
                 colorPicker.value = fontColor;
                 previewText.style.color = fontColor;
                 taFontPreview.style.color = fontColor;
-                if (fontColor === "#ffffff" || color === "white") {
+                if (fontColor === "#ffffff" || fontColor === "white") {
                     taFontPreview.style.backgroundColor = "black";
                 } else {
                     taFontPreview.style.backgroundColor = "";

@@ -24,7 +24,6 @@
     "merge-stream": "^2.0.0",
     "metaapi.cloud-sdk": "^25.0.3",
     "node-powershell": "^5.0.1",
-    "node-sass": "^8.0.0",
     "pdfmake": "^0.2.2",
     "requirejs": "^2.3.6",
     "sass": "^1.62.1",

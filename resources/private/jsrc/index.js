@@ -155,7 +155,7 @@ m2d2.ready($ => {
     });
     evtSource.addEventListener("blackscreen", function (ev) {
         lyrics.show = false;
-        mediaContainer("");
+        mediaContainer.innerHTML = "";
         info.show = false;
     });
     evtSource.addEventListener("showdesktop", function (ev) {
@@ -166,7 +166,7 @@ m2d2.ready($ => {
         info.show = true;
     });
     evtSource.addEventListener("removebackground", function (ev) {
-        mediaContainer("");
+        mediaContainer.innerHTML = "";
     });
     evtSource.addEventListener("title", function (ev) {
         info.textContent = ev.data.replaceAll('"', "");
@@ -240,67 +240,88 @@ m2d2.ready($ => {
         }
     }
     function loadMedia(fileOrLink) {
-        mediaContainer.innerHTML = ''; // Clear any previous content
+        mediaContainer.innerHTML = ''; // Clear previous content
 
-        // Check if the input is a URL (link)
         const isLink = fileOrLink.startsWith('http://') || fileOrLink.startsWith('https://') || fileOrLink.startsWith('www.');
 
-        // Check if the input is a YouTube link
-        const isYouTubeLink = fileOrLink.includes('youtube.com') || fileOrLink.includes('youtu.be');
+        // Attempt to get an embed URL for supported services
+        const embedUrl = isLink ? getEmbedUrl(fileOrLink) : null;
 
-        // If it's a YouTube link, embed it in an iframe
-        if (isYouTubeLink) {
-            let videoId = '';
-
-            // Extract the video ID from the YouTube URL
-            if (fileOrLink.includes('youtu.be')) {
-                // Handle shortened youtu.be links
-                videoId = fileOrLink.split('/').pop();
-            } else if (fileOrLink.includes('youtube.com')) {
-                // Handle regular youtube.com links
-                const urlParams = new URLSearchParams(new URL(fileOrLink).search);
-                videoId = urlParams.get('v'); // Get the video ID from the 'v' parameter
-            }
-
-            if (videoId) {
-                // Insert the iframe to play the YouTube video
-                mediaContainer.innerHTML = `
-                    <iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1"
-                        frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-                `;
-            } else {
-                mediaContainer.innerHTML = "Invalid YouTube link.";
-            }
-        }
-        // Check if the input is a video (file or link)
-        else if (fileOrLink.endsWith('.mp4') || fileOrLink.endsWith('.webm') || fileOrLink.endsWith('.ogg') || (isLink && (fileOrLink.includes('.mp4') || fileOrLink.includes('.webm') || fileOrLink.includes('.ogg')))) {
-            let mimeType = '';
-
-            // Determine the correct MIME type based on the file extension or URL
-            if (fileOrLink.endsWith('.mp4') || (isLink && fileOrLink.includes('.mp4'))) {
-                mimeType = 'video/mp4';
-            } else if (fileOrLink.endsWith('.webm') || (isLink && fileOrLink.includes('.webm'))) {
-                mimeType = 'video/webm';
-            } else if (fileOrLink.endsWith('.ogg') || (isLink && fileOrLink.includes('.ogg'))) {
-                mimeType = 'video/ogg';
-            }
-
-            // Insert the video element with the appropriate MIME type
+        if (embedUrl) {
+            // It's a third-party video (YouTube/Vimeo/Dailymotion)
             mediaContainer.innerHTML = `
-                <video id="player" style="object-fit: cover;" autoplay muted loop>
+                <iframe
+                    width="100%"
+                    height="100%"
+                    src="${embedUrl}"
+                    frameborder="0"
+                    allow="autoplay; encrypted-media"
+                    allowfullscreen>
+                </iframe>
+            `;
+        }
+        // Self-hosted video
+        else if (
+            fileOrLink.endsWith('.mp4') ||
+            fileOrLink.endsWith('.webm') ||
+            fileOrLink.endsWith('.ogg') ||
+            (isLink && (fileOrLink.includes('.mp4') || fileOrLink.includes('.webm') || fileOrLink.includes('.ogg')))
+        ) {
+            let mimeType = '';
+            if (fileOrLink.endsWith('.mp4') || (isLink && fileOrLink.includes('.mp4'))) mimeType = 'video/mp4';
+            else if (fileOrLink.endsWith('.webm') || (isLink && fileOrLink.includes('.webm'))) mimeType = 'video/webm';
+            else if (fileOrLink.endsWith('.ogg') || (isLink && fileOrLink.includes('.ogg'))) mimeType = 'video/ogg';
+
+            mediaContainer.innerHTML = `
+                <video id="player" style="object-fit: cover; width:100%; height:100%;" autoplay muted loop playsinline>
                     <source src="${fileOrLink}" type="${mimeType}" />
                     Your browser does not support the video tag.
                 </video>
             `;
-            const player = new Plyr('#player'); // Initialize Plyr for enhanced video controls
+
+            // Initialize Plyr after element is in DOM
+            const playerElement = document.getElementById('player');
+            if (playerElement) {
+                const player = new Plyr(playerElement);
+            }
         }
-        // Check if the input is an image (file or link)
-        else if (fileOrLink.endsWith('.jpeg') || fileOrLink.endsWith('.jpg') || fileOrLink.endsWith('.png') || (isLink && (fileOrLink.includes('.jpeg') || fileOrLink.includes('.jpg') || fileOrLink.includes('.png')))) {
-            mediaContainer.innerHTML = `<img id="imgContainer" style="object-fit: cover;" src="${fileOrLink}" alt="Image"/>`;
+        // Image
+        else if (
+            fileOrLink.endsWith('.jpeg') ||
+            fileOrLink.endsWith('.jpg') ||
+            fileOrLink.endsWith('.png') ||
+            (isLink && (fileOrLink.includes('.jpeg') || fileOrLink.includes('.jpg') || fileOrLink.includes('.png')))
+        ) {
+            mediaContainer.innerHTML = `
+                <img id="imgContainer" style="object-fit: cover; width:100%; height:100%;" src="${fileOrLink}" alt="Image"/>
+            `;
         }
-        // If it's neither video nor image, show nothing or error message
+        // Unsupported media
         else {
             mediaContainer.innerHTML = "Unsupported media format.";
+        }
+    }
+    function getEmbedUrl(url) {
+        if (url.includes('youtube.com') || url.includes('youtu.be')) {
+            let videoId = '';
+            if (url.includes('youtu.be')) videoId = url.split('/').pop().split('?')[0];
+            else videoId = new URL(url).searchParams.get('v');
+
+            if (!videoId) return null;
+
+            return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&loop=1&playlist=${videoId}`;
+        }
+        else if (url.includes('vimeo.com')) {
+            let videoId = url.split('/').pop().split('?')[0];
+            return `https://player.vimeo.com/video/${videoId}?autoplay=1&muted=1&loop=1&title=0&byline=0&portrait=0`;
+        }
+        else if (url.includes('dailymotion.com')) {
+            let videoId = url.split('/').pop().split('_')[0];
+            return `https://www.dailymotion.com/embed/video/${videoId}?autoplay=1&mute=1&controls=0`;
+        }
+        // Add more services here...
+        else {
+            return null; // Unsupported
         }
     }
 });
