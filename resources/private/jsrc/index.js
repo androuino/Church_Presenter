@@ -59,6 +59,7 @@ m2d2.ready($ => {
     });
     evtSource.addEventListener("settings", function (ev) {});
     evtSource.addEventListener("clear", function (ev) {
+        console.log("clear received.");
         lyrics.textContent = "";
         info.textContent = "HWVCI Presenter";
     });
