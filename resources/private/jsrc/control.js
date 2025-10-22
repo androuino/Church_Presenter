@@ -1,3 +1,8 @@
+const db = new Dexie("ServiceDB");
+db.version(1).stores({
+    songs: "id, list",
+    live: "id, lyricsId, lyrics",
+});
 m2d2.load($ => {
     $.dict.set({
         yes : {
@@ -19,10 +24,11 @@ m2d2.load($ => {
 });
 m2d2.ready($ => {
     const evtSource = new EventSource('/events');
-    var select = null;
-    var songId = null;
-    var songTitle = "";
-    var isResizing = false;
+    let select = null;
+    let songId = null;
+    let songTitle = "";
+    let isResizing = false;
+    let songList = [];
     const header = $("#header");
     const container = $(".container");
     const mainControl = $("#mainControl");
@@ -30,6 +36,8 @@ m2d2.ready($ => {
     const tableSong = $("#tableSong");
     const songs = $("#songs");
     const live = $("#live");
+
+    loadSnapshot();
     const resizer = $("#resizer", {
         onmousedown : function(ev) {
             isResizing = true;
@@ -186,8 +194,8 @@ m2d2.ready($ => {
                         });
                     },
                     onclick : function(ev) {
-                        var liveIcon;
-                        var selectedSongId = 0;
+                        let liveIcon;
+                        let selectedSongId = 0;
                         ulSongs.items.forEach(row => {
                             const p = row.children[0];
                             if (this === row.children[3]) {
@@ -214,6 +222,12 @@ m2d2.ready($ => {
                             if (res.ok) {
                                 ulLiveLyrics.items.clear();
                                 let blocks = (res.data?.match(/\$\w[\s\S]*?(?=\$\w|$)/g)) || [];
+                                const toDB = {
+                                    lyricsId: selectedSongId,
+                                    blocks: blocks
+                                };
+                                console.log("toDB is", toDB);
+                                saveToLocalDB("live", toDB);
                                 blocks.forEach(block => {
                                     let trimmedBlock = block.trim();
                                     if (trimmedBlock) {  // Make sure the block is not empty
@@ -236,6 +250,15 @@ m2d2.ready($ => {
         onclick : function(ev) {
             if (ev.target.id && ev.target.id.startsWith('spanRemove')) {
                 const li = ev.target.closest('li');
+                const p = li.querySelector('p');
+                console.log(li.dataset.id);
+                console.log(p.text);
+                const index = songList.findIndex(item => item[0] === li.dataset.id && item[1] === p.text);
+                if (index !== -1) {
+                    songList.splice(index, 1);
+                }
+                console.log(songList);
+                saveToLocalDB("songs", songList);
                 this.removeChild(li);
                 lyricsHeader.text = "SONG'S LYRICS";
                 lyricsContainer.items.clear();
@@ -260,7 +283,7 @@ m2d2.ready($ => {
                     this.contentEditable = false;
                     this.style.backgroundColor = "";
                     this.style.color = "";
-                    var lyrics = "";
+                    let lyrics = "";
                     lyricsContainer.items.forEach(row => {
                         lyrics += row.text + "\n";
                     });
@@ -413,10 +436,11 @@ m2d2.ready($ => {
                             const secondCell = row.querySelectorAll('td')[1];
                             if (secondCell) {
                                 songTitle = secondCell.textContent;
+                                songList.push([songId, songTitle]);
                             }
                         }
                     });
-
+                    saveToLocalDB("songs", songList )
                 },
                 onmouseover : function(ev) {
                     songId = this.dataset.id;
@@ -596,6 +620,7 @@ m2d2.ready($ => {
                         $.post("/liveclear", res => {
                             if (res.ok) {
                                 console.debug("Live cleared.");
+                                deleteFromLocalDB("live");
                             }
                         }, error => {
                             console.error("Error clearing live.", error);
@@ -650,6 +675,7 @@ m2d2.ready($ => {
                 $.confirm("Confirm to clear the song list?", res => {
                     if (res) {
                         ulSongs.items.clear();
+                        deleteFromLocalDB("songs");
                     }
                 });
             }
@@ -696,7 +722,7 @@ m2d2.ready($ => {
         });
     }
     evtSource.addEventListener("wifi", function (ev) {
-        var data = JSON.parse(JSON.parse(ev.data));
+        let data = JSON.parse(JSON.parse(ev.data));
         if (data.status === "connected") {
             navWiFi.style.color = "green";
         } else {
@@ -803,6 +829,90 @@ m2d2.ready($ => {
             }
         }, true);*/
     }
+    async function loadSnapshot() {
+        const liveSong = db.live.get("live").then(liveSong => {
+            if (liveSong) {
+                ulLiveLyrics.items.clear();
+                const selectedSongId = liveSong.lyricsId;
+                const blocks = liveSong.lyrics;
+                blocks.forEach(block => {
+                    let trimmedBlock = block.trim();
+                    if (trimmedBlock) {
+                        ulLiveLyrics.items.push({
+                            pre : {
+                                tagName : "pre",
+                                text : trimmedBlock
+                            },
+                            innerHTML : trimmedBlock.replace(/\n/g, '<br>'),
+                        });
+                    }
+                });
+            } else {
+                console.log("No saved live song");
+            }
+        });
+        const listSong = db.songs.get("songs").then(list => {
+            if (list) {
+                list.list.forEach(song => {
+                    const id = song[0];
+                    const title = song[1];
+                    ulSongs.items.push({
+                        dataset : { id : id },
+                        pSongTitle : {
+                            dataset : { id : id },
+                            text : title
+                        }
+                    });
+                });
+            } else {
+                console.log("No saved song list");
+            }
+        });
+    }
+    async function saveToLocalDB(key, data) {
+        try {
+            switch (key) {
+                case "live":
+                    console.log("Saving live data:", data);
+                    if (!data.lyricsId || !data.blocks) {
+                        console.error("Invalid data for live store: lyricsId or blocks missing");
+                        return;
+                    }
+                    await db.live.put({ id: "live", lyricsId: data.lyricsId, lyrics: data.blocks });
+                    const liveSong = await db.live.get("live");
+                    console.log("Saved live song - ID:", liveSong.lyricsId, "Lyrics:", liveSong.lyrics);
+                    break;
+                case "songs":
+                    console.log("Saving songs data:", data);
+                    if (!data) {
+                        console.error("Invalid data for songs store: id or list missing");
+                        return;
+                    }
+                    await db.songs.put({ id: "songs", list: data });
+                    const songList = await db.songs.get("songs"); // Use data.id instead of hardcoded "songs"
+                    console.log("Saved song list - ID:", songList.id, "List:", songList.list);
+                    break;
+                default:
+                    console.warn("Unknown key for saveToLocalDB:", key);
+                    break;
+            }
+        } catch (error) {
+            console.error("Error saving to local DB:", error);
+        }
+    }
+    async function deleteFromLocalDB(key) {
+        switch (key) {
+            case "live":
+                await db.live.delete("live");
+                break;
+            case "songs":
+                await db.songs.delete("songs");
+                break;
+            default:
+                break;
+        }
+    }
+
     tippy('#navNew', {
         content: "Create a new song",
         interactive: true,

@@ -1,3 +1,7 @@
+const db = new Dexie("ServiceDB");
+db.version(1).stores({
+    media: "id, link",
+});
 m2d2.load($ => {
     $.dict.set({
         yes : {
@@ -18,21 +22,21 @@ m2d2.load($ => {
     });
 });
 m2d2.ready($ => {
-    var isBold = false;
-    var isItalic = false;
-    var isStrikeThrough = false;
-    var alignment = "center";
-    var justifyContent = "";
-    var alignItems = "";
-    var bibleVersionInstalled;
-    var versionList = [];
+    let isBold = false;
+    let isItalic = false;
+    let isStrikeThrough = false;
+    let alignment = "center";
+    let justifyContent = "";
+    let alignItems = "";
+    let bibleVersionInstalled;
+    let versionList = [];
+
+    loadFromDB()
     const mainSettings = $("#mainSettings", {
         onload : function(ev) {
                 $.get("/getthemes", res => {
                 if (res.ok) {
-                    console.log("Themes is", res.data)
                     themeList.items.clear();
-                    themeList2.items.clear();
                     res.data.forEach(item => {
                         themeList.items.push({
                             dataset : { id : item.id },
@@ -81,10 +85,6 @@ m2d2.ready($ => {
             }, error => {
                 console.error("Error getting installed books", error);
             }, true);
-            const data = {
-                theme : "default",
-            };
-            setTheme(data);
         }
     });
     const selectFont = $("#selectFont", {
@@ -639,6 +639,7 @@ m2d2.ready($ => {
             const data = {
                 theme : ev.target.value,
             };
+            inputThemeName.value = ev.target.value;
             setTheme(data);
         }
     });
@@ -693,7 +694,7 @@ m2d2.ready($ => {
             if (mediaLink.value === "") {
                 $.failure("You did not provide a proper link.");
             } else {
-                // todo: set the media as background
+                saveToLocalDB("media", { id: "videolink", link: mediaLink.value });
                 const data = {
                     link: mediaLink.value
                 };
@@ -707,6 +708,18 @@ m2d2.ready($ => {
             }
         }
     });
+    const buttonClearMedia = $("#buttonClearMedia", {
+        onclick : function(ev) {
+            $.post("/removebackground", res => {
+                if (res.ok) {
+                    if (mediaLink.value != "") {
+                        mediaLink.value = "";
+                        db.media.delete("videolink");
+                    }
+                }
+            });
+        }
+    });
     const buttonSetTheme = $("#buttonSetTheme", {
         onclick : function(ev) {
             const theme = themeList.value;
@@ -718,7 +731,8 @@ m2d2.ready($ => {
                 };
                 $.post("/settheme", data, res => {
                     if (res.ok) {
-                        $.success("Theme set.");
+                        $.success("Theme is set.");
+                        saveToLocalDB("theme", { id: "settheme", theme: theme });
                     } else {
                         $.failure("Error setting theme.");
                     }
@@ -948,8 +962,8 @@ m2d2.ready($ => {
         onclick : function(ev) {
             $.confirm("Confirm deleting this theme?", yes => {
                 if (yes) {
-                    if (themeList2.value === "Default") {
-                        $.failure("Cannot delete Default theme");
+                    if (themeList2.value === "default") {
+                        $.failure("Cannot delete default theme");
                     } else {
                         const selected = themeList2.options[themeList2.selectedIndex];
                         const id = selected.dataset.id;
@@ -1236,6 +1250,52 @@ m2d2.ready($ => {
             }
         }, true);
     }
+    async function loadFromDB() {
+        db.media.get("videolink").then(media => {
+            if (media) {
+                mediaLink.value = media.link;
+            } else {
+                console.log("media is empty");
+            }
+        });
+        db.media.get("settheme").then(theme => {
+            if (theme) {
+                Array.from(themeList.options).forEach(option => {
+                    if (option.text === theme.name) {
+                        themeList.value = option.value;
+                        inputThemeName.value = theme.name;
+                        setTheme({theme : theme.name});
+                    }
+                });
+                const data = {
+                    theme : theme.name,
+                };
+                $.post("/settheme", data, res => {
+                    if (res.ok) {
+                        console.log("Theme set.");
+                    } else {
+                        console.error("Error setting theme.");
+                    }
+                }, true);
+            } else {
+                console.log("No theme set.");
+            }
+        });
+    }
+    async function saveToLocalDB(key, data) {
+        switch (key) {
+            case "media":
+                await db.media.put({ id: data.id, link: data.link });
+                break;
+            case "theme":
+                console.log("id is", data.id, " theme is", data.theme);
+                await db.media.put({ id: data.id, name: data.theme });
+                break;
+            default:
+                break;
+        }
+    }
+
     tippy('#navFontSettings', {
         content: "Font settings (Font style and size)",
         interactive: true,
