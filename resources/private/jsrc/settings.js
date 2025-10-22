@@ -31,7 +31,6 @@ m2d2.ready($ => {
     let bibleVersionInstalled;
     let versionList = [];
 
-    loadFromDB()
     const mainSettings = $("#mainSettings", {
         onload : function(ev) {
                 $.get("/getthemes", res => {
@@ -47,6 +46,7 @@ m2d2.ready($ => {
                             text : item.themeName,
                         });
                     });
+                    loadFromDB();
                 }
             }, true);
             $.get("/getbooks", res => {
@@ -729,14 +729,7 @@ m2d2.ready($ => {
                 const data = {
                     theme : theme,
                 };
-                $.post("/settheme", data, res => {
-                    if (res.ok) {
-                        $.success("Theme is set.");
-                        saveToLocalDB("theme", { id: "settheme", theme: theme });
-                    } else {
-                        $.failure("Error setting theme.");
-                    }
-                }, true);
+                setTheme(data);
             }
         }
     });
@@ -1121,6 +1114,8 @@ m2d2.ready($ => {
     function setTheme(data) {
         $.post("/settheme", data, res => {
             if (res.ok) {
+                console.log("Theme is set to", res.data.theme_name);
+                saveToLocalDB("theme", { id: "settheme", theme: res.data.theme_name });
                 console.log("theme to set is", res.data);
                 const font = res.data.font;
                 const fontSize = res.data.font_size;
@@ -1251,15 +1246,16 @@ m2d2.ready($ => {
         }, true);
     }
     async function loadFromDB() {
-        db.media.get("videolink").then(media => {
+        await db.media.get("videolink").then(media => {
             if (media) {
                 mediaLink.value = media.link;
             } else {
                 console.log("media is empty");
             }
         });
-        db.media.get("settheme").then(theme => {
+        await db.media.get("settheme").then(theme => {
             if (theme) {
+                console.log("theme from db", theme);
                 Array.from(themeList.options).forEach(option => {
                     if (option.text === theme.name) {
                         themeList.value = option.value;
@@ -1267,16 +1263,6 @@ m2d2.ready($ => {
                         setTheme({theme : theme.name});
                     }
                 });
-                const data = {
-                    theme : theme.name,
-                };
-                $.post("/settheme", data, res => {
-                    if (res.ok) {
-                        console.log("Theme set.");
-                    } else {
-                        console.error("Error setting theme.");
-                    }
-                }, true);
             } else {
                 console.log("No theme set.");
             }
