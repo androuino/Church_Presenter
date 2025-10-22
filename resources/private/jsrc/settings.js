@@ -30,10 +30,12 @@ m2d2.ready($ => {
     let alignItems = "";
     let bibleVersionInstalled;
     let versionList = [];
+    let listBibleVersions = [];
+    let listInstalledBibleVersions = [];
 
     const mainSettings = $("#mainSettings", {
         onload : function(ev) {
-                $.get("/getthemes", res => {
+            $.get("/getthemes", res => {
                 if (res.ok) {
                     themeList.items.clear();
                     res.data.forEach(item => {
@@ -48,42 +50,6 @@ m2d2.ready($ => {
                     });
                     loadFromDB();
                 }
-            }, true);
-            $.get("/getbooks", res => {
-                if (res.ok) {
-                    bibleVersions.items.clear();
-                    Object.entries(res.data).forEach(([k,v]) => {
-                        bibleVersions.items.push({
-                            text : `${k} : ${v}`,
-                        });
-                    });
-                }
-            }, error => {
-                console.error("Error getting books", error);
-            }, true);
-            $.get("/getversions", res => {
-                if (res.ok) {
-                    versionsInstalled.items.clear();
-                    selectVersion1.items.clear();
-                    selectVersion2.items.clear();
-                    selectVersion3.items.clear();
-                    Object.entries(res.data).forEach(([k,v]) => {
-                        versionsInstalled.items.push({
-                            text : `${k} : ${v}`,
-                        });
-                        selectVersion1.items.push({
-                            text : `${k} : ${v}`,
-                        });
-                        selectVersion2.items.push({
-                            text : `${k} : ${v}`,
-                        });
-                        selectVersion3.items.push({
-                            text : `${k} : ${v}`,
-                        });
-                    });
-                }
-            }, error => {
-                console.error("Error getting installed books", error);
             }, true);
         }
     });
@@ -1267,6 +1233,78 @@ m2d2.ready($ => {
                 console.log("No theme set.");
             }
         });
+        await db.media.get("versions").then(versions => {
+            if (versions) {
+                bibleVersions.items.clear();
+                versions.list.forEach(item => {
+                    bibleVersions.items.push({ text: item });
+                });
+            } else {
+                console.log("No Bible versions saved.")
+                $.get("/getbooks", res => {
+                    if (res.ok) {
+                        bibleVersions.items.clear();
+                        Object.entries(res.data).forEach(([k,v]) => {
+                            listBibleVersions.push(`${k} : ${v}`);
+                            bibleVersions.items.push({
+                                text : `${k} : ${v}`,
+                            });
+                        });
+                        saveToLocalDB("bibleversions", { list: listBibleVersions });
+                    }
+                }, error => {
+                    console.error("Error getting books", error);
+                }, true);
+            }
+        });
+        await db.media.get("installed").then(versions => {
+            if (versions) {
+                versionsInstalled.items.clear();
+                selectVersion1.items.clear();
+                selectVersion2.items.clear();
+                selectVersion3.items.clear();
+                versions.list.forEach(item => {
+                    versionsInstalled.items.push({
+                        text : item,
+                    });
+                    selectVersion1.items.push({
+                        text : item,
+                    });
+                    selectVersion2.items.push({
+                        text : item,
+                    });
+                    selectVersion3.items.push({
+                        text : item,
+                    });
+                });
+            } else {
+                console.log("No Bible versions saved.")
+                $.get("/getversions", res => {
+                    if (res.ok) {
+                        versionsInstalled.items.clear();
+                        selectVersion1.items.clear();
+                        selectVersion2.items.clear();
+                        selectVersion3.items.clear();
+                        Object.entries(res.data).forEach(([k,v]) => {
+                            listInstalledBibleVersions.push(`${k} : ${v}`);
+                            versionsInstalled.items.push({
+                                text : `${k} : ${v}`,
+                            });
+                            selectVersion1.items.push({
+                                text : `${k} : ${v}`,
+                            });
+                            selectVersion2.items.push({
+                                text : `${k} : ${v}`,
+                            });
+                            selectVersion3.items.push({
+                                text : `${k} : ${v}`,
+                            });
+                        });
+                        saveToLocalDB("installedversions", { list: listInstalledBibleVersions });
+                    }
+                });
+            }
+        });
     }
     async function saveToLocalDB(key, data) {
         switch (key) {
@@ -1274,8 +1312,13 @@ m2d2.ready($ => {
                 await db.media.put({ id: data.id, link: data.link });
                 break;
             case "theme":
-                console.log("id is", data.id, " theme is", data.theme);
                 await db.media.put({ id: data.id, name: data.theme });
+                break;
+            case "bibleversions":
+                await db.media.put({ id: "versions", list: data.list });
+                break;
+            case "installedversions":
+                await db.media.put({ id: "installed", list: data.list });
                 break;
             default:
                 break;
