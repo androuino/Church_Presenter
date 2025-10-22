@@ -7,7 +7,7 @@ class Theme : Model() {
     @Column(primary = true, autoincrement = true)
     var id: Int = 0
     @Column
-    var themeName: String = "Default"
+    var themeName: String = "default"
     @Column
     var font: String = "Ubuntu"
     @Column

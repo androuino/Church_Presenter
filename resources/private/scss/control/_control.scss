@@ -217,6 +217,7 @@ body :-ms-input-placeholder {
                 li {
                     padding: 8px;
                     border-bottom: 1px solid white;
+                    white-space: pre-wrap;
                 }
                 li:hover {
                     cursor: pointer;
@@ -304,6 +305,7 @@ body :-ms-input-placeholder {
                 overflow-y: auto;
                 li {
                     padding: 8px;
+                    white-space: pre-wrap;
                 }
                 li:nth-child(odd) {
                     background-color: #3b3b3b;

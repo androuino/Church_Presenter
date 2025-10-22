@@ -683,6 +683,7 @@ m2d2.ready($ => {
                             console.error("Error clearing live.", error);
                         }, true);
                         ulLiveLyrics.items.clear();
+                        lyricsContainer.items.clear();
                         deleteFromLocalDB("songs");
                     }
                 });

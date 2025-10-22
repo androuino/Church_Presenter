@@ -60,7 +60,7 @@ class Themes : Table<Theme>() {
     }
     fun createDefaultTheme(): Boolean {
         var success = false
-        if (!checkDuplicate("Default")) {
+        if (!checkDuplicate("default")) {
             success = table.insert(Theme().toMap())
         }
         return success
