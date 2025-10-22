@@ -440,7 +440,7 @@ m2d2.ready($ => {
                             }
                         }
                     });
-                    saveToLocalDB("songs", songList )
+                    saveToLocalDB("songs", songList)
                 },
                 onmouseover : function(ev) {
                     songId = this.dataset.id;
@@ -675,6 +675,14 @@ m2d2.ready($ => {
                 $.confirm("Confirm to clear the song list?", res => {
                     if (res) {
                         ulSongs.items.clear();
+                        $.post("/liveclear", res => {
+                            if (res.ok) {
+                                console.debug("Live cleared.");
+                            }
+                        }, error => {
+                            console.error("Error clearing live.", error);
+                        }, true);
+                        ulLiveLyrics.items.clear();
                         deleteFromLocalDB("songs");
                     }
                 });
@@ -856,6 +864,7 @@ m2d2.ready($ => {
                 list.list.forEach(song => {
                     const id = song[0];
                     const title = song[1];
+                    songList.push([id, title]);
                     ulSongs.items.push({
                         dataset : { id : id },
                         pSongTitle : {
@@ -907,6 +916,7 @@ m2d2.ready($ => {
                 break;
             case "songs":
                 await db.songs.delete("songs");
+                await db.live.delete("live");
                 break;
             default:
                 break;
