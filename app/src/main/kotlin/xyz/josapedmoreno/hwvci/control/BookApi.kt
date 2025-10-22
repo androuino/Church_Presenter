@@ -1,7 +1,6 @@
 package xyz.josapedmoreno.hwvci.control
 
 import com.google.gson.JsonArray
-import com.google.gson.JsonParser
 import com.intellisrc.core.Log
 import org.crosswire.jsword.book.Book
 import org.crosswire.jsword.book.BookCategory
@@ -52,7 +51,7 @@ class BookApi {
                     map[metaData.initials] = metaData.name
                 }
             } catch (e: Exception) {
-                Log.e("Error retrieving books.", e.printStackTrace())
+                Log.w("Error retrieving books.", e.printStackTrace())
             }
             return map.toSortedMap()
         }
@@ -102,9 +101,9 @@ class BookApi {
                 Log.i("Installation complete!")
                 success = true
             } catch (e: InstallException) {
-                e.printStackTrace()
+                Log.w("Cannot install Bible version. %s", e.printStackTrace())
             } catch (e: BookException) {
-                e.printStackTrace()
+                Log.w("Bible version installation exception: %s", e.printStackTrace())
             }
             return success
         }
@@ -141,7 +140,7 @@ class BookApi {
                     listMap.add(map)
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.w("[IGNORE] : Chapter or verse doesn't exists. %s", e.printStackTrace())
             }
 
             return listMap

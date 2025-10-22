@@ -56,8 +56,8 @@ m2d2.ready($ => {
                       "Name above all names\n" +
                       "Worthy of our praise\n" +
                       "..."
-    var indicator = false;
-    var songId = 0;
+    let indicator = false;
+    let songId = 0;
     $("body", {
         onload : function(ev) {
             const data = JSON.parse(localStorage.getItem("data"));

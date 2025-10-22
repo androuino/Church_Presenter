@@ -57,8 +57,7 @@ m2d2.ready($ => {
         const finalText = clean.replaceAll('"', '');
         lyrics.textContent = finalText;
     });
-    evtSource.addEventListener("settings", function (ev) {
-    });
+    evtSource.addEventListener("settings", function (ev) {});
     evtSource.addEventListener("clear", function (ev) {
         lyrics.textContent = "";
         info.textContent = "HWVCI Presenter";
