@@ -15,7 +15,7 @@ main {
     color: white;
     font-size: 24px;
     margin: 0;
-    #settingsNav {
+    .settingsNav {
         width: 24px;
         display: flex;
         flex-direction: column;
@@ -45,12 +45,12 @@ main {
             display: flex;
             flex-direction: row;
             list-style: none;
-            #settingFont {
+            .settingFont {
                 margin: 0;
                 padding: 0;
                 width: 100%;
                 display: flex;
-                #sectionSettings {
+                .sectionSettings {
                     display: flex;
                     flex-direction: column;
                     width: calc(100% / 2);
@@ -68,13 +68,13 @@ main {
                         width: calc(100% / 2);
                     }
                 }
-                #sectionPreview {
+                .sectionPreview {
                     display: flex;
                     flex-direction: column;
                     width: calc(100% / 2);
                     gap: 8px;
                     margin: 8px;
-                    #taContainer {
+                    .taContainer {
                         margin: 0;
                         padding: 0;
                         width: 100%;
@@ -87,7 +87,7 @@ main {
                             resize: none;
                         }
                     }
-                    #fontModifierControls {
+                    .fontModifierControls {
                         display: flex;
                         flex-direction: row;
                         span {
@@ -102,20 +102,20 @@ main {
                     }
                 }
             }
-            #settingLocation {
+            .settingLocation {
                 margin: 0;
                 padding: 0;
                 width: 100%;
                 display: flex;
                 flex-direction: row;
-                #sectionSettingLocation {
+                .sectionSettingLocation {
                     display: flex;
                     justify-content: flex-start;
                     align-items: flex-start;
                     width: calc(100% / 2);
                     gap: 8px;
                     margin: 8px;
-                    #gridContainer {
+                    .gridContainer {
                         display: grid;
                         grid-template-columns: repeat(5, 1fr);
                         grid-template-rows: repeat(4, 1fr);
@@ -264,7 +264,7 @@ main {
                             background-color: black;
                         }
                     }
-                    #previewFontAlignment {
+                    .previewFontAlignment {
                         display: flex;
                         flex-direction: row;
                         span {
@@ -277,13 +277,13 @@ main {
                             background-color: green;
                         }
                     }
-                    #themeContainer {
+                    .themeContainer {
                         width: 100%;
                         display: flex;
                         align-items: flex-start;
                         flex-direction: column;
                         gap: 8px;
-                        #themeSettingContainer {
+                        .themeSettingContainer {
                             display: flex;
                             flex-direction: row;
                             gap: 8px;
@@ -293,7 +293,7 @@ main {
                                 font-size: 1.2em;
                             }
                         }
-                        #mediaControl {
+                        .mediaControl {
                             display: flex;
                             align-items: flex-start;
                             width: 100%;
@@ -313,7 +313,7 @@ main {
                         }
                     }
                 }
-                #sectionPreviewLocation {
+                .sectionPreviewLocation {
                     width: calc(100% / 2);
                     gap: 8px;
                     margin: 8px;
@@ -337,13 +337,13 @@ main {
                     }
                 }
             }
-            #settingThemeList {
+            .settingThemeList {
                 margin: 0;
                 padding: 0;
                 width: 100%;
                 display: flex;
                 flex-direction: column;
-                #themeControlContainer {
+                .themeControlContainer {
                     display: flex;
                     flex-direction: row;
                     gap: 8px;
@@ -353,7 +353,7 @@ main {
                             width: -webkit-fill-available;
                     }
                 }
-                #otherSettingContainer {
+                .otherSettingContainer {
                     display: flex;
                     flex-direction: column;
                     align-items: center;
@@ -362,13 +362,13 @@ main {
                     height: fit-content
                 }
             }
-            #settingBible {
+            .settingBible {
                 margin: 0;
                 padding: 0;
                 width: 100%;
                 display: flex;
                 flex-direction: row;
-                #bibleControlContainer {
+                .bibleControlContainer {
                     width: calc(100% / 2);
                     display: flex;
                     flex-direction: column;
@@ -378,7 +378,7 @@ main {
                         font-size: 1.2em;
                     }
                 }
-                #bibleSearchContainer {
+                .bibleSearchContainer {
                     width: calc(100% / 2);
                     display: flex;
                     flex-direction: column;
@@ -417,7 +417,7 @@ main {
                 }
             }
         }
-        #saveThemeContainer {
+        .saveThemeContainer {
             display: flex;
             flex-direction: column;
             align-items: center;

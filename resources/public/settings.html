@@ -17,17 +17,17 @@
     <script type="text/javascript" src="js/settings.min.js"></script>
 </head>
 <body>
-<main id="main">
-    <nav id="settingsNav">
-        <span id="navFontSettings" class="gicon">font_download</span>
-        <span id="navLocationSettings" class="gicon">subject</span>
-        <span id="navThemeList" class="gicon">format_list_numbered</span>
-        <span id="navBibleSettings" class="gicon">menu_book</span>
+<main>
+    <nav class="settingsNav">
+        <span class="gicon navFontSettings">font_download</span>
+        <span class="gicon navLocationSettings">subject</span>
+        <span class="gicon navThemeList">format_list_numbered</span>
+        <span class="gicon navBibleSettings">menu_book</span>
     </nav>
-    <section id="mainSettings">
+    <section class="mainSettings">
         <ol>
-            <li id="settingFont">
-                <section id="sectionSettings">
+            <li class="settingFont">
+                <section class="sectionSettings">
                     <label for="selectFont">Choose font:</label>
                     <select name="font" id="selectFont"></select>
                     <label for="inputFontSize">Font size:</label>
@@ -36,133 +36,133 @@
                     <input type="color" id="colorPicker" name="colorPicker" value="#000000">
                     <button id="buttonSave" class="btn">Save settings</button>
                 </section>
-                <section id="sectionPreview">
+                <section class="sectionPreview">
                     <label for="taFontPreview">Font Preview</label>
-                    <aside id="taContainer">
+                    <aside class="taContainer">
                         <textarea name="font preview" id="taFontPreview">Sample TEXT</textarea>
                     </aside>
-                    <aside id="fontModifierControls">
-                        <span id="fontBold" class="gicon">format_bold</span>
-                        <span id="fontItalic" class="gicon">format_italic</span>
-                        <span id="fontStrikeThrough" class="gicon">format_strikethrough</span>
+                    <aside class="fontModifierControls">
+                        <span class="gicon fontBold">format_bold</span>
+                        <span class="gicon fontItalic">format_italic</span>
+                        <span class="gicon fontStrikeThrough">format_strikethrough</span>
                     </aside>
                 </section>
             </li>
-            <li id="settingLocation">
-                <section id="sectionSettingLocation">
+            <li class="settingLocation">
+                <section class="sectionSettingLocation">
                     <p>Text location set-up</p>
-                    <aside id="gridContainer">
+                    <aside class="gridContainer">
                         <div class="box box1"></div>
-                        <div class="box box2"><input id="topLeftOffset" class="offset" type="number" value="0"></div>
-                        <div class="box box3"><input id="topMiddleOffset" class="offset" type="number" value="0"></div>
-                        <div class="box box4"><input id="topRightOffset" class="offset" type="number" value="0"></div>
+                        <div class="box box2"><input class="offset topLeftOffset" type="number" value="0"></div>
+                        <div class="box box3"><input class="offset topMiddleOffset" type="number" value="0"></div>
+                        <div class="box box4"><input class="offset topRightOffset" type="number" value="0"></div>
                         <div class="box box5"></div>
-                        <div class="box box6"><input id="leftUpperOffset" class="offset" type="number" value="0"></div>
-                        <div class="box box7"><input id="radioTopLeft" class="radioLocation" name="group1" type="radio" style="scale: 14px;"></div>
-                        <div class="box box8"><input id="radioTopMiddle" class="radioLocation" name="group1" type="radio" style="scale: 14px;"></div>
-                        <div class="box box9"><input id="radioTopRight" class="radioLocation" name="group1" type="radio" style="scale: 14px;"></div>
-                        <div class="box box10"><input id="rightUpperOffset" class="offset" type="number" value="0"></div>
-                        <div class="box box11"><input id="leftMiddleOffset" class="offset" type="number" value="0"></div>
-                        <div class="box box12"><input id="radioLefMiddle" class="radioLocation" name="group1" type="radio" style="scale: 14px;"></div>
-                        <div class="box box13"><input id="radioCenter" class="radioLocation" name="group1" type="radio" style="scale: 14px;" checked></div>
-                        <div class="box box14"><input id="radioRightMiddle" class="radioLocation" name="group1" type="radio" style="scale: 14px;"></div>
-                        <div class="box box15"><input id="rightMiddleOffset" class="offset" type="number" value="0"></div>
-                        <div class="box box16"><input id="leftLowerOffset" class="offset" type="number" value="0"></div>
-                        <div class="box box17"><input id="radioLeftBottom" class="radioLocation" name="group1" type="radio" style="scale: 14px;"></div>
-                        <div class="box box18"><input id="radioMiddleBottom" class="radioLocation" name="group1" type="radio" style="scale: 14px;"></div>
-                        <div class="box box19"><input id="radioRightBottom" class="radioLocation" name="group1" type="radio" style="scale: 14px;"></div>
-                        <div class="box box20"><input id="rightLowerOffset" class="offset" type="number" value="0"></div>
+                        <div class="box box6"><input class="offset leftUpperOffset" type="number" value="0"></div>
+                        <div class="box box7"><input class="radioLocation radioTopLeft" name="group1" type="radio" style="scale: 14px;"></div>
+                        <div class="box box8"><input class="radioLocation radioTopMiddle" name="group1" type="radio" style="scale: 14px;"></div>
+                        <div class="box box9"><input class="radioLocation radioTopRight" name="group1" type="radio" style="scale: 14px;"></div>
+                        <div class="box box10"><input class="offset rightUpperOffset" type="number" value="0"></div>
+                        <div class="box box11"><input class="offset leftMiddleOffset" type="number" value="0"></div>
+                        <div class="box box12"><input class="radioLocation radioLefMiddle" name="group1" type="radio" style="scale: 14px;"></div>
+                        <div class="box box13"><input class="radioLocation radioCenter" name="group1" type="radio" style="scale: 14px;" checked></div>
+                        <div class="box box14"><input class="radioLocation radioRightMiddle" name="group1" type="radio" style="scale: 14px;"></div>
+                        <div class="box box15"><input class="offset rightMiddleOffset" type="number" value="0"></div>
+                        <div class="box box16"><input class="offset leftLowerOffset" type="number" value="0"></div>
+                        <div class="box box17"><input class="radioLocation radioLeftBottom" name="group1" type="radio" style="scale: 14px;"></div>
+                        <div class="box box18"><input class="radioLocation radioMiddleBottom" name="group1" type="radio" style="scale: 14px;"></div>
+                        <div class="box box19"><input class="radioLocation radioRightBottom" name="group1" type="radio" style="scale: 14px;"></div>
+                        <div class="box box20"><input class="offset rightLowerOffset" type="number" value="0"></div>
                         <div class="box box21"></div>
-                        <div class="box box22"><input id="leftBottomOffset" class="offset" type="number" value="0"></div>
-                        <div class="box box23"><input id="middleBottomOffset" class="offset" type="number" value="0"></div>
-                        <div class="box box24"><input id="rightBottomOffset" class="offset" type="number" value="0"></div>
+                        <div class="box box22"><input class="offset leftBottomOffset" type="number" value="0"></div>
+                        <div class="box box23"><input class="offset middleBottomOffset" type="number" value="0"></div>
+                        <div class="box box24"><input class="offset rightBottomOffset" type="number" value="0"></div>
                         <div class="box box25"></div>
                     </aside>
-                    <aside id="previewFontAlignment">
-                        <span id="fontAlignCenter" class="gicon">format_align_center</span>
-                        <span id="fontAlignHorRight" class="gicon">align_horizontal_right</span>
-                        <span id="fontAlignJustify" class="gicon">format_align_justify</span>
-                        <span id="fontAlignHorLeft" class="gicon">align_horizontal_left</span>
-                        <span id="fontAlignRight" class="gicon">format_align_right</span>
-                        <span id="fontAlignLeft" class="gicon">format_align_left</span>
+                    <aside class="previewFontAlignment">
+                        <span class="gicon fontAlignCenter">format_align_center</span>
+                        <span class="gicon fontAlignHorRight">align_horizontal_right</span>
+                        <span class="gicon fontAlignJustify">format_align_justify</span>
+                        <span class="gicon fontAlignHorLeft">align_horizontal_left</span>
+                        <span class="gicon fontAlignRight">format_align_right</span>
+                        <span class="gicon fontAlignLeft">format_align_left</span>
                     </aside>
-                    <button id="buttonResetOffset" class="btn">Reset offset</button>
-                    <aside id="themeContainer">
+                    <button class="btn buttonResetOffset">Reset offset</button>
+                    <aside class="themeContainer">
                         <p>Theme List</p>
-                        <div id="themeSettingContainer">
-                            <select name="themes" id="themeList"></select>
-                            <button id="buttonSetTheme" class="btn">Set this theme</button>
+                        <div class="themeSettingContainer">
+                            <select name="themes" class="themeList"></select>
+                            <button class="btn buttonSetTheme">Set this theme</button>
                         </div>
-                        <aside id="mediaControl">
+                        <aside class="mediaControl">
                             <p>Set background media from file</p>
-                            <button id="buttonOpenFile" class="btn">Choose file</button>
+                            <button class="btn buttonOpenFile">Choose file</button>
                             <label for="mediaLink">Set background media from external link</label>
                             <input id="mediaLink" type="text" placeholder="https://">
                             <div>
-                                <button id="buttonSetPlay" class="btn">Set and play</button>
-                                <button id="buttonClearMedia" class="btn">Clear / remove media</button>
+                                <button class="btn buttonSetPlay">Set and play</button>
+                                <button class="btn buttonClearMedia">Clear / remove media</button>
                             </div>
                         </aside>
                     </aside>
                 </section>
-                <section id="sectionPreviewLocation">
+                <section class="sectionPreviewLocation">
                     <p>Preview</p>
-                    <aside id="previewContainer"><p id="previewText"></p></aside>
+                    <aside class="previewContainer"><p class="previewText"></p></aside>
                     <!--iframe id="livePreview" src="" width="100%" height="400" style="border: none;"></iframe-->
                 </section>
             </li>
-            <li id="settingThemeList">
-                <aside id="themeControlContainer">
-                    <select name="themes" id="themeList2"></select>
-                    <button id="buttonDeleteTheme" class="btn">Delete</button>
+            <li class="settingThemeList">
+                <aside class="themeControlContainer">
+                    <select name="themes" class="themeList2"></select>
+                    <button class="btn buttonDeleteTheme">Delete</button>
                 </aside>
                 <aside id="otherSettingContainer">
                     <h2>Other Settings</h2>
-                    <button id="buttonDisableService" class="btn">Disable projector</button>
+                    <button class="btn buttonDisableService">Disable projector</button>
                 </aside>
             </li>
-            <li id="settingBible">
-                <section id="bibleControlContainer">
+            <li class="settingBible">
+                <section class="bibleControlContainer">
                     <label for="bibleVersions">List of available Bible versions</label>
                     <select name="versions" id="bibleVersions"></select>
-                    <button id="buttonInstall" class="btn">Install</button>
+                    <button class="btn buttonInstall">Install</button>
                     <label for="versionsInstalled">Bible versions installed</label>
                     <select name="versionsInstalled" id="versionsInstalled"></select>
-                    <button id="buttonUninstall" class="btn">Uninstall</button>
+                    <button class="btn buttonUninstall">Uninstall</button>
                 </section>
-                <section id="bibleSearchContainer">
+                <section class="bibleSearchContainer">
                     <p>Search and project the Bible verse</p>
                     <label for="inputVerseSearch">Search the Bible like this "Genesis 1:1" without the quotes.</label>
                     <input id="inputVerseSearch" type="text" placeholder="Genesis 1:1">
                     <p>How many Bible versions do you want to project on the screen?</p>
-                    <select name="numberOfVersions" id="selectVersionsToProject">
+                    <select name="numberOfVersions" class="selectVersionsToProject">
                         <option value="1">1</option>
                         <option value="2">2</option>
                         <option value="3">3</option>
                     </select>
-                    <aside id="versionsContainer">
-                        <div id="version1">
+                    <aside class="versionsContainer">
+                        <div class="version1">
                             <label for="selectVersion1">Bible version 1</label>
-                            <select name="version1" id="selectVersion1" class="select-version"></select>
+                            <select id="selectVersion1" class="select-version"></select>
                         </div>
-                        <div id="version2">
+                        <div class="version2">
                             <label for="selectVersion2">Bible version 2</label>
-                            <select name="version2" id="selectVersion2" class="select-version"></select>
+                            <select id="selectVersion2" class="select-version"></select>
                         </div>
-                        <div id="version3">
+                        <div class="version3">
                             <label for="selectVersion3">Bible version 3</label>
-                            <select name="version3" id="selectVersion3" class="select-version"></select>
+                            <select id="selectVersion3" class="select-version"></select>
                         </div>
                     </aside>
-                    <button id="buttonSearch" class="btn">Search</button>
+                    <button class="btn buttonSearch">Search</button>
                     <pre>Result of search</pre>
-                    <ul id="verseList" style="border: 1px solid yellow; overflow: auto;"></ul>
+                    <ul class="verseList" style="border: 1px solid yellow; overflow: auto;"></ul>
                 </section>
             </li>
         </ol>
-        <aside id="saveThemeContainer">
-            <input id="inputThemeName" type="text" placeholder="Theme's name">
-            <button id="buttonSaveTheme" class="btn">Save this settings as a theme</button>
+        <aside class="saveThemeContainer">
+            <input class="inputThemeName" type="text" placeholder="Theme's name">
+            <button class="btn buttonSaveTheme">Save this settings as a theme</button>
         </aside>
     </section>
 </main>
