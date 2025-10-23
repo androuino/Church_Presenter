@@ -33,17 +33,17 @@ m2d2.ready($ => {
     let listBibleVersions = [];
     let listInstalledBibleVersions = [];
 
-    const mainSettings = $("#mainSettings", {
-        onload : function(ev) {
+    const main = $("main", {
+        onready : function(ev) {
             $.get("/getthemes", res => {
                 if (res.ok) {
-                    themeList.items.clear();
+                    main.themeList.items.clear();
                     res.data.forEach(item => {
-                        themeList.items.push({
+                        main.themeList.items.push({
                             dataset : { id : item.id },
                             text : item.themeName,
                         });
-                        themeList2.items.push({
+                        main.themeList2.items.push({
                             dataset : { id : item.id },
                             text : item.themeName,
                         });
@@ -51,7 +51,762 @@ m2d2.ready($ => {
                     loadFromDB();
                 }
             }, true);
-        }
+        },
+        navFontSettings : {
+            onready : function(ev) {
+                main.navFontSettings.classList.add("active");
+            },
+            onclick : function(ev) {
+                main.settingFont.show = true;
+                main.navFontSettings.classList.add("active");
+                main.navLocationSettings.classList.remove("active");
+                main.navThemeList.classList.remove("active");
+                main.navBibleSettings.classList.remove("active");
+            },
+        },
+        navLocationSettings : {
+            onclick : function(ev) {
+                main.settingLocation.show = true;
+                main.navLocationSettings.classList.add("active");
+                main.navFontSettings.classList.remove("active");
+                main.navThemeList.classList.remove("active");
+                main.navBibleSettings.classList.remove("active");
+                main.previewText.text = taFontPreview.value;
+            }
+        },
+        navThemeList : {
+            onclick : function(ev) {
+                main.settingThemeList.show = true;
+                main.navThemeList.classList.add("active");
+                main.navFontSettings.classList.remove("active");
+                main.navLocationSettings.classList.remove("active");
+                main.navBibleSettings.classList.remove("active");
+            }
+        },
+        navBibleSettings : {
+            onclick : function(ev) {
+                main.settingBible.show = true;
+                main.navBibleSettings.classList.add("active");
+                main.navFontSettings.classList.remove("active");
+                main.navLocationSettings.classList.remove("active");
+                main.navThemeList.classList.remove("active");
+            }
+        },
+        settingFont : {
+            show : true,
+            onshow : function(ev) {
+                main.settingLocation.show = false;
+                main.settingThemeList.show = false;
+                main.settingBible.show = false;
+            },
+        },
+        fontBold : {
+            onclick : function(ev) {
+                main.fontBold.classList.toggle("active");
+                if (fontBold.classList.contains("active")) {
+                    taFontPreview.style.fontWeight = 'bold';
+                    main.previewText.style.fontWeight = 'bold';
+                    isBold = true;
+                } else {
+                    taFontPreview.style.fontWeight = '';
+                    main.previewText.style.fontWeight = '';
+                    isBold = false;
+                }
+                // todo: update db
+            }
+        },
+        fontItalic : {
+            onclick : function(ev) {
+                main.fontItalic.classList.toggle("active");
+                if (main.fontItalic.classList.contains("active")) {
+                    taFontPreview.style.fontStyle = 'italic';
+                    main.previewText.style.fontStyle = 'italic';
+                    isItalic = true;
+                } else {
+                    taFontPreview.style.fontStyle = '';
+                    main.previewText.style.fontStyle = '';
+                    isItalic = false;
+                }
+                // todo: update db
+            }
+        },
+        fontStrikeThrough : {
+            onclick : function(ev) {
+                main.fontStrikeThrough.classList.toggle("active");
+                if (main.fontStrikeThrough.classList.contains("active")) {
+                    taFontPreview.style.textDecoration = 'line-through';
+                    main.previewText.style.textDecoration = 'line-through';
+                    isStrikeThrough = true;
+                } else {
+                    taFontPreview.style.textDecoration = '';
+                    main.previewText.style.textDecoration = '';
+                    isStrikeThrough = false;
+                }
+                // todo: update db
+            }
+        },
+        settingLocation : {
+            show : false,
+            onshow : function(ev) {
+                main.settingFont.show = false;
+                main.settingThemeList.show = false;
+                main.settingBible.show = false;
+                const host = window.location.hostname; // Get the current host
+                const protocol = window.location.protocol; // Get the current protocol (http or https)
+                const url = `${host}:5555`; // Construct the full URL
+                //livePreview.src = `/`; todo: uncomment if needed
+            },
+        },
+        topLeftOffset : {
+            disabled : true,
+            onchange : function(ev) {
+                var offset = ev.target.value;
+                if (offset <= 0) {
+                    offset = 0;
+                    main.topLeftOffset.value = offset;
+                }
+                main.previewText.style.marginTop = offset + "px";
+            }
+        },
+        topMiddleOffset : {
+            disabled : true,
+            onchange : function(ev) {
+                var offset = ev.target.value;
+                if (offset <= 0) {
+                    offset = 0;
+                    main.topMiddleOffset.value = offset;
+                }
+                main.previewText.style.marginTop = offset + "px";
+            }
+        },
+        topRightOffset : {
+            disabled : true,
+            onchange : function(ev) {
+                var offset = ev.target.value;
+                if (offset <= 0) {
+                    offset = 0;
+                    main.topRightOffset.value = offset;
+                }
+                main.previewText.style.marginTop = offset + "px";
+            }
+        },
+        leftUpperOffset : {
+            disabled : true,
+            onchange : function(ev) {
+                var offset = ev.target.value;
+                if (offset <= 0) {
+                    offset = 0;
+                    main.leftUpperOffset.value = offset;
+                }
+                main.previewText.style.marginLeft = offset + "px";
+            }
+        },
+        radioTopLeft : {
+            onclick : function(ev) {
+                changeLocation("flex-start", "flex-start");
+                resetOffset();
+                disabledOffset(false,true,true,false,true,true,true,true,true,true,true,true);
+            }
+        },
+        radioTopMiddle : {
+            onclick : function(ev) {
+                changeLocation("center", "flex-start");
+                resetOffset();
+                disabledOffset(true,false,true,true,true,true,true,true,true,true,true,true);
+            }
+        },
+        radioTopRight : {
+            onclick : function(ev) {
+                changeLocation("flex-end", "flex-start");
+                resetOffset();
+                disabledOffset(true,true,false,true,false,true,true,true,true,true,true,true);
+            }
+        },
+        rightUpperOffset : {
+            disabled : true,
+            onchange : function(ev) {
+                var offset = ev.target.value;
+                if (offset <= 0) {
+                    offset = 0;
+                    main.rightUpperOffset.value = offset;
+                }
+                main.previewText.style.marginRight = offset + "px";
+            }
+        },
+        leftMiddleOffset : {
+            disabled : true,
+            onchange : function(ev) {
+                var offset = ev.target.value;
+                if (offset <= 0) {
+                    offset = 0;
+                    main.leftMiddleOffset.value = offset;
+                }
+                main.previewText.style.marginLeft = offset + "px";
+            }
+        },
+        radioLefMiddle : {
+            onclick : function(ev) {
+                changeLocation("flex-start", "center");
+                resetOffset();
+                disabledOffset(true,true,true,true,true,false,true,true,true,true,true,true);
+            }
+        },
+        radioCenter : {
+            onready : function(ev) {
+                changeLocation("center", "center");
+                disabledOffset(true,false,true,true,true,false,false,true,true,true,false,true);
+            },
+            onclick : function(ev) {
+                changeLocation("center", "center");
+                resetOffset();
+                disabledOffset(true,false,true,true,true,false,false,true,true,true,false,true);
+            }
+        },
+        radioRightMiddle : {
+            onclick : function(ev) {
+                changeLocation("flex-end", "center");
+                resetOffset();
+                disabledOffset(true,true,true,true,true,true,false,true,true,true,true,true);
+            }
+        },
+        rightMiddleOffset : {
+            disabled : true,
+            onchange : function(ev) {
+                var offset = ev.target.value;
+                if (offset <= 0) {
+                    offset = 0;
+                    main.rightMiddleOffset.value = offset;
+                }
+                main.previewText.style.marginRight = offset + "px";
+            }
+        },
+        leftLowerOffset : {
+            disabled : true,
+            onchange : function(ev) {
+                var offset = ev.target.value;
+                if (offset <= 0) {
+                    offset = 0;
+                    main.leftLowerOffset.value = offset;
+                }
+                main.previewText.style.marginLeft = offset + "px";
+            }
+        },
+        radioLeftBottom : {
+            onclick : function(ev) {
+                changeLocation("flex-start", "end");
+                resetOffset();
+                disabledOffset(true,true,true,true,true,true,true,false,true,false,true,true);
+            }
+        },
+        radioMiddleBottom : {
+            onclick : function(ev) {
+                changeLocation("center", "end");
+                resetOffset();
+                disabledOffset(true,true,true,true,true,true,true,true,true,true,false,true);
+            }
+        },
+        radioRightBottom : {
+            onclick : function(ev) {
+                changeLocation("flex-end", "end");
+                resetOffset();
+                disabledOffset(true,true,true,true,true,true,true,true,false,true,true,false);
+            }
+        },
+        rightLowerOffset : {
+            disabled : true,
+            onchange : function(ev) {
+                var offset = ev.target.value;
+                if (offset <= 0) {
+                    offset = 0;
+                    main.rightLowerOffset.value = offset;
+                }
+                main.previewText.style.marginRight = offset + "px";
+            }
+        },
+        leftBottomOffset : {
+            disabled : true,
+            onchange : function(ev) {
+                var offset = ev.target.value;
+                if (offset <= 0) {
+                    offset = 0;
+                    main.leftBottomOffset.value = offset;
+                }
+                main.previewText.style.marginBottom = offset + "px";
+            }
+        },
+        middleBottomOffset : {
+            disabled : true,
+            onchange : function(ev) {
+                var offset = ev.target.value;
+                if (offset <= 0) {
+                    offset = 0;
+                    main.middleBottomOffset.value = offset;
+                }
+                main.previewText.style.marginBottom = offset + "px";
+            }
+        },
+        rightBottomOffset : {
+            disabled : true,
+            onchange : function(ev) {
+                var offset = ev.target.value;
+                if (offset <= 0) {
+                    offset = 0;
+                    main.rightBottomOffset.value = offset;
+                }
+                main.previewText.style.marginBottom = offset + "px";
+            }
+        },
+        fontAlignCenter : {
+            onready : function(ev) {
+                main.fontAlignCenter.classList.add("active");
+                main.previewText.style.textAlign = "center";
+            },
+            onclick : function(ev) {
+                main.previewText.style.textAlign = "center";
+                main.fontAlignCenter.classList.add("active");
+                main.fontAlignHorRight.classList.remove("active");
+                main.fontAlignJustify.classList.remove("active");
+                main.fontAlignHorLeft.classList.remove("active");
+                main.fontAlignRight.classList.remove("active");
+                main.fontAlignLeft.classList.remove("active");
+                alignment = "center";
+            }
+        },
+        fontAlignHorRight : {
+            onclick : function(ev) {
+                main.previewText.style.textAlign = "end";
+                main.fontAlignCenter.classList.remove("active");
+                main.fontAlignHorRight.classList.add("active");
+                main.fontAlignJustify.classList.remove("active");
+                main.fontAlignHorLeft.classList.remove("active");
+                main.fontAlignRight.classList.remove("active");
+                main.fontAlignLeft.classList.remove("active");
+                alignment = "end";
+            }
+        },
+        fontAlignJustify : {
+            onclick : function(ev) {
+                main.previewText.style.textAlign = "justify";
+                main.fontAlignCenter.classList.remove("active");
+                main.fontAlignHorRight.classList.remove("active");
+                main.fontAlignJustify.classList.add("active");
+                main.fontAlignHorLeft.classList.remove("active");
+                main.fontAlignRight.classList.remove("active");
+                main.fontAlignLeft.classList.remove("active");
+                alignment = "justify";
+            }
+        },
+        fontAlignHorLeft : {
+            onclick : function(ev) {
+                main.previewText.style.textAlign = "start";
+                main.fontAlignCenter.classList.remove("active");
+                main.fontAlignHorRight.classList.remove("active");
+                main.fontAlignJustify.classList.remove("active");
+                main.fontAlignHorLeft.classList.add("active");
+                main.fontAlignRight.classList.remove("active");
+                main.fontAlignLeft.classList.remove("active");
+                alignment = "start";
+            }
+        },
+        fontAlignRight : {
+            onclick : function(ev) {
+                main.previewText.style.textAlign = "right";
+                main.fontAlignCenter.classList.remove("active");
+                main.fontAlignHorRight.classList.remove("active");
+                main.fontAlignJustify.classList.remove("active");
+                main.fontAlignHorLeft.classList.remove("active");
+                main.fontAlignRight.classList.add("active");
+                main.fontAlignLeft.classList.remove("active");
+                alignment = "right";
+            }
+        },
+        fontAlignLeft : {
+            onclick : function(ev) {
+                main.previewText.style.textAlign = "left";
+                main.fontAlignCenter.classList.remove("active");
+                main.fontAlignHorRight.classList.remove("active");
+                main.fontAlignJustify.classList.remove("active");
+                main.fontAlignHorLeft.classList.remove("active");
+                main.fontAlignRight.classList.remove("active");
+                main.fontAlignLeft.classList.add("active");
+                alignment = "left";
+            }
+        },
+        buttonResetOffset : {
+            onclick : function(ev) {
+                main.previewText.style.margin = "0";
+                resetOffset();
+            }
+        },
+        themeList : {
+            template : {
+                optionTheme : {
+                    tagName : "option",
+                    id : "optionTheme",
+                }
+            },
+            items : [],
+            onchange : function(ev) {
+                const data = {
+                    theme : ev.target.value,
+                };
+                main.inputThemeName.value = ev.target.value;
+                setTheme(data);
+            }
+        },
+        buttonSetTheme : {
+            onclick : function(ev) {
+                const theme = main.themeList.value;
+                if (theme === "") {
+                    $.failure("Please choose a theme");
+                } else {
+                    const data = {
+                        theme : theme,
+                    };
+                    setTheme(data);
+                }
+            }
+        },
+        buttonOpenFile : {
+            onclick : function(ev) {
+                const ups = [];
+                $.upload(ev, {
+                    field   : "file",
+                    upload  : "/upload",
+                    parallel : true,
+                    maxFiles : 30,
+                    maxSizeMb : 5000,
+                    onSelect : (files) => {
+                        let index = 0;
+                        Array.from(files).forEach(file => {
+                            ups[index] = { pct : 0, file : file.name }
+                        });
+                    },
+                    onUpdate : (pct, file, index) => {
+                        ups[index] = { pct : pct, file : file.name }
+                    },
+                    onResponse : (response) => {
+                        console.log(response);
+                    },
+                    onDone : (response, allDone) => {
+                        response.forEach(res => {
+                            ups[res.index] = { pct : 100, file : res.file.name }
+                        });
+                        if(allDone) {
+                            console.log("all done");
+                        }
+                    },
+                    onError : (response) => {
+                        console.log(response);
+                        console.log("on error");
+                    }
+                });
+            }
+        },
+        buttonSetPlay : {
+            onclick : function(ev) {
+                if (mediaLink.value === "") {
+                    $.failure("You did not provide a proper link.");
+                } else {
+                    saveToLocalDB("media", { id: "videolink", link: mediaLink.value });
+                    const data = {
+                        link: mediaLink.value
+                    };
+                    $.post("/bglink", data, res => {
+                        if (res.ok) {
+                            console.debug("Setting bg with link success.");
+                        }
+                    }, error => {
+                        console.error("Error setting background with provided link.", error);
+                    }, true);
+                }
+            }
+        },
+        buttonClearMedia : {
+            onclick : function(ev) {
+                $.post("/removebackground", res => {
+                    if (res.ok) {
+                        if (mediaLink.value != "") {
+                            mediaLink.value = "";
+                            db.media.delete("videolink");
+                        }
+                    }
+                });
+            }
+        },
+        previewContainer : {},
+        previewText : {},
+        settingThemeList : {
+            show : false,
+            onshow : function(ev) {
+                main.settingFont.show = false;
+                main.settingLocation.show = false;
+                main.settingBible.show = false;
+            }
+        },
+        themeList2 : {
+            template : {
+                optionTheme2 : {
+                    tagName : "option",
+                    id : "optionTheme2"
+                }
+            },
+            items : [],
+        },
+        buttonDeleteTheme : {
+            onclick : function(ev) {
+                $.confirm("Confirm deleting this theme?", yes => {
+                    if (yes) {
+                        if (main.themeList2.value === "default") {
+                            $.failure("Cannot delete default theme");
+                        } else {
+                            const selected = main.themeList2.options[main.themeList2.selectedIndex];
+                            const id = selected.dataset.id;
+                            console.log("selected id is", id);
+                            $.post("/deletetheme/" + id, res => {
+                                if (res.ok) {
+                                    $.success("Deleting theme success.");
+                                }
+                            }, error => {
+                                $.failure("Error deleting a theme.", error);
+                            }, true);
+                        }
+                    }
+                });
+            }
+        },
+        buttonDisableService : {
+            onclick : function(ev) {
+                $.confirm("Confirm to disable projector service?", yes => {
+                    if (yes) {
+                        if (main.buttonDisableService.text === "Disable projector") {
+                            $.post("/disableservice", res => {
+                                if (res.ok) {
+                                    $.success("Success!");
+                                    main.buttonDisableService.text = "Enable projector";
+                                } else {
+                                    $.failure("Something's wrong disabling the service.");
+                                }
+                            }, error => {
+                                console.error("Error disabling kiosk service.", error);
+                            }, true);
+                        } else {
+                            $.post("/enableservice", res => {
+                                if (res.ok) {
+                                    $.success("Success!");
+                                    main.buttonDisableService.text = "Disable projector";
+                                } else {
+                                    $.failure("Something's wrong enabling the service.");
+                                }
+                            }, error => {
+                                console.error("Error enabling kiosk service.", error);
+                            }, true);
+                        }
+                    }
+                });
+            }
+        },
+        settingBible : {
+            show : false,
+            onshow : function(ev) {
+                main.settingFont.show = false;
+                main.settingLocation.show = false;
+                main.settingThemeList.show = false;
+            }
+        },
+        buttonInstall : {
+            onclick : function(ev) {
+                const book = bibleVersions.value;
+                if (book === "") {
+                    $.failure("I didn't get that. Empty!");
+                } else {
+                    $.confirm("Please confirm Bible version installation.", yes => {
+                        if (yes) {
+                            var initials = book.split(":")[0].trim();
+                            const data = {
+                                initials : initials,
+                            };
+                            $.post("/installbook", data, res => {
+                                if (res.ok) {
+                                    $.success("Installation is still in progress. Please refresh after 5 minutes.")
+                                }
+                            }, error => {
+                                console.error("Error installing book", error);
+                            }, true);
+                        }
+                    });
+                }
+            }
+        },
+        buttonUninstall : {
+            onclick : function(ev) {
+                const book = versionsInstalled.value;
+                if (book === "") {
+                    $.failure("I did not get that. Empty!");
+                } else {
+                    $.confirm("Please confirm on uninstalling version?", yes => {
+                        if (yes) {
+                            var initials = book.split(":")[0].trim();
+                            const data = {
+                                initials : initials,
+                            };
+                            $.delete("/uninstallbook", data, res => {
+                                if (res.ok) {
+                                    $.success("Uninstall is still in progress. Please refresh after 5 minutes.")
+                                }
+                            }, error => {
+                                console.error("Error uninstalling book", error);
+                            }, true);
+                        }
+                    });
+                }
+            }
+        },
+        selectVersionsToProject : {
+            onready : function(ev) {
+                if (ev.target.value === "1") {
+                    main.version1.enabled = true;
+                    main.version2.enabled = false;
+                    main.version3.enabled = false;
+                }
+            },
+            onchange : function(ev) {
+                if (ev.target.value === "1") {
+                    main.version1.show = true;
+                    main.version2.show = false;
+                    main.version3.show = false;
+                } else if (ev.target.value === "2") {
+                    main.version1.show = true;
+                    main.version2.show = true;
+                    main.version3.show = false;
+                } else if (ev.target.value === "3") {
+                    main.version1.show = true;
+                    main.version2.show = true;
+                    main.version3.show = true;
+                }
+            }
+        },
+        version1 : {},
+        version2 : {
+            show : false,
+        },
+        version3 : {
+            show : false,
+        },
+        buttonSearch : {
+            onclick : function(ev) {
+                versionList = [];
+                if (main.version1.show === true) {
+                    versionList.push(selectVersion1.value.split(":")[0].trim());
+                }
+                if (main.version2.show === true) {
+                    versionList.push(selectVersion2.value.split(":")[0].trim());
+                }
+                if (main.version3.show === true) {
+                    versionList.push(selectVersion3.value.split(":")[0].trim());
+                }
+                searchBible(inputVerseSearch.value, versionList);
+            }
+        },
+        verseList : {
+            template : {
+                li : {
+                    tagName : "li",
+                    style : {
+                        border : "1px solid white",
+                        whiteSpace: "normal",
+                        cursor: "pointer",
+                    },
+                    preVerse : {
+                        tagName : "pre",
+                        css : "preVerse",
+                        style : {
+                            whiteSpace: "pre-wrap",
+                            wordWrap: "break-word",
+                        },
+                        onclick : function(ev) {
+                            const preElements = document.querySelectorAll("ul.verseList pre");
+                            preElements.forEach(pre => {
+                                pre.style.backgroundColor = ""; // Reset to original background color
+                                pre.style.color = "";
+                            });
+                            ev.target.style.backgroundColor = "lightgreen";
+                            ev.target.style.color = "black";
+
+                            versionList = [];
+                            if (main.version1.show === true) {
+                                versionList.push(selectVersion1.value.split(":")[0].trim());
+                            }
+                            if (main.version2.show === true) {
+                                versionList.push(selectVersion2.value.split(":")[0].trim());
+                            }
+                            if (main.version3.show === true) {
+                                versionList.push(selectVersion3.value.split(":")[0].trim());
+                            }
+                            const data = {
+                                verse : main.verseList.textContent,
+                                versions : versionList,
+                            };
+                            $.post("/projectverse", data, res => {
+                                if (res.ok) {
+                                    console.debug("Success projecting verse");
+                                }
+                            }, error => {
+                                console.error("Error projecting verse.", error);
+                            }, true);
+                        }
+                    }
+                }
+            },
+            items : [],
+        },
+        inputThemeName : {},
+        buttonSaveTheme : {
+            onclick : function(ev) {
+                if (main.inputThemeName.value === "") {
+                    $.failure("Please type-in a theme's name");
+                } else {
+                    const selected = main.themeList.options[main.themeList.selectedIndex];
+                    const id = selected.dataset.id;
+                    console.log("the id is", id);
+                    const data = {
+                        id : id,
+                        themeName: main.inputThemeName.value.toLowerCase(),
+                        font: selectFont.value,
+                        fontSize: inputFontSize.value,
+                        fontColor: colorPicker.value,
+                        bold: isBold,
+                        italic: isItalic,
+                        strikeThrough: isItalic,
+                        topLeftOffset: main.topLeftOffset.value,
+                        topMiddleOffset: main.topMiddleOffset.value,
+                        topRightOffset: main.topRightOffset.value,
+                        leftUpperOffset: main.leftUpperOffset.value,
+                        rightUpperOffset: main.rightUpperOffset.value,
+                        leftMiddleOffset: main.leftMiddleOffset.value,
+                        rightMiddleOffset: main.rightMiddleOffset.value,
+                        leftLowerOffset: main.leftLowerOffset.value,
+                        rightLowerOffset: main.rightLowerOffset.value,
+                        leftBottomOffset: main.leftBottomOffset.value,
+                        middleBottomOffset: main.middleBottomOffset.value,
+                        rightBottomOffset: main.rightBottomOffset.value,
+                        textAlign: alignment,
+                        justifyContent: justifyContent,
+                        alignItems: alignItems
+                    };
+                    $.put("/savetheme", data, res => {
+                        if (res.ok) {
+                            console.log("data is", data);
+                            $.success("Theme saved.");
+                        } else {
+                            $.failure("An error occurred!");
+                        }
+                    }, error => {
+                        $.failure("An error occurred!", error);
+                    }, true);
+                }
+            }
+        },
     });
     const selectFont = $("#selectFont", {
         template : {
@@ -66,7 +821,7 @@ m2d2.ready($ => {
         }
     });
     const inputFontSize = $("#inputFontSize", {
-        onload : function(ev) {
+        onready : function(ev) {
             this.value = 24;
         },
         onchange : function(ev) {
@@ -76,7 +831,7 @@ m2d2.ready($ => {
             } else {
                 size = ev.target.value;
                 taFontPreview.style.fontSize = size + "px";
-                previewText.style.fontSize = size + "px";
+                main.previewText.style.fontSize = size + "px";
             }
         }
     });
@@ -107,135 +862,14 @@ m2d2.ready($ => {
     });
     const taFontPreview = $("#taFontPreview", {
         onchange : function(ev) {
-            previewText.innerHTML = this.value.replace(/\n/g, '<br>');;
+            main.previewText.innerHTML = this.value.replace(/\n/g, '<br>');;
         }
     });
-    const settingFont = $("#settingFont", {
-        show : true,
-        onshow : function(ev) {
-            settingLocation.show = false;
-            settingThemeList.show = false;
-            settingBible.show = false;
-        },
-    });
-    const settingLocation = $("#settingLocation", {
-        show : false,
-        onshow : function(ev) {
-            settingFont.show = false;
-            settingThemeList.show = false;
-            settingBible.show = false;
-            const host = window.location.hostname; // Get the current host
-            const protocol = window.location.protocol; // Get the current protocol (http or https)
-            const url = `${host}:5555`; // Construct the full URL
-            //livePreview.src = `/`; todo: uncomment if needed
-        },
-    });
-    const settingThemeList = $("#settingThemeList", {
-        show : false,
-        onshow : function(ev) {
-            settingFont.show = false;
-            settingLocation.show = false;
-            settingBible.show = false;
-        }
-    });
-    const settingBible = $("#settingBible", {
-        show : false,
-        onshow : function(ev) {
-            settingFont.show = false;
-            settingLocation.show = false;
-            settingThemeList.show = false;
-        }
-    });
-    const navFontSettings = $("#navFontSettings", {
-        onload : function(ev) {
-            this.classList.add("active");
-        },
-        onclick : function(ev) {
-            settingFont.show = true;
-            this.classList.add("active");
-            navLocationSettings.classList.remove("active");
-            navThemeList.classList.remove("active");
-            navBibleSettings.classList.remove("active");
-        },
-    });
-    const navLocationSettings = $("#navLocationSettings", {
-        onclick : function(ev) {
-            settingLocation.show = true;
-            this.classList.add("active");
-            navFontSettings.classList.remove("active");
-            navThemeList.classList.remove("active");
-            navBibleSettings.classList.remove("active");
-        }
-    });
-    const navThemeList = $("#navThemeList", {
-        onclick : function(ev) {
-            settingThemeList.show = true;
-            this.classList.add("active");
-            navFontSettings.classList.remove("active");
-            navLocationSettings.classList.remove("active");
-            navBibleSettings.classList.remove("active");
-        }
-    });
-    const navBibleSettings = $("#navBibleSettings", {
-        onclick : function(ev) {
-            settingBible.show = true;
-            this.classList.add("active");
-            navFontSettings.classList.remove("active");
-            navLocationSettings.classList.remove("active");
-            navThemeList.classList.remove("active");
-        }
-    });
-    const fontBold = $("#fontBold", {
-        onclick : function(ev) {
-            this.classList.toggle("active");
-            if (this.classList.contains("active")) {
-                taFontPreview.style.fontWeight = 'bold';
-                previewText.style.fontWeight = 'bold';
-                isBold = true;
-            } else {
-                taFontPreview.style.fontWeight = '';
-                previewText.style.fontWeight = '';
-                isBold = false;
-            }
-            // todo: update db
-        }
-    });
-    const fontItalic = $("#fontItalic", {
-        onclick : function(ev) {
-            this.classList.toggle("active");
-            if (this.classList.contains("active")) {
-                taFontPreview.style.fontStyle = 'italic';
-                previewText.style.fontStyle = 'italic';
-                isItalic = true;
-            } else {
-                taFontPreview.style.fontStyle = '';
-                previewText.style.fontStyle = '';
-                isItalic = false;
-            }
-            // todo: update db
-        }
-    });
-    const fontStrikeThrough = $("#fontStrikeThrough", {
-        onclick : function(ev) {
-            this.classList.toggle("active");
-            if (this.classList.contains("active")) {
-                taFontPreview.style.textDecoration = 'line-through';
-                previewText.style.textDecoration = 'line-through';
-                isStrikeThrough = true;
-            } else {
-                taFontPreview.style.textDecoration = '';
-                previewText.style.textDecoration = '';
-                isStrikeThrough = false;
-            }
-            // todo: update db
-        }
-    });
-    const inputThemeName = $("#inputThemeName");
     const colorPicker = $("#colorPicker", {
         onchange : function(ev) {
             const color = ev.target.value;
             taFontPreview.style.color = color;
-            previewText.style.color = color;
+            main.previewText.style.color = color;
             if (color === "#ffffff" || color === "white") {
                 taFontPreview.style.backgroundColor = "black";
             } else {
@@ -243,264 +877,13 @@ m2d2.ready($ => {
             }
         }
     });
-    const buttonSaveTheme = $("#buttonSaveTheme", {
-        onclick : function(ev) {
-            if (inputThemeName.value === "") {
-                $.failure("Please type-in a theme's name");
-            } else {
-                const selected = themeList.options[themeList.selectedIndex];
-                const id = selected.dataset.id;
-                console.log("the id is", id);
-                const data = {
-                    id : id,
-                    themeName: inputThemeName.value.toLowerCase(),
-                    font: selectFont.value,
-                    fontSize: inputFontSize.value,
-                    fontColor: colorPicker.value,
-                    bold: isBold,
-                    italic: isItalic,
-                    strikeThrough: isItalic,
-                    topLeftOffset: topLeftOffset.value,
-                    topMiddleOffset: topMiddleOffset.value,
-                    topRightOffset: topRightOffset.value,
-                    leftUpperOffset: leftUpperOffset.value,
-                    rightUpperOffset: rightUpperOffset.value,
-                    leftMiddleOffset: leftMiddleOffset.value,
-                    rightMiddleOffset: rightMiddleOffset.value,
-                    leftLowerOffset: leftLowerOffset.value,
-                    rightLowerOffset: rightLowerOffset.value,
-                    leftBottomOffset: leftBottomOffset.value,
-                    middleBottomOffset: middleBottomOffset.value,
-                    rightBottomOffset: rightBottomOffset.value,
-                    textAlign: alignment,
-                    justifyContent: justifyContent,
-                    alignItems: alignItems
-                };
-                $.put("/savetheme", data, res => {
-                    if (res.ok) {
-                        console.log("data is", data);
-                        $.success("Theme saved.");
-                    } else {
-                        $.failure("An error occurred!");
-                    }
-                }, error => {
-                    $.failure("An error occurred!", error);
-                }, true);
-            }
-        }
-    });
     /*
     const livePreview = $("#livePreview", {
-        onload : function(ev) {
+        onready : function(ev) {
             this.style.height = this.contentWindow.document.body.scrollHeight + 'px';
         }
     });
     */
-    const topLeftOffset = $("#topLeftOffset", {
-        disabled : true,
-        onchange : function(ev) {
-            var offset = ev.target.value;
-            if (offset <= 0) {
-                offset = 0;
-                this.value = offset;
-            }
-            previewText.style.marginTop = offset + "px";
-        }
-    });
-    const topMiddleOffset = $("#topMiddleOffset", {
-        disabled : true,
-        onchange : function(ev) {
-            var offset = ev.target.value;
-            if (offset <= 0) {
-                offset = 0;
-                this.value = offset;
-            }
-            previewText.style.marginTop = offset + "px";
-        }
-    });
-    const topRightOffset = $("#topRightOffset", {
-        disabled : true,
-        onchange : function(ev) {
-            var offset = ev.target.value;
-            if (offset <= 0) {
-                offset = 0;
-                this.value = offset;
-            }
-            previewText.style.marginTop = offset + "px";
-        }
-    });
-    const leftUpperOffset = $("#leftUpperOffset", {
-        disabled : true,
-        onchange : function(ev) {
-            var offset = ev.target.value;
-            if (offset <= 0) {
-                offset = 0;
-                this.value = offset;
-            }
-            previewText.style.marginLeft = offset + "px";
-        }
-    });
-    const rightUpperOffset = $("#rightUpperOffset", {
-        disabled : true,
-        onchange : function(ev) {
-            var offset = ev.target.value;
-            if (offset <= 0) {
-                offset = 0;
-                this.value = offset;
-            }
-            previewText.style.marginRight = offset + "px";
-        }
-    });
-    const leftMiddleOffset = $("#leftMiddleOffset", {
-        disabled : true,
-        onchange : function(ev) {
-            var offset = ev.target.value;
-            if (offset <= 0) {
-                offset = 0;
-                this.value = offset;
-            }
-            previewText.style.marginLeft = offset + "px";
-        }
-    });
-    const rightMiddleOffset = $("#rightMiddleOffset", {
-        disabled : true,
-        onchange : function(ev) {
-            var offset = ev.target.value;
-            if (offset <= 0) {
-                offset = 0;
-                this.value = offset;
-            }
-            previewText.style.marginRight = offset + "px";
-        }
-    });
-    const leftLowerOffset = $("#leftLowerOffset", {
-        disabled : true,
-        onchange : function(ev) {
-            var offset = ev.target.value;
-            if (offset <= 0) {
-                offset = 0;
-                this.value = offset;
-            }
-            previewText.style.marginLeft = offset + "px";
-        }
-    });
-    const rightLowerOffset = $("#rightLowerOffset", {
-        disabled : true,
-        onchange : function(ev) {
-            var offset = ev.target.value;
-            if (offset <= 0) {
-                offset = 0;
-                this.value = offset;
-            }
-            previewText.style.marginRight = offset + "px";
-        }
-    });
-    const leftBottomOffset = $("#leftBottomOffset", {
-        disabled : true,
-        onchange : function(ev) {
-            var offset = ev.target.value;
-            if (offset <= 0) {
-                offset = 0;
-                this.value = offset;
-            }
-            previewText.style.marginBottom = offset + "px";
-        }
-    });
-    const middleBottomOffset = $("#middleBottomOffset", {
-        disabled : true,
-        onchange : function(ev) {
-            var offset = ev.target.value;
-            if (offset <= 0) {
-                offset = 0;
-                this.value = offset;
-            }
-            previewText.style.marginBottom = offset + "px";
-        }
-    });
-    const rightBottomOffset = $("#rightBottomOffset", {
-        disabled : true,
-        onchange : function(ev) {
-            var offset = ev.target.value;
-            if (offset <= 0) {
-                offset = 0;
-                this.value = offset;
-            }
-            previewText.style.marginBottom = offset + "px";
-        }
-    });
-    const previewContainer = $("#previewContainer");
-    const radioTopLeft = $("#radioTopLeft", {
-        onclick : function(ev) {
-            changeLocation("flex-start", "flex-start");
-            resetOffset();
-            disabledOffset(false,true,true,false,true,true,true,true,true,true,true,true);
-        }
-    });
-    const radioTopMiddle = $("#radioTopMiddle", {
-        onclick : function(ev) {
-            changeLocation("center", "flex-start");
-            resetOffset();
-            disabledOffset(true,false,true,true,true,true,true,true,true,true,true,true);
-        }
-    });
-    const radioTopRight = $("#radioTopRight", {
-        onclick : function(ev) {
-            changeLocation("flex-end", "flex-start");
-            resetOffset();
-            disabledOffset(true,true,false,true,false,true,true,true,true,true,true,true);
-        }
-    });
-    const radioLefMiddle = $("#radioLefMiddle", {
-        onclick : function(ev) {
-            changeLocation("flex-start", "center");
-            resetOffset();
-            disabledOffset(true,true,true,true,true,false,true,true,true,true,true,true);
-        }
-    });
-    const radioCenter = $("#radioCenter", {
-        onload : function(ev) {
-            changeLocation("center", "center");
-            disabledOffset(true,false,true,true,true,false,false,true,true,true,false,true);
-        },
-        onclick : function(ev) {
-            changeLocation("center", "center");
-            resetOffset();
-            disabledOffset(true,false,true,true,true,false,false,true,true,true,false,true);
-        }
-    });
-    const radioRightMiddle = $("#radioRightMiddle", {
-        onclick : function(ev) {
-            changeLocation("flex-end", "center");
-            resetOffset();
-            disabledOffset(true,true,true,true,true,true,false,true,true,true,true,true);
-        }
-    });
-    const radioLeftBottom = $("#radioLeftBottom", {
-        onclick : function(ev) {
-            changeLocation("flex-start", "end");
-            resetOffset();
-            disabledOffset(true,true,true,true,true,true,true,false,true,false,true,true);
-        }
-    });
-    const radioMiddleBottom = $("#radioMiddleBottom", {
-        onclick : function(ev) {
-            changeLocation("center", "end");
-            resetOffset();
-            disabledOffset(true,true,true,true,true,true,true,true,true,true,false,true);
-        }
-    });
-    const radioRightBottom = $("#radioRightBottom", {
-        onclick : function(ev) {
-            changeLocation("flex-end", "end");
-            resetOffset();
-            disabledOffset(true,true,true,true,true,true,true,true,false,true,true,false);
-        }
-    });
-    const previewText = $("#previewText", {
-        onload : function(ev) {
-            this.text = taFontPreview.value;
-        },
-    });
     document.querySelectorAll('input[type="radio"]').forEach(radio => {
         radio.addEventListener('click', (event) => {
             // Uncheck all other radios except the one clicked
@@ -511,205 +894,18 @@ m2d2.ready($ => {
             });
         });
     });
-    const buttonResetOffset = $("#buttonResetOffset", {
-        onclick : function(ev) {
-            previewText.style.margin = "0";
-            resetOffset();
-        }
-    });
-    const fontAlignCenter = $("#fontAlignCenter", {
-        onload : function(ev) {
-            this.classList.add("active");
-            previewText.style.textAlign = "center";
-        },
-        onclick : function(ev) {
-            previewText.style.textAlign = "center";
-            this.classList.add("active");
-            fontAlignHorRight.classList.remove("active");
-            fontAlignJustify.classList.remove("active");
-            fontAlignHorLeft.classList.remove("active");
-            fontAlignRight.classList.remove("active");
-            fontAlignLeft.classList.remove("active");
-            alignment = "center";
-        }
-    });
-    const fontAlignHorRight = $("#fontAlignHorRight", {
-        onclick : function(ev) {
-            previewText.style.textAlign = "end";
-            fontAlignCenter.classList.remove("active");
-            this.classList.add("active");
-            fontAlignJustify.classList.remove("active");
-            fontAlignHorLeft.classList.remove("active");
-            fontAlignRight.classList.remove("active");
-            fontAlignLeft.classList.remove("active");
-            alignment = "end";
-        }
-    });
-    const fontAlignJustify = $("#fontAlignJustify", {
-        onclick : function(ev) {
-            previewText.style.textAlign = "justify";
-            fontAlignCenter.classList.remove("active");
-            fontAlignHorRight.classList.remove("active");
-            this.classList.add("active");
-            fontAlignHorLeft.classList.remove("active");
-            fontAlignRight.classList.remove("active");
-            fontAlignLeft.classList.remove("active");
-            alignment = "justify";
-        }
-    });
-    const fontAlignHorLeft = $("#fontAlignHorLeft", {
-        onclick : function(ev) {
-            previewText.style.textAlign = "start";
-            fontAlignCenter.classList.remove("active");
-            fontAlignHorRight.classList.remove("active");
-            fontAlignJustify.classList.remove("active");
-            this.classList.add("active");
-            fontAlignRight.classList.remove("active");
-            fontAlignLeft.classList.remove("active");
-            alignment = "start";
-        }
-    });
-    const fontAlignRight = $("#fontAlignRight", {
-        onclick : function(ev) {
-            previewText.style.textAlign = "right";
-            fontAlignCenter.classList.remove("active");
-            fontAlignHorRight.classList.remove("active");
-            fontAlignJustify.classList.remove("active");
-            fontAlignHorLeft.classList.remove("active");
-            this.classList.add("active");
-            fontAlignLeft.classList.remove("active");
-            alignment = "right";
-        }
-    });
-    const fontAlignLeft = $("#fontAlignLeft", {
-        onclick : function(ev) {
-            previewText.style.textAlign = "left";
-            fontAlignCenter.classList.remove("active");
-            fontAlignHorRight.classList.remove("active");
-            fontAlignJustify.classList.remove("active");
-            fontAlignHorLeft.classList.remove("active");
-            fontAlignRight.classList.remove("active");
-            this.classList.add("active");
-            alignment = "left";
-        }
-    });
-    const themeList = $("#themeList", {
-        template : {
-            optionTheme : {
-                tagName : "option",
-                id : "optionTheme",
-            }
-        },
-        items : [],
-        onchange : function(ev) {
-            const data = {
-                theme : ev.target.value,
-            };
-            inputThemeName.value = ev.target.value;
-            setTheme(data);
-        }
-    });
-    const themeList2 = $("#themeList2", {
-        template : {
-            optionTheme2 : {
-                tagName : "option",
-                id : "optionTheme2"
-            }
-        },
-        items : [],
-    });
-    const buttonOpenFile = $("#buttonOpenFile", {
-        onclick : function(ev) {
-            const ups = [];
-            $.upload(ev, {
-                field   : "file",
-                upload  : "/upload",
-                parallel : true,
-                maxFiles : 30,
-                maxSizeMb : 5000,
-                onSelect : (files) => {
-                    let index = 0;
-                    Array.from(files).forEach(file => {
-                        ups[index] = { pct : 0, file : file.name }
-                    });
-                },
-                onUpdate : (pct, file, index) => {
-                    ups[index] = { pct : pct, file : file.name }
-                },
-                onResponse : (response) => {
-                    console.log(response);
-                },
-                onDone : (response, allDone) => {
-                    response.forEach(res => {
-                        ups[res.index] = { pct : 100, file : res.file.name }
-                    });
-                    if(allDone) {
-                        console.log("all done");
-                    }
-                },
-                onError : (response) => {
-                    console.log(response);
-                    console.log("on error");
-                }
-            });
-        }
-    });
     const mediaLink = $("#mediaLink");
-    const buttonSetPlay = $("#buttonSetPlay", {
-        onclick : function(ev) {
-            if (mediaLink.value === "") {
-                $.failure("You did not provide a proper link.");
-            } else {
-                saveToLocalDB("media", { id: "videolink", link: mediaLink.value });
-                const data = {
-                    link: mediaLink.value
-                };
-                $.post("/bglink", data, res => {
-                    if (res.ok) {
-                        console.debug("Setting bg with link success.");
-                    }
-                }, error => {
-                    console.error("Error setting background with provided link.", error);
-                }, true);
-            }
-        }
-    });
-    const buttonClearMedia = $("#buttonClearMedia", {
-        onclick : function(ev) {
-            $.post("/removebackground", res => {
-                if (res.ok) {
-                    if (mediaLink.value != "") {
-                        mediaLink.value = "";
-                        db.media.delete("videolink");
-                    }
-                }
-            });
-        }
-    });
-    const buttonSetTheme = $("#buttonSetTheme", {
-        onclick : function(ev) {
-            const theme = themeList.value;
-            if (theme === "") {
-                $.failure("Please choose a theme");
-            } else {
-                const data = {
-                    theme : theme,
-                };
-                setTheme(data);
-            }
-        }
-    });
     const inputVerseSearch = $("#inputVerseSearch", {
         onkeydown : function(ev) {
             if (ev.key === "Enter") {
                 versionList = [];
-                if (version1.show === true) {
+                if (main.version1.show === true) {
                     versionList.push(selectVersion1.value.split(":")[0].trim());
                 }
-                if (version2.show === true) {
+                if (main.version2.show === true) {
                     versionList.push(selectVersion2.value.split(":")[0].trim());
                 }
-                if (version3.show === true) {
+                if (main.version3.show === true) {
                     versionList.push(selectVersion3.value.split(":")[0].trim());
                 }
                 searchBible(this.value, versionList);
@@ -737,13 +933,6 @@ m2d2.ready($ => {
             }
         },
         items : [],
-    });
-    const version1 = $("#version1");
-    const version2 = $("#version2", {
-        show : false,
-    });
-    const version3 = $("#version3", {
-        show : false,
     });
     const selectVersion1 = $("#selectVersion1", {
         template : {
@@ -778,198 +967,6 @@ m2d2.ready($ => {
         },
         items : [],
     });
-    const selectVersionsToProject = $("#selectVersionsToProject", {
-        onload : function(ev) {
-            if (ev.target.value === "1") {
-                version1.enabled = true;
-                version2.enabled = false;
-                version3.enabled = false;
-            }
-        },
-        onchange : function(ev) {
-            if (ev.target.value === "1") {
-                version1.show = true;
-                version2.show = false;
-                version3.show = false;
-            } else if (ev.target.value === "2") {
-                version1.show = true;
-                version2.show = true;
-                version3.show = false;
-            } else if (ev.target.value === "3") {
-                version1.show = true;
-                version2.show = true;
-                version3.show = true;
-            }
-        }
-    });
-    const buttonInstall = $("#buttonInstall", {
-        onclick : function(ev) {
-            const book = bibleVersions.value;
-            if (book === "") {
-                $.failure("I didn't get that. Empty!");
-            } else {
-                $.confirm("Please confirm Bible version installation.", yes => {
-                    if (yes) {
-                        var initials = book.split(":")[0].trim();
-                        const data = {
-                            initials : initials,
-                        };
-                        $.post("/installbook", data, res => {
-                            if (res.ok) {
-                                $.success("Installation is still in progress. Please refresh after 5 minutes.")
-                            }
-                        }, error => {
-                            console.error("Error installing book", error);
-                        }, true);
-                    }
-                });
-            }
-        }
-    });
-    const buttonUninstall = $("#buttonUninstall", {
-        onclick : function(ev) {
-            const book = versionsInstalled.value;
-            if (book === "") {
-                $.failure("I did not get that. Empty!");
-            } else {
-                $.confirm("Please confirm on uninstalling version?", yes => {
-                    if (yes) {
-                        var initials = book.split(":")[0].trim();
-                        const data = {
-                            initials : initials,
-                        };
-                        $.delete("/uninstallbook", data, res => {
-                            if (res.ok) {
-                                $.success("Uninstall is still in progress. Please refresh after 5 minutes.")
-                            }
-                        }, error => {
-                            console.error("Error uninstalling book", error);
-                        }, true);
-                    }
-                });
-            }
-        }
-    });
-    const buttonSearch = $("#buttonSearch", {
-        onclick : function(ev) {
-            versionList = [];
-            if (version1.show === true) {
-                versionList.push(selectVersion1.value.split(":")[0].trim());
-            }
-            if (version2.show === true) {
-                versionList.push(selectVersion2.value.split(":")[0].trim());
-            }
-            if (version3.show === true) {
-                versionList.push(selectVersion3.value.split(":")[0].trim());
-            }
-            searchBible(inputVerseSearch.value, versionList);
-        }
-    });
-    const verseList = $("#verseList", {
-        template : {
-            li : {
-                tagName : "li",
-                style : {
-                    border : "1px solid white",
-                    whiteSpace: "normal",
-                    cursor: "pointer",
-                },
-                preVerse : {
-                    tagName : "pre",
-                    css : "preVerse",
-                    style : {
-                        whiteSpace: "pre-wrap",
-                        wordWrap: "break-word",
-                    },
-                    onclick : function(ev) {
-                        const preElements = document.querySelectorAll("ul#verseList pre");
-                        preElements.forEach(pre => {
-                            pre.style.backgroundColor = ""; // Reset to original background color
-                            pre.style.color = "";
-                        });
-                        ev.target.style.backgroundColor = "lightgreen";
-                        ev.target.style.color = "black";
-
-                        versionList = [];
-                        if (version1.show === true) {
-                            versionList.push(selectVersion1.value.split(":")[0].trim());
-                        }
-                        if (version2.show === true) {
-                            versionList.push(selectVersion2.value.split(":")[0].trim());
-                        }
-                        if (version3.show === true) {
-                            versionList.push(selectVersion3.value.split(":")[0].trim());
-                        }
-                        const data = {
-                            verse : this.textContent,
-                            versions : versionList,
-                        };
-                        $.post("/projectverse", data, res => {
-                            if (res.ok) {
-                                console.debug("Success projecting verse");
-                            }
-                        }, error => {
-                            console.error("Error projecting verse.", error);
-                        }, true);
-                    }
-                }
-            }
-        },
-        items : [],
-    });
-    const buttonDeleteTheme = $("#buttonDeleteTheme", {
-        onclick : function(ev) {
-            $.confirm("Confirm deleting this theme?", yes => {
-                if (yes) {
-                    if (themeList2.value === "default") {
-                        $.failure("Cannot delete default theme");
-                    } else {
-                        const selected = themeList2.options[themeList2.selectedIndex];
-                        const id = selected.dataset.id;
-                        console.log("selected id is", id);
-                        $.post("/deletetheme/" + id, res => {
-                            if (res.ok) {
-                                $.success("Deleting theme success.");
-                            }
-                        }, error => {
-                            $.failure("Error deleting a theme.", error);
-                        }, true);
-                    }
-                }
-            });
-        }
-    });
-    const buttonDisableService = $("#buttonDisableService", {
-        onclick : function(ev) {
-            $.confirm("Confirm to disable projector service?", yes => {
-                if (yes) {
-                    if (this.text === "Disable projector") {
-                        $.post("/disableservice", res => {
-                            if (res.ok) {
-                                $.success("Success!");
-                                this.text = "Enable projector";
-                            } else {
-                                $.failure("Something's wrong disabling the service.");
-                            }
-                        }, error => {
-                            console.error("Error disabling kiosk service.", error);
-                        }, true);
-                    } else {
-                        $.post("/enableservice", res => {
-                            if (res.ok) {
-                                $.success("Success!");
-                                this.text = "Disable projector";
-                            } else {
-                                $.failure("Something's wrong enabling the service.");
-                            }
-                        }, error => {
-                            console.error("Error enabling kiosk service.", error);
-                        }, true);
-                    }
-                }
-            });
-        }
-    });
     function searchBible(verse, versions) {
         const data = {
             verse : verse,
@@ -982,7 +979,7 @@ m2d2.ready($ => {
                 if (data.length > 1) {
                     newLine = '\n\n';
                 }
-                verseList.items.clear();
+                main.verseList.items.clear();
                 const numOfMaps = data.length;
                 const numOfKeys = Object.keys(data[0]).length;
                 for (let i = 0; i < numOfKeys; i++) {
@@ -1000,7 +997,7 @@ m2d2.ready($ => {
                         const key = Object.keys(data[j])[i];
                         verse = key;  // Concatenate the keys with newline
                     }
-                    verseList.items.push({
+                    main.verseList.items.push({
                         preVerse : {
                             textContent : verse,
                         }
@@ -1012,36 +1009,36 @@ m2d2.ready($ => {
         }, true);
     }
     function resetOffset() {
-        topLeftOffset.value = 0;
-        topMiddleOffset.value = 0;
-        topRightOffset.value = 0;
-        leftUpperOffset.value = 0;
-        rightUpperOffset.value = 0;
-        leftMiddleOffset.value = 0;
-        rightMiddleOffset.value = 0;
-        leftLowerOffset.value = 0;
-        rightLowerOffset.value = 0;
-        leftBottomOffset.value = 0;
-        middleBottomOffset.value = 0;
-        rightBottomOffset.value = 0;
+        main.topLeftOffset.value = 0;
+        main.topMiddleOffset.value = 0;
+        main.topRightOffset.value = 0;
+        main.leftUpperOffset.value = 0;
+        main.rightUpperOffset.value = 0;
+        main.leftMiddleOffset.value = 0;
+        main.rightMiddleOffset.value = 0;
+        main.leftLowerOffset.value = 0;
+        main.rightLowerOffset.value = 0;
+        main.leftBottomOffset.value = 0;
+        main.middleBottomOffset.value = 0;
+        main.rightBottomOffset.value = 0;
     }
     function disabledOffset(topLeft,topMiddle,topRight,leftUpper,rightUpper,leftMiddle,rightMiddle,leftLower,rightLower,leftBottom,middleBottom,rightBottom) {
-        topLeftOffset.disabled = topLeft;
-        topMiddleOffset.disabled = topMiddle;
-        topRightOffset.disabled = topRight;
-        leftUpperOffset.disabled = leftUpper;
-        rightUpperOffset.disabled = rightUpper;
-        leftMiddleOffset.disabled = leftMiddle;
-        rightMiddleOffset.disabled = rightMiddle;
-        leftLowerOffset.disabled = leftLower;
-        rightLowerOffset.disabled = rightLower;
-        leftBottomOffset.disabled = leftBottom;
-        middleBottomOffset.disabled = middleBottom;
-        rightBottomOffset.disabled = rightBottom;
+        main.topLeftOffset.disabled = topLeft;
+        main.topMiddleOffset.disabled = topMiddle;
+        main.topRightOffset.disabled = topRight;
+        main.leftUpperOffset.disabled = leftUpper;
+        main.rightUpperOffset.disabled = rightUpper;
+        main.leftMiddleOffset.disabled = leftMiddle;
+        main.rightMiddleOffset.disabled = rightMiddle;
+        main.leftLowerOffset.disabled = leftLower;
+        main.rightLowerOffset.disabled = rightLower;
+        main.leftBottomOffset.disabled = leftBottom;
+        main.middleBottomOffset.disabled = middleBottom;
+        main.rightBottomOffset.disabled = rightBottom;
     }
     function changeLocation(x, y) {
-        previewContainer.style.justifyContent = x;
-        previewContainer.style.alignItems = y;
+        main.previewContainer.style.justifyContent = x;
+        main.previewContainer.style.alignItems = y;
         justifyContent = x;
         alignItems = y;
         console.log("justify content is ", x);
@@ -1049,31 +1046,31 @@ m2d2.ready($ => {
     }
     function setLocation(x, y) {
         if (x === "flex-start" && y === "flex-start") {
-            radioTopLeft.checked = true;
+            main.radioTopLeft.checked = true;
             disabledOffset(false,true,true,false,true,true,true,true,true,true,true,true);
         } else if (x === "center" && y === "flex-start") {
-            radioTopMiddle.checked = true;
+            main.radioTopMiddle.checked = true;
             disabledOffset(true,false,true,true,true,true,true,true,true,true,true,true);
         } else if (x === "flex-end" && y === "flex-start") {
-            radioTopRight.checked = true;
+            main.radioTopRight.checked = true;
             disabledOffset(true,true,false,true,false,true,true,true,true,true,true,true);
         } else if (x === "flex-start" && y === "center") {
-            radioLefMiddle.checked = true;
+            main.radioLefMiddle.checked = true;
             disabledOffset(true,true,true,true,true,false,true,true,true,true,true,true);
         } else if (x === "center" && y === "center") {
-            radioCenter.checked = true;
+            main.radioCenter.checked = true;
             disabledOffset(true,false,true,true,true,false,false,true,true,true,false,true);
         } else if (x === "flex-end" && y === "center") {
-            radioRightMiddle.checked = true;
+            main.radioRightMiddle.checked = true;
             disabledOffset(true,true,true,true,true,true,false,true,true,true,true,true);
         } else if (x === "flex-start" && y === "end") {
-            radioLeftBottom.checked = true;
+            main.radioLeftBottom.checked = true;
             disabledOffset(true,true,true,true,true,true,true,false,true,false,true,true);
         } else if (x === "center" && y === "end") {
-            radioMiddleBottom.checked = true;
+            main.radioMiddleBottom.checked = true;
             disabledOffset(true,true,true,true,true,true,true,true,true,true,false,true);
         } else if (x === "flex-end" && y === "end") {
-            radioRightBottom.checked = true;
+            main.radioRightBottom.checked = true;
             disabledOffset(true,true,true,true,true,true,true,true,false,true,true,false);
         }
     }
@@ -1105,41 +1102,41 @@ m2d2.ready($ => {
                 const justifyContent = res.data.justify_content;
                 const alignItems = res.data.align_items;
 
-                topLeftOffset.value = topLeft;
-                leftUpperOffset.value = leftUpper;
+                main.topLeftOffset.value = topLeft;
+                main.leftUpperOffset.value = leftUpper;
 
-                topMiddleOffset.value = topMiddle;
+                main.topMiddleOffset.value = topMiddle;
 
-                topRightOffset.value = topRight;
-                rightUpperOffset.value = rightUpper;
+                main.topRightOffset.value = topRight;
+                main.rightUpperOffset.value = rightUpper;
 
-                leftMiddleOffset.value = leftMiddle;
-                rightMiddleOffset.value = rightMiddle;
+                main.leftMiddleOffset.value = leftMiddle;
+                main.rightMiddleOffset.value = rightMiddle;
 
-                leftLowerOffset.value = leftLower;
-                leftBottomOffset.value = leftBottom;
+                main.leftLowerOffset.value = leftLower;
+                main.leftBottomOffset.value = leftBottom;
 
-                middleBottomOffset.value = middleBottom;
+                main.middleBottomOffset.value = middleBottom;
 
-                rightLowerOffset.value = rightLower;
-                rightBottomOffset.value = rightBottom;
+                main.rightLowerOffset.value = rightLower;
+                main.rightBottomOffset.value = rightBottom;
 
                 const marginTop = topLeft + topMiddle + topRight;
                 const marginBottom = leftBottom + middleBottom + rightBottom;
                 const marginLeft = leftUpper + leftMiddle + leftLower;
                 const marginRight = rightUpper + rightMiddle + rightLower;
 
-                previewText.style.marginTop = marginTop + "px";
-                previewText.style.marginBottom = marginBottom + "px";
-                previewText.style.marginLeft = marginLeft + "px";
-                previewText.style.marginRight = marginRight + "px";
+                main.previewText.style.marginTop = marginTop + "px";
+                main.previewText.style.marginBottom = marginBottom + "px";
+                main.previewText.style.marginLeft = marginLeft + "px";
+                main.previewText.style.marginRight = marginRight + "px";
 
                 selectFont.value = font;
-                previewText.style.fontFamily = font;
+                main.previewText.style.fontFamily = font;
                 inputFontSize.value = fontSize;
-                previewText.style.fontSize = fontSize;
+                main.previewText.style.fontSize = fontSize + "px";
                 colorPicker.value = fontColor;
-                previewText.style.color = fontColor;
+                main.previewText.style.color = fontColor;
                 taFontPreview.style.color = fontColor;
                 if (fontColor === "#ffffff" || fontColor === "white") {
                     taFontPreview.style.backgroundColor = "black";
@@ -1148,62 +1145,62 @@ m2d2.ready($ => {
                 }
 
                 if (bold) {
-                    fontBold.classList.toggle("active");
-                    previewText.style.fontWeight = "bold";
+                    main.fontBold.classList.toggle("active");
+                    main.previewText.style.fontWeight = "bold";
                     taFontPreview.style.fontWeight = "bold";
                     isBold = true;
                 } else {
-                    fontBold.classList.remove("active");
-                    previewText.style.fontWeight = "";
+                    main.fontBold.classList.remove("active");
+                    main.previewText.style.fontWeight = "";
                     taFontPreview.style.fontWeight = "";
                 }
                 if (italic) {
-                    fontItalic.classList.toggle("active");
-                    previewText.style.fontStyle = "italic";
+                    main.fontItalic.classList.toggle("active");
+                    main.previewText.style.fontStyle = "italic";
                     taFontPreview.style.fontStyle = "italic";
                     isItalic = true;
                 } else {
-                    fontItalic.classList.remove("active");
-                    previewText.style.fontStyle = "";
+                    main.fontItalic.classList.remove("active");
+                    main.previewText.style.fontStyle = "";
                     taFontPreview.style.fontStyle = "";
                 }
                 if (strikeThrough) {
-                    fontStrikeThrough.classList.toggle("active");
-                    previewText.style.textDecoration = "line-through";
+                    main.fontStrikeThrough.classList.toggle("active");
+                    main.previewText.style.textDecoration = "line-through";
                     taFontPreview.style.textDecoration = "line-through";
                     isStrikeThrough = true;
                 } else {
-                    fontStrikeThrough.classList.remove("active");
-                    previewText.style.textDecoration = "";
+                    main.fontStrikeThrough.classList.remove("active");
+                    main.previewText.style.textDecoration = "";
                     taFontPreview.style.textDecoration = "";
                 }
                 switch (textAlign) {
                     case "center":
-                        fontAlignCenter.classList.add("active");
-                        previewText.style.textAlign = "center";
+                        main.fontAlignCenter.classList.add("active");
+                        main.previewText.style.textAlign = "center";
                         break;
                     case "end":
-                        fontAlignHorRight.classList.add("active");
-                        previewText.style.textAlign = "end";
+                        main.fontAlignHorRight.classList.add("active");
+                        main.previewText.style.textAlign = "end";
                         break;
                     case "justify":
-                        fontAlignJustify.classList.add("active");
-                        previewText.style.textAlign = "justify";
+                        main.fontAlignJustify.classList.add("active");
+                        main.previewText.style.textAlign = "justify";
                         break;
                     case "start":
-                        fontAlignHorLeft.classList.add("active");
-                        previewText.style.textAlign = "start";
+                        main.fontAlignHorLeft.classList.add("active");
+                        main.previewText.style.textAlign = "start";
                         break;
                     case "right":
-                        fontAlignRight.classList.add("active");
-                        previewText.style.textAlign = "right";
+                        main.fontAlignRight.classList.add("active");
+                        main.previewText.style.textAlign = "right";
                         break;
                     case "left":
-                        fontAlignLeft.classList.add("active");
-                        previewText.style.textAlign = "left";
+                        main.fontAlignLeft.classList.add("active");
+                        main.previewText.style.textAlign = "left";
                         break;
                     default:
-                        previewText.style.textAlign = "center";
+                        main.previewText.style.textAlign = "center";
                         console.error("Unknown text alignment");
                 }
                 changeLocation(justifyContent, alignItems);
@@ -1222,10 +1219,10 @@ m2d2.ready($ => {
         await db.media.get("settheme").then(theme => {
             if (theme) {
                 console.log("theme from db", theme);
-                Array.from(themeList.options).forEach(option => {
+                Array.from(main.themeList.options).forEach(option => {
                     if (option.text === theme.name) {
-                        themeList.value = option.value;
-                        inputThemeName.value = theme.name;
+                        main.themeList.value = option.value;
+                        main.inputThemeName.value = theme.name;
                         setTheme({theme : theme.name});
                     }
                 });
@@ -1325,175 +1322,175 @@ m2d2.ready($ => {
         }
     }
 
-    tippy('#navFontSettings', {
+    tippy('.navFontSettings', {
         content: "Font settings (Font style and size)",
         interactive: true,
         placement: 'right',
         animation: 'scale',
         theme: 'light',
     });
-    tippy('#navLocationSettings', {
+    tippy('.navLocationSettings', {
         content: "Setting for the location of text on the screen",
         interactive: true,
         placement: 'right',
         animation: 'scale',
         theme: 'light',
     });
-    tippy('#navThemeList', {
+    tippy('.navThemeList', {
         content: "List of themes",
         interactive: true,
         placement: 'right',
         animation: 'scale',
         theme: 'light',
     });
-    tippy('#navBibleSettings', {
+    tippy('.navBibleSettings', {
         content: "Manage Bible versions",
         interactive: true,
         placement: 'right',
         animation: 'scale',
         theme: 'light',
     });
-    tippy('#fontBold', {
+    tippy('.fontBold', {
         content: "Bold",
         interactive: true,
         placement: 'bottom',
         animation: 'scale',
         theme: 'light',
     });
-    tippy('#fontItalic', {
+    tippy('.fontItalic', {
         content: "Italic",
         interactive: true,
         placement: 'bottom',
         animation: 'scale',
         theme: 'light',
     });
-    tippy('#fontStrikeThrough', {
+    tippy('.fontStrikeThrough', {
         content: "Strike through",
         interactive: true,
         placement: 'bottom',
         animation: 'scale',
         theme: 'light',
     });
-    tippy('#topLeftOffset', {
+    tippy('.topLeftOffset', {
         content: "Top-left offset",
         interactive: false,
         placement: 'top',
         animation: 'scale',
         theme: 'light',
     });
-    tippy('#topMiddleOffset', {
+    tippy('.topMiddleOffset', {
         content: "Top-middle offset",
         interactive: false,
         placement: 'top',
         animation: 'scale',
         theme: 'light',
     });
-    tippy('#topRightOffset', {
+    tippy('.topRightOffset', {
         content: "Top-right offset",
         interactive: false,
         placement: 'top',
         animation: 'scale',
         theme: 'light',
     });
-    tippy('#leftUpperOffset', {
+    tippy('.leftUpperOffset', {
         content: "Left-upper offset",
         interactive: false,
         placement: 'right',
         animation: 'scale',
         theme: 'light',
     });
-    tippy('#rightUpperOffset', {
+    tippy('.rightUpperOffset', {
         content: "Right-upper offset",
         interactive: false,
         placement: 'right',
         animation: 'scale',
         theme: 'light',
     });
-    tippy('#leftMiddleOffset', {
+    tippy('.leftMiddleOffset', {
         content: "Left-middle offset",
         interactive: false,
         placement: 'right',
         animation: 'scale',
         theme: 'light',
     });
-    tippy('#rightMiddleOffset', {
+    tippy('.rightMiddleOffset', {
         content: "Right-middle offset",
         interactive: false,
         placement: 'right',
         animation: 'scale',
         theme: 'light',
     });
-    tippy('#leftLowerOffset', {
+    tippy('.leftLowerOffset', {
         content: "Bottom-lower offset",
         interactive: false,
         placement: 'right',
         animation: 'scale',
         theme: 'light',
     });
-    tippy('#rightLowerOffset', {
+    tippy('.rightLowerOffset', {
         content: "Right-lower offset",
         interactive: false,
         placement: 'right',
         animation: 'scale',
         theme: 'light',
     });
-    tippy('#leftBottomOffset', {
+    tippy('.leftBottomOffset', {
         content: "Left-bottom offset",
         interactive: false,
         placement: 'bottom',
         animation: 'scale',
         theme: 'light',
     });
-    tippy('#middleBottomOffset', {
+    tippy('.middleBottomOffset', {
         content: "Middle-bottom offset",
         interactive: false,
         placement: 'bottom',
         animation: 'scale',
         theme: 'light',
     });
-    tippy('#rightBottomOffset', {
+    tippy('.rightBottomOffset', {
         content: "Right-bottom offset",
         interactive: false,
         placement: 'bottom',
         animation: 'scale',
         theme: 'light',
     });
-    tippy('#fontAlignCenter', {
+    tippy('.fontAlignCenter', {
         content: "Text align center",
         interactive: false,
         placement: 'bottom',
         animation: 'scale',
         theme: 'light',
     });
-    tippy('#fontAlignHorRight', {
+    tippy('.fontAlignHorRight', {
         content: "Text align end",
         interactive: false,
         placement: 'bottom',
         animation: 'scale',
         theme: 'light',
     });
-    tippy('#fontAlignJustify', {
+    tippy('.fontAlignJustify', {
         content: "Text align justify",
         interactive: false,
         placement: 'bottom',
         animation: 'scale',
         theme: 'light',
     });
-    tippy('#fontAlignHorLeft', {
+    tippy('.fontAlignHorLeft', {
         content: "Text align start",
         interactive: false,
         placement: 'bottom',
         animation: 'scale',
         theme: 'light',
     });
-    tippy('#fontAlignRight', {
+    tippy('.fontAlignRight', {
         content: "Text align right",
         interactive: false,
         placement: 'bottom',
         animation: 'scale',
         theme: 'light',
     });
-    tippy('#fontAlignLeft', {
+    tippy('.fontAlignLeft', {
         content: "Text align left",
         interactive: false,
         placement: 'bottom',
