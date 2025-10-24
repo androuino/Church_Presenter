@@ -268,7 +268,7 @@ m2d2.ready($ => {
                                                 dataset : { id : songId },
                                                 pSongTitle : {
                                                     dataset : { id : songId },
-                                                    text : res.title
+                                                    text : songTitle
                                                 },
                                             });
                                         } else {
@@ -772,7 +772,7 @@ m2d2.ready($ => {
                     songs.tbodySongList.items.push({
                         dataset : { id : item.id },
                         author : { text : item.author },
-                        songTitle : { text : item.songTitle }
+                        songTitle : { text : item.song_title }
                     });
                 });
             } else {
@@ -784,8 +784,7 @@ m2d2.ready($ => {
         $.get("/editsong/" + songId, res => {
             if (res.ok) {
                 localStorage.setItem("data", JSON.stringify(res.data));
-                const newWindowUrl = `${window.location.protocol}/create`;
-                window.open(newWindowUrl, 'createWindow', 'width=800,height=600,toolbar=no,scrollbars=yes,resizable=yes');
+                window.open("/create", 'createWindow', 'width=800,height=900,toolbar=no,scrollbars=yes,resizable=yes');
             }
         });
     }
