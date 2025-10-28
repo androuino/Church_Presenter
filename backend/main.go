@@ -7,6 +7,7 @@ import (
 
     "backend/handlers"
     "backend/api"
+    //"backend/controller"
 )
 
 func main() {
@@ -24,6 +25,7 @@ func main() {
     // Serve control.html when accessing /admin
     http.HandleFunc("/admin", pageHandler("control.html"))
     http.HandleFunc("/create", pageHandler("create.html"))
+    http.HandleFunc("/settings", pageHandler("settings.html"))
     http.HandleFunc("/", pageHandler("index.html"))
     fs := http.FileServer(http.Dir(publicDir))
     http.Handle("/static/", http.StripPrefix("/static/", fs))
@@ -40,6 +42,11 @@ func main() {
     http.HandleFunc("/getsongs", handlers.GetSongsHandler)
     http.HandleFunc("/getsongtitle/", handlers.GetSongTitleHandler)
     http.HandleFunc("/editsong/", handlers.EditSongHandler)
+    http.HandleFunc("/getthemes", handlers.GetThemesHandler)
+    http.HandleFunc("/settheme", handlers.SetThemeHandler)
+    http.HandleFunc("/savetheme", handlers.SaveThemeHandler)
+    http.HandleFunc("/getfonts", handlers.GetFontsHandler)
+    http.HandleFunc("/savesong", handlers.SaveSongHandler)
 
     http.HandleFunc("/events", handlers.EventsHandler)
     //http.HandleFunc("/getip", handlers.GetIPHandler)

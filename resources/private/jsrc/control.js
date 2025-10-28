@@ -264,6 +264,7 @@ m2d2.ready($ => {
                                     $.get("/getsongtitle/" + songId, res => {
                                         if (res.ok) {
                                             songTitle = res.title;
+                                            songList.push([songId, songTitle]);
                                             live.ulSongs.items.push({
                                                 dataset : { id : songId },
                                                 pSongTitle : {
@@ -271,6 +272,7 @@ m2d2.ready($ => {
                                                     text : songTitle
                                                 },
                                             });
+                                            saveToLocalDB("songs", songList);
                                         } else {
                                             console.debug("There's an error getting the song title.");
                                         }
@@ -294,14 +296,9 @@ m2d2.ready($ => {
                                 const secondCell = row.querySelectorAll('td')[1];
                                 if (secondCell) {
                                     songTitle = secondCell.textContent;
-                                    songList.push([songId, songTitle]);
                                 }
                             }
                         });
-                        saveToLocalDB("songs", songList)
-                    },
-                    onmouseover : function(ev) {
-                        songId = this.dataset.id;
                     }
                 }
             },
@@ -772,7 +769,7 @@ m2d2.ready($ => {
                     songs.tbodySongList.items.push({
                         dataset : { id : item.id },
                         author : { text : item.author },
-                        songTitle : { text : item.song_title }
+                        songTitle : { text : item.songTitle }
                     });
                 });
             } else {

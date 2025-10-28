@@ -6,7 +6,7 @@ import java.lang.Thread.sleep
 
 class WifiNotifier(private val sseEventService: SSEEventService) : ServiceTask() {
     var running = true
-    override fun process(): Runnable? {
+    override fun process(): Runnable {
         return Thread {
             while (running) {
                 val status = Core.getWifiStatus()

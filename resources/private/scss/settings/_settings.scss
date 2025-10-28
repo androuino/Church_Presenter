@@ -82,9 +82,10 @@ main {
                         resize: none;
                         textarea {
                             width: 100%;
-                            height: 6.6em;
+                            height: inherit;
                             font-size: 1.2em;
                             resize: none;
+                            overflow: auto;
                         }
                     }
                     .fontModifierControls {

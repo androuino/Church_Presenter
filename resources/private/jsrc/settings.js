@@ -770,31 +770,31 @@ m2d2.ready($ => {
                     const id = selected.dataset.id;
                     console.log("the id is", id);
                     const data = {
-                        id : id,
+                        id : Number(id),
                         themeName: main.inputThemeName.value.toLowerCase(),
                         font: selectFont.value,
-                        fontSize: inputFontSize.value,
+                        fontSize: Number(inputFontSize.value),
                         fontColor: colorPicker.value,
                         bold: isBold,
                         italic: isItalic,
                         strikeThrough: isItalic,
-                        topLeftOffset: main.topLeftOffset.value,
-                        topMiddleOffset: main.topMiddleOffset.value,
-                        topRightOffset: main.topRightOffset.value,
-                        leftUpperOffset: main.leftUpperOffset.value,
-                        rightUpperOffset: main.rightUpperOffset.value,
-                        leftMiddleOffset: main.leftMiddleOffset.value,
-                        rightMiddleOffset: main.rightMiddleOffset.value,
-                        leftLowerOffset: main.leftLowerOffset.value,
-                        rightLowerOffset: main.rightLowerOffset.value,
-                        leftBottomOffset: main.leftBottomOffset.value,
-                        middleBottomOffset: main.middleBottomOffset.value,
-                        rightBottomOffset: main.rightBottomOffset.value,
+                        topLeftOffset: Number(main.topLeftOffset.value),
+                        topMiddleOffset: Number(main.topMiddleOffset.value),
+                        topRightOffset: Number(main.topRightOffset.value),
+                        leftUpperOffset: Number(main.leftUpperOffset.value),
+                        rightUpperOffset: Number(main.rightUpperOffset.value),
+                        leftMiddleOffset: Number(main.leftMiddleOffset.value),
+                        rightMiddleOffset: Number(main.rightMiddleOffset.value),
+                        leftLowerOffset: Number(main.leftLowerOffset.value),
+                        rightLowerOffset: Number(main.rightLowerOffset.value),
+                        leftBottomOffset: Number(main.leftBottomOffset.value),
+                        middleBottomOffset: Number(main.middleBottomOffset.value),
+                        rightBottomOffset: Number(main.rightBottomOffset.value),
                         textAlign: alignment,
                         justifyContent: justifyContent,
                         alignItems: alignItems
                     };
-                    $.put("/savetheme", data, res => {
+                    $.post("/savetheme", data, res => {
                         if (res.ok) {
                             console.log("data is", data);
                             $.success("Theme saved.");
@@ -1077,30 +1077,30 @@ m2d2.ready($ => {
     function setTheme(data) {
         $.post("/settheme", data, res => {
             if (res.ok) {
-                console.log("Theme is set to", res.data.theme_name);
-                saveToLocalDB("theme", { id: "settheme", theme: res.data.theme_name });
+                console.log("Theme is set to", res.data.themeName);
+                saveToLocalDB("theme", { id: "settheme", theme: res.data.themeName });
                 console.log("theme to set is", res.data);
                 const font = res.data.font;
-                const fontSize = res.data.font_size;
-                const fontColor = res.data.font_color;
+                const fontSize = res.data.fontSize;
+                const fontColor = res.data.fontColor;
                 const bold = res.data.bold;
                 const italic = res.data.italic;
-                const strikeThrough = res.data.strike_through;
-                const topLeft = res.data.top_left_offset;
+                const strikeThrough = res.data.strikeThrough;
+                const topLeft = res.data.topLeftOffset;
                 const topMiddle = res.data.top_middle_offset;
-                const topRight = res.data.top_right_offset;
-                const leftUpper = res.data.left_upper_offset;
-                const rightUpper = res.data.right_upper_offset;
-                const leftMiddle = res.data.left_middle_offset;
-                const rightMiddle = res.data.right_middle_offset;
-                const leftLower = res.data.left_lower_offset;
-                const rightLower = res.data.right_lower_offset;
-                const leftBottom = res.data.left_bottom_offset;
-                const middleBottom = res.data.middle_bottom_offset;
-                const rightBottom = res.data.right_bottom_offset;
-                const textAlign = res.data.text_align;
-                const justifyContent = res.data.justify_content;
-                const alignItems = res.data.align_items;
+                const topRight = res.data.topRightOffset;
+                const leftUpper = res.data.leftUpperOffset;
+                const rightUpper = res.data.rightUpperOffset;
+                const leftMiddle = res.data.leftMiddleOffset;
+                const rightMiddle = res.data.rightMiddleOffset;
+                const leftLower = res.data.leftLowerOffset;
+                const rightLower = res.data.rightLowerOffset;
+                const leftBottom = res.data.leftBottomOffset;
+                const middleBottom = res.data.middleBottomOffset;
+                const rightBottom = res.data.rightBottomOffset;
+                const textAlign = res.data.textAlign;
+                const justifyContent = res.data.justifyContent;
+                const alignItems = res.data.alignItems;
 
                 main.topLeftOffset.value = topLeft;
                 main.leftUpperOffset.value = leftUpper;
@@ -1135,6 +1135,7 @@ m2d2.ready($ => {
                 main.previewText.style.fontFamily = font;
                 inputFontSize.value = fontSize;
                 main.previewText.style.fontSize = fontSize + "px";
+                taFontPreview.style.fontSize = fontSize + "px";
                 colorPicker.value = fontColor;
                 main.previewText.style.color = fontColor;
                 taFontPreview.style.color = fontColor;
@@ -1205,6 +1206,7 @@ m2d2.ready($ => {
                 }
                 changeLocation(justifyContent, alignItems);
                 setLocation(justifyContent, alignItems);
+                $.success("Theme set.");
             }
         }, true);
     }
@@ -1218,7 +1220,6 @@ m2d2.ready($ => {
         });
         await db.media.get("settheme").then(theme => {
             if (theme) {
-                console.log("theme from db", theme);
                 Array.from(main.themeList.options).forEach(option => {
                     if (option.text === theme.name) {
                         main.themeList.value = option.value;

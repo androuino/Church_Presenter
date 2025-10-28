@@ -81,9 +81,9 @@ m2d2.ready($ => {
                 $.failure("You're leaving some field/s blank.");
             } else {
                 const data = {
-                    id: songId,
+                    id: Number(songId),
                     author: inputAuthor.value,
-                    title: inputSongTitle.value,
+                    songTitle: inputSongTitle.value,
                     lyrics: taLyrics.value
                 };
                 $.put("/savesong", data, res => {

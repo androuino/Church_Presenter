@@ -16,6 +16,7 @@ cp kiosk deploy/
 
 rsync -ia resources/public deploy/resources/
 rsync -ia --exclude=app/lib/ deploy/lib/
+rsync -ia backend/backend deploy/
 if [[ $IP == "" ]]; then
   IP="192.168.20.82"
   DIR="www"
