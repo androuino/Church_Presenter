@@ -58,6 +58,24 @@ m2d2.ready($ => {
                 }
             }
         },
+        navStartProjector : {
+            onclick : function(ev) {
+                $.post("/startprojector", res => {
+                    if (res.ok) {
+                        console.log("Projector started.");
+                    }
+                }, true);
+            }
+        },
+        navStopProjector : {
+            onclick : function(ev) {
+                $.post("/stopprojector", res => {
+                    if (res.ok) {
+                        console.log("Projector stopped.");
+                    }
+                }, true);
+            }
+        },
         navInfo : {
             onclick : function(ev) {
                 // todo: show a modal form here
@@ -941,6 +959,18 @@ m2d2.ready($ => {
     });
     tippy('.navDelete', {
         content: "Delete a song",
+        interactive: true,
+        placement: 'right',
+        animation: 'scale',
+    });
+    tippy('.navStartProjector', {
+        content: "Start Projector",
+        interactive: true,
+        placement: 'right',
+        animation: 'scale',
+    });
+    tippy('.navStopProjector', {
+        content: "Stop Projector",
         interactive: true,
         placement: 'right',
         animation: 'scale',

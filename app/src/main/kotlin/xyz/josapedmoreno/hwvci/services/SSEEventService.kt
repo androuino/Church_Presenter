@@ -1,9 +1,7 @@
 package xyz.josapedmoreno.hwvci.services
 
-import com.aspose.cells.Title
 import com.google.gson.Gson
 import com.intellisrc.web.service.ServerSentEvent
-import org.bouncycastle.asn1.x500.style.RFC4519Style.title
 
 class SSEEventService : ServerSentEvent() {
     override fun getAcceptCharset(): String? {
