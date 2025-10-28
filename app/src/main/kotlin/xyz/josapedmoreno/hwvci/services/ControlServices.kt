@@ -94,6 +94,8 @@ class ControlServices : ServiciableMultiple {
         services.add(deleteThemeService())
         services.add(disableService())
         services.add(enableService())
+        services.add(startProjector())
+        services.add(stopProjector())
         return services
     }
 
@@ -786,6 +788,40 @@ class ControlServices : ServiciableMultiple {
             }
         }
         return service
+    }
+
+    private fun startProjector(): Service {
+        val service = Service()
+        service.method = HttpMethod.POST
+        service.path = "/startprojector"
+        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
+            fun doCall(request: Request): String {
+                var success = true
+                Core.startKiosk()
+                val map = LinkedHashMap<String, Any>(1)
+                map["ok"] = success
+                return gson.toJson(map)
+            }
+        }
+        return service
+
+    }
+
+    private fun stopProjector(): Service {
+        val service = Service()
+        service.method = HttpMethod.POST
+        service.path = "/stopprojector"
+        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
+            fun doCall(request: Request): String {
+                var success = true
+                Core.stopKiosk()
+                val map = LinkedHashMap<String, Any>(1)
+                map["ok"] = success
+                return gson.toJson(map)
+            }
+        }
+        return service
+
     }
     companion object {
         fun getUserAllow() = Service.Allow { request ->

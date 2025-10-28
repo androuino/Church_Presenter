@@ -1138,6 +1138,7 @@ m2d2.ready($ => {
                 colorPicker.value = fontColor;
                 main.previewText.style.color = fontColor;
                 taFontPreview.style.color = fontColor;
+                taFontPreview.style.fontSize = fontSize + "px";
                 if (fontColor === "#ffffff" || fontColor === "white") {
                     taFontPreview.style.backgroundColor = "black";
                 } else {
