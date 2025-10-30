@@ -8,12 +8,10 @@ import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
 import io.ktor.http.content.streamProvider
 import io.ktor.server.application.Application
-import io.ktor.server.application.install
 import io.ktor.server.auth.authenticate
 import io.ktor.server.http.content.staticResources
 import io.ktor.server.request.receive
 import io.ktor.server.request.receiveMultipart
-import io.ktor.server.response.header
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondFile
 import io.ktor.server.response.respondText
@@ -26,13 +24,23 @@ import io.ktor.server.sessions.clear
 import io.ktor.server.sessions.get
 import io.ktor.server.sessions.sessions
 import io.ktor.server.sessions.set
-import io.ktor.server.sse.SSE
+import io.ktor.server.sse.sse
+import io.ktor.sse.ServerSentEvent
+import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
+import xyz.josapedmoreno.hwvci.ap.APModeChecker
+import xyz.josapedmoreno.hwvci.ap.ConfigFileChecker
+import xyz.josapedmoreno.hwvci.ap.IPAddressFetcher
+import xyz.josapedmoreno.hwvci.ap.IPForwardingChecker
+import xyz.josapedmoreno.hwvci.ap.PackageChecker
 import xyz.josapedmoreno.hwvci.control.BookApi
 import xyz.josapedmoreno.hwvci.control.Core
 import xyz.josapedmoreno.hwvci.control.LoginAuth
 import xyz.josapedmoreno.hwvci.control.Paths
 import xyz.josapedmoreno.hwvci.control.Paths.Companion.publicResources
+import xyz.josapedmoreno.hwvci.control.data.EventBroadcaster
 import xyz.josapedmoreno.hwvci.control.data.LoginRequest
+import xyz.josapedmoreno.hwvci.control.data.SseEvent
 import xyz.josapedmoreno.hwvci.control.data.UserSession
 import xyz.josapedmoreno.hwvci.model.Song
 import xyz.josapedmoreno.hwvci.table.SongTable
@@ -40,11 +48,23 @@ import xyz.josapedmoreno.hwvci.table.Themes
 import java.io.File
 
 fun Application.controller() {
-    install(SSE)
     val gson = Gson().newBuilder().create()
     val cache = Cache<Any>()
 
     routing {
+        sse("/events") {
+            val collectJob = launch {
+                EventBroadcaster.events.collect { event ->
+                    send(
+                        ServerSentEvent(
+                            event = event.type,
+                            data = Json.encodeToString(event)
+                        )
+                    )
+                }
+            }
+            collectJob.join()
+        }
         post("/login") {
             val loginRequest = call.receive<LoginRequest>()
             var message = "Login failed!"
@@ -52,8 +72,8 @@ fun Application.controller() {
             message = LoginAuth(loginRequest.user, loginRequest.pass).isValid()
             if (message == "success") {
                 success = true
+                EventBroadcaster.emit(SseEvent("connected", "true"))
                 call.sessions.set(UserSession(username = loginRequest.user))
-                SSENotifier.controllerConnected(true)
             }
             call.respond(mapOf("ok" to success, "message" to message))
         }
@@ -96,7 +116,9 @@ fun Application.controller() {
                             file.writeBytes(input.readAllBytes())
                         }
 
-                        SSENotifier.changeBackground(filename)
+                        launch {
+                            SseSender().changeBackground(filename)
+                        }
                         map["ok"] = file.exists()
                     }
                     is PartData.FormItem -> {
@@ -113,7 +135,11 @@ fun Application.controller() {
         post("/bglink") {
             val map = LinkedHashMap<String, Any>(1)
             val data = call.receive<JsonObject>()
-            SSENotifier.setBgLink(data, cache)
+            val link = data.get("link").asString
+            cache.set("link", link)
+            launch {
+                SseSender().changeBackground("link")
+            }
             map["ok"] = true
             call.respond(map)
         }
@@ -137,7 +163,7 @@ fun Application.controller() {
                 success = true
             }
             map["ok"] = success
-            call.respond(map)
+            call.respond(gson.toJson(map))
         }
         get("/logout") {
             call.sessions.clear<UserSession>()
@@ -147,6 +173,35 @@ fun Application.controller() {
             val session = call.sessions.get<UserSession>()
             val success = session?.username == "admin"
             val jsonResponse = gson.toJson(mapOf("ok" to success))
+            if (!Core.getWifiConnectionStatus()) {
+                Log.w("Switching to AP mode")
+                // Check if packages are installed
+                PackageChecker.installPackagesIfNecessary()
+                // Check if configuration files are set
+                ConfigFileChecker.setupConfigurationFiles()
+                // Check if IP forwarding is enabled
+                IPForwardingChecker.enableIPForwardingIfNecessary()
+                // Check if Access Point is active
+                APModeChecker.startAccessPointIfNecessary()
+                Log.i("Access point setup complete")
+
+                val status = Core.getWifiStatus()
+                launch {
+                    SseSender().wifiStatus(status)
+                }
+
+                val ipAddress = IPAddressFetcher.getIPAddress("wlan0") // Replace with the correct interface
+                if (ipAddress != null) {
+                    Log.i("Access Point IP Address: $ipAddress")
+                    launch {
+                        SseSender().mode(ipAddress)
+                    }
+                } else {
+                    Log.w("Unable to fetch the IP address.")
+                }
+            } else {
+                Log.i("Device is connected to wifi")
+            }
             call.respondText(jsonResponse, ContentType.Application.Json)
         }
         staticResources("/", "public") {
@@ -205,7 +260,9 @@ fun Application.controller() {
                 val map = LinkedHashMap<String, Any>(1)
                 val id = call.parameters["id"]
                 val lyrics: String = SongTable().getSongLyricsById(id?.toInt() ?: 0)
-                SSENotifier.sendSongTitle(SongTable().getSongTitleById(id?.toInt() ?: 0))
+                launch {
+                    SseSender().songTitle(SongTable().getSongTitleById(id?.toInt() ?: 0))
+                }
                 if (lyrics.isNotEmpty()) {
                     success = true
                     map["data"] = lyrics
@@ -268,7 +325,9 @@ fun Application.controller() {
                 val map = LinkedHashMap<String, Any>(1)
                 val data = call.receive<JsonObject>()
                 val lyrics = data.get("lyrics").asString
-                SSENotifier.sendLyrics(lyrics)
+                launch {
+                    SseSender().changeLyrics(lyrics)
+                }
                 map["ok"] = true
                 call.respond(map)
             }
@@ -328,16 +387,23 @@ fun Application.controller() {
                 call.respond(map)
             }
             post("/settheme") {
+                var theme: Map<String, Any?>
                 val map = LinkedHashMap<String, Any>(1)
                 val data = call.receive<JsonObject>()
-                Core.setTheme(data)
+                val themeTheme = data.get("theme").asString
+                theme = Themes().getByThemeName(themeTheme)
+                launch {
+                    SseSender().theme(gson.toJson(theme))
+                }
                 map["ok"] = true
                 map["data"] = Themes().getTheme(data)
                 call.respond(map)
             }
             post("/liveclear") {
                 val map = LinkedHashMap<String, Any>(1)
-                Core.liveClear()
+                launch {
+                    SseSender().clearLive("clear")
+                }
                 map["ok"] = true
                 call.respond(map)
             }
@@ -370,31 +436,41 @@ fun Application.controller() {
             post("/projectverse") {
                 val map = LinkedHashMap<String, Any>(1)
                 val data = call.receive<JsonObject>()
-                SSENotifier.projectVerse(gson.toJson(mapOf("verse" to data.get("verse").asString, "versions" to data.get("versions").asJsonArray)))
+                launch {
+                    SseSender().verse(gson.toJson(mapOf("verse" to data.get("verse").asString, "versions" to data.get("versions").asJsonArray)))
+                }
                 map["ok"] = true
                 call.respond(map)
             }
             post("/hidelyrics") {
                 val map = LinkedHashMap<String, Any>(1)
-                SSENotifier.hideLyrics()
+                launch {
+                    SseSender().hideLyrics("true")
+                }
                 map["ok"] = true
                 call.respond(map)
             }
             post("/blackscreen") {
                 val map = LinkedHashMap<String, Any>(1)
-                SSENotifier.blackScreen()
+                launch {
+                    SseSender().blackScreen("true")
+                }
                 map["ok"] = true
                 call.respond(map)
             }
             post("/showlyrics") {
                 val map = LinkedHashMap<String, Any>(1)
-                SSENotifier.showLyrics()
+                launch {
+                    SseSender().showLyrics("true")
+                }
                 map["ok"] = true
                 call.respond(map)
             }
             post("/removebackground") {
                 val map = LinkedHashMap<String, Any>(1)
-                SSENotifier.removeBackground()
+                launch {
+                    SseSender().removeBackground("true")
+                }
                 map["ok"] = true
                 call.respond(map)
             }

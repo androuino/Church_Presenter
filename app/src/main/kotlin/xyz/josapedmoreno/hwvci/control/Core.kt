@@ -4,7 +4,8 @@ import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.intellisrc.core.Log
 import com.intellisrc.etc.Cache
-import xyz.josapedmoreno.hwvci.services.SSENotifier
+import xyz.josapedmoreno.hwvci.control.data.EventBroadcaster
+import xyz.josapedmoreno.hwvci.control.data.SseEvent
 import xyz.josapedmoreno.hwvci.table.Themes
 import java.awt.GraphicsEnvironment
 import java.io.BufferedReader
@@ -403,16 +404,6 @@ class Core {
             val data = gson.fromJson(getWifiStatus(), JsonObject::class.java)
             val status = data.get("status").asString
             return status == "connected"
-        }
-
-        fun setTheme(data: JsonObject) {
-            val themeTheme = data.get("theme").asString
-            val theme = Themes().getByThemeName(themeTheme)
-            SSENotifier.setTheme(gson.toJson(theme))
-        }
-
-        fun liveClear() {
-            SSENotifier.liveClear()
         }
 
         fun isConnectedToInternet(): Boolean {
