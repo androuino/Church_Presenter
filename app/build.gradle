@@ -3,7 +3,8 @@ plugins {
     id 'java'
     id 'idea'
     id 'war'
-    id 'org.jetbrains.kotlin.jvm' version '2.0.0'
+    id 'org.jetbrains.kotlin.jvm' version '2.2.0'
+    id 'org.jetbrains.kotlin.plugin.serialization' version '2.2.0'
     id 'com.github.johnrengelman.shadow' version '7.0.0'
 }
 
@@ -21,11 +22,11 @@ repositories {
 
 dependencies {
     def commonVer = "2.9.2"
-    def groovyVer = "4.0.15"
+    def groovyVer = "2.4.15"
     def gsonVer = "2.8.9"
     def sqlVer = "8.0.28"
     def postgreSqlVer = "42.2.27"
-    def sqLiteVer = "3.36.0.1"
+    def sqLiteVer = '3.41.2.2'
     def derbyVer = "10.15.2.0"
     def asposeVer = "23.5"
     def opencsvVer = "4.4"
@@ -34,6 +35,8 @@ dependencies {
     def arrow = "1.2.4"
     def sparkVer = "2.9.4"
     def jSwordVer = "2.1"
+    def ktorVer = "3.3.0"
+    def logBackVer = "1.5.13"
 
     //implementation fileTree(dir: 'libs', include: '*.jar')
     implementation "org.apache.groovy:groovy:${groovyVer}"
@@ -51,16 +54,28 @@ dependencies {
     implementation "cloud.metaapi.sdk:metaapi-java-sdk:${metaApiVer}"
     implementation "io.github.nefilim.kjwt:kjwt-core:${kjwtCore}"
     implementation "io.arrow-kt:arrow-core:${arrow}"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.9.23"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:2.0.0"
     implementation "com.sparkjava:spark-core:${sparkVer}"
     implementation "org.apache.commons:commons-imaging:1.0-alpha3"
     implementation "com.github.crosswire:jsword:${jSwordVer}"
+    implementation "io.ktor:ktor-server-core:${ktorVer}"
+    implementation "io.ktor:ktor-server-netty:${ktorVer}"
+    implementation "io.ktor:ktor-serialization-kotlinx-json:${ktorVer}"
+    implementation "io.ktor:ktor-server-call-logging:${ktorVer}"
+    implementation "io.ktor:ktor-server-sessions:${ktorVer}"
+    implementation "io.ktor:ktor-server-auth:${ktorVer}"
+    implementation "io.ktor:ktor-server-html-builder:${ktorVer}"
+    implementation "io.ktor:ktor-server-content-negotiation:${ktorVer}"
+    implementation "io.ktor:ktor-serialization-gson:${ktorVer}"
+    implementation "io.ktor:ktor-server-sse:${ktorVer}"
+    implementation "ch.qos.logback:logback-classic:${logBackVer}"
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3"
     //implementation files('libs/jsoup-1.17.2.jar')
     //implementation files('libs/LCMS4J.jar')
     // Database
     implementation "org.xerial:sqlite-jdbc:${sqLiteVer}"
     // UNIT TESTS
-    testImplementation "org.codehaus.groovy:groovy-all:2.4.15"
+    testImplementation "org.codehaus.groovy:groovy-all:${groovyVer}"
     testImplementation "org.jetbrains.kotlin:kotlin-test:1.7.21"
     //testImplementation "org.spockframework:spock-core:${spock}"
     testImplementation "org.junit.jupiter:junit-jupiter-api:5.7.0"

@@ -14,6 +14,7 @@ cp config.properties deploy/
 cp run deploy/
 cp kiosk deploy/
 
+rsync -ia resources/public app/src/main/resources/
 rsync -ia resources/public deploy/resources/
 rsync -ia --exclude=app/lib/ deploy/lib/
 if [[ $IP == "" ]]; then

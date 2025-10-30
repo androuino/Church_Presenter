@@ -2,8 +2,27 @@ package xyz.josapedmoreno.hwvci.services
 
 import com.google.gson.Gson
 import com.intellisrc.web.service.ServerSentEvent
+import io.ktor.http.ContentType
+import io.ktor.server.application.Application
+import io.ktor.server.response.respondBytes
+import io.ktor.server.routing.contentType
+import io.ktor.server.routing.get
+import io.ktor.server.routing.routing
+import io.ktor.server.sse.sse
+import sun.security.krb5.Confounder.bytes
 
-class SSEEventService : ServerSentEvent() {
+fun Application.configureSSE() {
+    routing {
+        sse("/events") {
+            broadcastFlow.collect { payload ->
+                send(
+                    ServerSentEvent(
+                        data = payload
+                    )
+                )
+            }
+        }
+    }
     override fun getAcceptCharset(): String? {
         return Charsets.UTF_8.name()
     }

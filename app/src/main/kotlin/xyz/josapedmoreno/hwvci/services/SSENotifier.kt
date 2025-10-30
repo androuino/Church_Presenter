@@ -3,30 +3,18 @@ package xyz.josapedmoreno.hwvci.services
 import com.google.gson.JsonObject
 import com.intellisrc.etc.Cache
 
-class SSENotifier(private val sseEventService: SSEEventService?) : Thread() {
-    private val taskQueue = ArrayDeque<() -> Unit>()
-    private val lock = Object()  // A lock object for synchronization
-
-    override fun run() {
-        while (!isInterrupted) {
-            val task: (() -> Unit)?
-            synchronized(lock) {
-                while (taskQueue.isEmpty()) {
-                    lock.wait()  // Wait for tasks to be added
-                }
-                task = taskQueue.removeFirst()  // Retrieve the next task
-            }
-            task?.invoke()  // Execute the task outside the synchronized block
-        }
-    }
-
-    // Add tasks from other parts of the code
-    fun postTask(task: () -> Unit) {
-        synchronized(lock) {
-            taskQueue.addLast(task)
-            lock.notify()  // Wake up the thread to process the task
-        }
-    }
+sealed class AppEvent {
+    data class LyricsChangerNotifier(val lyrics: String) : AppEvent()
+    data class WifiStatusNotifier(val status: String) : AppEvent()
+    data class SetThemeNotifier(val data: String) : AppEvent()
+    data class NotifyLiveClear(val clear: String = "clear") : AppEvent()
+    data class ProjectVerse(val verse: String) : AppEvent()
+    data class HideLyrics(val hide: String = "true") : AppEvent()
+    data class ShowLyrics(val show: String = "true") : AppEvent()
+    data class BlackScreen(val black: String = "true") : AppEvent()
+    data class RemoveBackground(val removeBackground: String = "true") : AppEvent()
+    data class SendSongTitle(val title: String) : AppEvent()
+    data class ChangeBackground()
 
     fun send(lyrics: String) {
         sseEventService?.lyricsChangerNotifier(lyrics)

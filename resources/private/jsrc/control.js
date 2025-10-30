@@ -105,7 +105,7 @@ m2d2.ready($ => {
             onclick : function(ev) {
                 $.confirm("Are you want to log out?", res => {
                     if (res) {
-                        $.get("/logout.path", res => {
+                        $.get("/logout", res => {
                             if (res.ok) {
                                 header.show = false;
                                 mainControl.show = false;
@@ -769,7 +769,7 @@ m2d2.ready($ => {
                     user : username,
                     pass : password
                 };
-                $.post("/login.path", data, res => {
+                $.post("/login", data, res => {
                     if (res.ok) {
                         form.show = false;
                         wrapper.classList.add("form-success");

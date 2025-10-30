@@ -5,13 +5,13 @@ import com.intellisrc.db.auto.Table
 import xyz.josapedmoreno.hwvci.model.Song
 
 class SongTable : Table<Song>() {
-    fun insertSong(data: JsonObject) : Boolean {
+    fun insertSong(data: Song) : Boolean {
         var success = false
         val song = Song()
-        val id = data.get("id").asInt
-        val author = data.get("author").asString
-        val title = data.get("title").asString
-        val lyrics = data.get("lyrics").asString
+        val id = data.id
+        val author = data.author
+        val title = data.songTitle
+        val lyrics = data.lyrics
         song.id = id
         song.author = author
         song.songTitle = title
