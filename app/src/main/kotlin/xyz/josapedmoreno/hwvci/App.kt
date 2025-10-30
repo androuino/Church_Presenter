@@ -2,7 +2,6 @@ package xyz.josapedmoreno.hwvci
 
 import com.intellisrc.core.Config
 import com.intellisrc.core.Log
-import com.intellisrc.core.SysInfo
 import com.intellisrc.core.SysService
 import com.intellisrc.db.Database
 import com.intellisrc.thread.Tasks
@@ -22,6 +21,7 @@ import xyz.josapedmoreno.hwvci.services.SSENotifier
 import xyz.josapedmoreno.hwvci.services.WifiNotifier
 import xyz.josapedmoreno.hwvci.table.Themes
 import xyz.josapedmoreno.hwvci.table.Users
+import java.io.File
 
 class App : SysService() {
     override fun onStart() {
@@ -29,7 +29,11 @@ class App : SysService() {
         if (!args.isEmpty())
             port = Integer.parseInt(args.poll())
         webService.port = port
-        webService.setResources(SysInfo.getFile(publicResources))
+        webService.setResources(Config.get("web.resources", publicResources))
+        Log.i("Resolved publicResources: %s", publicResources.absolutePath)
+        Log.i("publicResources exists: %b", publicResources.exists())
+        Log.i("index.html exists: %b", File(publicResources, "index.html").exists())
+        //webService.setResources(publicResources)
         webService.add(sseEventService)
         webService.add(AuthService())
         webService.add(ControlServices())
