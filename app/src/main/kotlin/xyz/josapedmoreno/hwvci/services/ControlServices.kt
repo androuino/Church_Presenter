@@ -106,7 +106,7 @@ class ControlServices : ServiciableMultiple {
         service.path = "/admin"
         service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
             fun doCall(): File {
-                return File(publicResources, "control.html")
+                return File(publicResources.path, "control.html")
             }
         }
         return service
