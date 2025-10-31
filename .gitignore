@@ -1,6 +1,8 @@
 .idea/
 app/build/
-/deploy
+deploy/log
+deploy/uploaded
+deploy/test.db
 /.gradle
 /node_modules
 log/

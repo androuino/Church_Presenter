@@ -19,6 +19,7 @@ if [[ $? == 0 ]]; then
     cp config.properties deploy/
     cp run deploy/
     cp kiosk deploy/
+    cp run.bat deploy/
 
     #rsync -ia resources/public app/src/main/resources/
     #rsync -ia resources/public deploy/resources/
