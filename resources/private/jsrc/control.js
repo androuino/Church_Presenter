@@ -23,7 +23,7 @@ m2d2.load($ => {
     });
 });
 m2d2.ready($ => {
-    const evtSource = new EventSource('/events');
+    //const evtSource = new EventSource('/events');
     let select = null;
     let songId = null;
     let songTitle = "";
@@ -738,7 +738,6 @@ m2d2.ready($ => {
         onload : function(ev) {
             $.get("/checksessions", res => {
                 if (res.ok) {
-                    form.show = false;
                     container.show = false;
                     bubbles.show = false;
                     header.show = true;
