@@ -183,7 +183,7 @@ class Core {
                         success = true
                     } else {
                         Log.e("Failed to connect to WiFi. Exit code: $exitCode")
-1                    }
+                    }
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -416,7 +416,7 @@ class Core {
 
                 // Check for a successful response code (200–299 means success)
                 connection.responseCode in 200..299
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false  // Any exception means no connection
             }
         }
@@ -522,7 +522,7 @@ class Core {
                     KIOSK_LOCK_FILE.delete()
                     Log.i("Kiosk lock file removed")
                 }
-            } catch (e: Exception) { /* ignore */ }
+            } catch (_: Exception) { /* ignore */ }
 
             kioskPid = null
         }
@@ -824,7 +824,7 @@ class Core {
             if (!KIOSK_LOCK_FILE.exists()) return false
 
             // 2. Read PID from lock file
-            val pidStr = try { KIOSK_LOCK_FILE.readText().trim() } catch (e: Exception) { return false }
+            val pidStr = try { KIOSK_LOCK_FILE.readText().trim() } catch (_: Exception) { return false }
             val pid = pidStr.toLongOrNull() ?: return false
 
             // 3. Verify the process is still alive + has our URL
@@ -852,7 +852,7 @@ private fun detectMonitors(): List<Map<String, Any>> {
                     "y" to m.groupValues[6].toInt()
                 )
             }
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         emptyList()
     }
 }
@@ -890,7 +890,7 @@ private fun isCommandRunnable(cmd: String): Boolean {
     return try {
         val p = ProcessBuilder(cmd, "--version").redirectErrorStream(true).start()
         p.waitFor() == 0
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         false
     }
 }
@@ -906,7 +906,7 @@ private fun findChromeKioskWindow(): String? {
                 parts.size >= 4 &&
                         parts[3].contains("localhost:5555", ignoreCase = true)
             }?.get(0)  // Return window ID
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         null
     }
 }
@@ -938,7 +938,7 @@ private fun getWindowsMonitors(): List<WinMonitor> {
     // Monitor 1: \\.\DISPLAY1  Primary  0,0  1920x1080
     // Monitor 2: \\.\DISPLAY2            1920,0  1920x1080
     val regex = Regex("""Monitor \d+: (\\\\\.\\[^ ]+) +(?:Primary +)?(\d+),(\d+) +(\d+)x(\d+)""")
-    val monitors = regex.findAll(output).mapNotNull { m ->
+    val monitors = regex.findAll(output).map { m ->
         val name = m.groupValues[1]
         val primary = output.contains("$name Primary")
         val x = m.groupValues[2].toInt()
@@ -957,6 +957,7 @@ private fun getWindowsMonitors(): List<WinMonitor> {
 }
 
 // Extract nircmd.exe from resources to a temp file
+/*
 private fun extractNircmd(): String? = try {
     val res = Core::class.java.getResourceAsStream("/nircmd.exe")
         ?: return null
@@ -965,6 +966,7 @@ private fun extractNircmd(): String? = try {
     res.use { input -> FileOutputStream(tmp).use { output -> input.copyTo(output) } }
     tmp.absolutePath
 } catch (e: Exception) { null }
+*/
 
 private fun findWindowsChrome(): String? {
     val candidates = listOf(
