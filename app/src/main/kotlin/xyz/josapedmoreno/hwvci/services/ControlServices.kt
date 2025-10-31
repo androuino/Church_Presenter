@@ -4,15 +4,20 @@ import com.google.gson.*
 import com.intellisrc.core.Log
 import com.intellisrc.etc.Cache
 import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
 import io.ktor.http.content.streamProvider
 import io.ktor.server.application.Application
 import io.ktor.server.auth.authenticate
+import io.ktor.server.http.content.files
+import io.ktor.server.http.content.static
 import io.ktor.server.http.content.staticResources
 import io.ktor.server.request.receive
 import io.ktor.server.request.receiveMultipart
+import io.ktor.server.request.receiveText
 import io.ktor.server.response.respond
+import io.ktor.server.response.respondBytes
 import io.ktor.server.response.respondFile
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.delete
@@ -27,7 +32,6 @@ import io.ktor.server.sessions.set
 import io.ktor.server.sse.sse
 import io.ktor.sse.ServerSentEvent
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
 import xyz.josapedmoreno.hwvci.ap.APModeChecker
 import xyz.josapedmoreno.hwvci.ap.ConfigFileChecker
 import xyz.josapedmoreno.hwvci.ap.IPAddressFetcher
@@ -37,7 +41,8 @@ import xyz.josapedmoreno.hwvci.control.BookApi
 import xyz.josapedmoreno.hwvci.control.Core
 import xyz.josapedmoreno.hwvci.control.LoginAuth
 import xyz.josapedmoreno.hwvci.control.Paths
-import xyz.josapedmoreno.hwvci.control.Paths.Companion.publicResources
+import xyz.josapedmoreno.hwvci.control.Paths.Companion.publicDir
+import xyz.josapedmoreno.hwvci.control.Paths.Companion.uploadDir
 import xyz.josapedmoreno.hwvci.control.data.EventBroadcaster
 import xyz.josapedmoreno.hwvci.control.data.LoginRequest
 import xyz.josapedmoreno.hwvci.control.data.SseEvent
@@ -57,8 +62,8 @@ fun Application.controller() {
                 EventBroadcaster.events.collect { event ->
                     send(
                         ServerSentEvent(
-                            event = event.type,
-                            data = Json.encodeToString(event)
+                            event = event.event,
+                            data = gson.toJson(event)
                         )
                     )
                 }
@@ -78,32 +83,22 @@ fun Application.controller() {
             call.respond(mapOf("ok" to success, "message" to message))
         }
         post("/searchbibleverse") {
-            val map = LinkedHashMap<String, Any>(1)
-            val data = call.receive<JsonObject>()
-            var verse = ""
-            var bookInitials = JsonArray()
+            val rawBody = call.receiveText()
+            val jsonPrimitive = JsonParser.parseString(rawBody).asJsonPrimitive
+            val innerJson = JsonParser.parseString(jsonPrimitive.asString).asJsonObject
 
-            if (data.isJsonObject) {
-                val jsonObject = data.asJsonObject
-                verse = jsonObject.get("verse").asString
-                bookInitials = jsonObject.get("versions").asJsonArray
-            } else if (data.isJsonPrimitive) {
-                val jsonPrimitive = data.asJsonPrimitive
-                val jsonObject = JsonParser.parseString(jsonPrimitive.asString).asJsonObject
-                verse = jsonObject.get("verse").asString
-                bookInitials = jsonObject.get("versions").asJsonArray
-            } else {
-                Log.w("Unexpected JSON structure")
-            }
-            map["ok"] = true
-            map["data"] = BookApi.getBook(bookInitials, verse)
+            val verse = innerJson.get("verse").asString
+            val bookInitials = innerJson.getAsJsonArray("versions")
+
+            val map = mapOf(
+                "ok" to true,
+                "data" to BookApi.getBook(bookInitials, verse)
+            )
             call.respond(map)
         }
         post("/upload") {
             val multiPart = call.receiveMultipart()
             val map = LinkedHashMap<String, Any>(1)
-            if (!Paths.uploadDir.exists())
-                Paths.uploadDir.mkdirs()
 
             multiPart.forEachPart { part ->
                 when (part) {
@@ -157,13 +152,13 @@ fun Application.controller() {
         get("/getip") {
             var success = false
             val map = LinkedHashMap<String, Any>(1)
-            val data = call.receive<JsonObject>()
+            val data = gson.fromJson(Core.getWifiStatus(), JsonObject::class.java)
             if (!data.isEmpty) {
                 map["data"] = data
                 success = true
             }
             map["ok"] = success
-            call.respond(gson.toJson(map))
+            call.respond(map)
         }
         get("/logout") {
             call.sessions.clear<UserSession>()
@@ -204,18 +199,30 @@ fun Application.controller() {
             }
             call.respondText(jsonResponse, ContentType.Application.Json)
         }
+        static("/uploaded") {
+            files(uploadDir)
+        }
         staticResources("/", "public") {
             default("index.html")
         }
-        /*staticResources("/admin", "public") {
-            default("control.html")
-        }*/
         get("/admin") {
-            call.respondFile(publicResources, "control.html")
+            val stream = object {}.javaClass.getResourceAsStream("/public/control.html")
+            if (stream != null) {
+                val bytes = stream.readBytes()
+                call.respondBytes(bytes, ContentType.Text.Html)
+            } else {
+                call.respond(HttpStatusCode.NotFound, "control.html not found")
+            }
         }
         authenticate("auth-session") {
             get("/create") {
-                call.respondFile(File(publicResources, "create.html"))
+                val stream = object {}.javaClass.getResourceAsStream("/public/create.html")
+                if (stream != null) {
+                    val bytes = stream.readBytes()
+                    call.respondBytes(bytes, ContentType.Text.Html)
+                } else {
+                    call.respond(HttpStatusCode.NotFound, "create.html not found")
+                }
             }
             put("/savesong") {
                 val song = call.receive<Song>()
@@ -332,7 +339,13 @@ fun Application.controller() {
                 call.respond(map)
             }
             get("/settings") {
-                call.respondFile(publicResources, "settings.html")
+                val stream = object {}.javaClass.getResourceAsStream("/public/settings.html")
+                if (stream != null) {
+                    val bytes = stream.readBytes()
+                    call.respondBytes(bytes, ContentType.Text.Html)
+                } else {
+                    call.respond(HttpStatusCode.NotFound, "settings.html not found")
+                }
             }
             get("/getfonts") {
                 val map = LinkedHashMap<String, Any>(1)
@@ -352,7 +365,13 @@ fun Application.controller() {
                 call.respond(map)
             }
             get("/wifisettings") {
-                call.respondFile(publicResources, "wifisettings.html")
+                val stream = object {}.javaClass.getResourceAsStream("/public/wifisettings.html")
+                if (stream != null) {
+                    val bytes = stream.readBytes()
+                    call.respondBytes(bytes, ContentType.Text.Html)
+                } else {
+                    call.respond(HttpStatusCode.NotFound, "wifisettings.html not found")
+                }
             }
             post("/wificonnect") {
                 var success: Boolean
@@ -390,13 +409,12 @@ fun Application.controller() {
                 var theme: Map<String, Any?>
                 val map = LinkedHashMap<String, Any>(1)
                 val data = call.receive<JsonObject>()
-                val themeTheme = data.get("theme").asString
-                theme = Themes().getByThemeName(themeTheme)
+                theme = Themes().getTheme(data)
                 launch {
                     SseSender().theme(gson.toJson(theme))
                 }
                 map["ok"] = true
-                map["data"] = Themes().getTheme(data)
+                map["data"] = theme
                 call.respond(map)
             }
             post("/liveclear") {
@@ -422,8 +440,7 @@ fun Application.controller() {
             post("/installbook") {
                 val map = LinkedHashMap<String, Any>(1)
                 val data = call.receive<JsonObject>()
-                map["ok"] = true
-                map["data"] = BookApi.install(data.get("initials").asString)
+                map["ok"] = BookApi.install(data.get("initials").asString)
                 call.respond(map)
             }
             delete("/uninstallbook") {

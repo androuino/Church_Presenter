@@ -1,15 +1,13 @@
 package xyz.josapedmoreno.hwvci.services
 
-import xyz.josapedmoreno.hwvci.control.Core
 import xyz.josapedmoreno.hwvci.control.data.EventBroadcaster
 import xyz.josapedmoreno.hwvci.control.data.SseEvent
-import java.lang.Thread.sleep
 
 class SseSender {
     suspend fun connected(data: String) {
         EventBroadcaster.emit(
             SseEvent(
-                type = "connected",
+                event = "connected",
                 data = data
             )
         )
@@ -17,7 +15,7 @@ class SseSender {
     suspend fun changeBackground(data: String) {
         EventBroadcaster.emit(
             SseEvent(
-                type = "changebackground",
+                event = "changebackground",
                 data = data
             )
         )
@@ -25,7 +23,7 @@ class SseSender {
     suspend fun songTitle(data: String) {
         EventBroadcaster.emit(
             SseEvent(
-                type = "title",
+                event = "title",
                 data = data
             )
         )
@@ -33,7 +31,7 @@ class SseSender {
     suspend fun changeLyrics(data: String) {
         EventBroadcaster.emit(
             SseEvent(
-                type = "lyrics",
+                event = "lyrics",
                 data = data
             )
         )
@@ -41,15 +39,16 @@ class SseSender {
     suspend fun verse(data: String) {
         EventBroadcaster.emit(
             SseEvent(
-                type = "verse",
-                data = data
+                event = "verse",
+                data = data,
+                type = "application/json"
             )
         )
     }
     suspend fun hideLyrics(data: String) {
         EventBroadcaster.emit(
             SseEvent(
-                type = "hidelyrics",
+                event = "hidelyrics",
                 data = data
             )
         )
@@ -57,7 +56,7 @@ class SseSender {
     suspend fun blackScreen(data: String) {
         EventBroadcaster.emit(
             SseEvent(
-                type = "blackscreen",
+                event = "blackscreen",
                 data = data
             )
         )
@@ -65,7 +64,7 @@ class SseSender {
     suspend fun showLyrics(data: String) {
         EventBroadcaster.emit(
             SseEvent(
-                type = "showlyrics",
+                event = "showlyrics",
                 data = data
             )
         )
@@ -73,7 +72,7 @@ class SseSender {
     suspend fun removeBackground(data: String) {
         EventBroadcaster.emit(
             SseEvent(
-                type = "removebackground",
+                event = "removebackground",
                 data = data
             )
         )
@@ -81,7 +80,7 @@ class SseSender {
     suspend fun wifiStatus(data: String) {
         EventBroadcaster.emit(
             SseEvent(
-                type = "wifi",
+                event = "wifi",
                 data = data
             )
         )
@@ -89,7 +88,7 @@ class SseSender {
     suspend fun mode(data: String) {
         EventBroadcaster.emit(
             SseEvent(
-                type = "apmode",
+                event = "apmode",
                 data = data
             )
         )
@@ -97,15 +96,16 @@ class SseSender {
     suspend fun theme(data: String) {
         EventBroadcaster.emit(
             SseEvent(
-                type = "theme",
-                data = data
+                event = "theme",
+                data = data,
+                type = "application/json"
             )
         )
     }
     suspend fun clearLive(data: String) {
         EventBroadcaster.emit(
             SseEvent(
-                type = "clear",
+                event = "clear",
                 data = data
             )
         )

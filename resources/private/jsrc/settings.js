@@ -628,7 +628,7 @@ m2d2.ready($ => {
                             };
                             $.post("/installbook", data, res => {
                                 if (res.ok) {
-                                    $.success("Installation is still in progress. Please refresh after 5 minutes.")
+                                    $.success("New Bible version installed.");
                                 }
                             }, error => {
                                 console.error("Error installing book", error);
@@ -1255,52 +1255,28 @@ m2d2.ready($ => {
                 }, true);
             }
         });
-        await db.media.get("installed").then(versions => {
-            if (versions) {
+        $.get("/getversions", res => {
+            if (res.ok) {
                 versionsInstalled.items.clear();
                 selectVersion1.items.clear();
                 selectVersion2.items.clear();
                 selectVersion3.items.clear();
-                versions.list.forEach(item => {
+                Object.entries(res.data).forEach(([k,v]) => {
+                    listInstalledBibleVersions.push(`${k} : ${v}`);
                     versionsInstalled.items.push({
-                        text : item,
+                        text : `${k} : ${v}`,
                     });
                     selectVersion1.items.push({
-                        text : item,
+                        text : `${k} : ${v}`,
                     });
                     selectVersion2.items.push({
-                        text : item,
+                        text : `${k} : ${v}`,
                     });
                     selectVersion3.items.push({
-                        text : item,
+                        text : `${k} : ${v}`,
                     });
                 });
-            } else {
-                console.log("No Bible versions saved.")
-                $.get("/getversions", res => {
-                    if (res.ok) {
-                        versionsInstalled.items.clear();
-                        selectVersion1.items.clear();
-                        selectVersion2.items.clear();
-                        selectVersion3.items.clear();
-                        Object.entries(res.data).forEach(([k,v]) => {
-                            listInstalledBibleVersions.push(`${k} : ${v}`);
-                            versionsInstalled.items.push({
-                                text : `${k} : ${v}`,
-                            });
-                            selectVersion1.items.push({
-                                text : `${k} : ${v}`,
-                            });
-                            selectVersion2.items.push({
-                                text : `${k} : ${v}`,
-                            });
-                            selectVersion3.items.push({
-                                text : `${k} : ${v}`,
-                            });
-                        });
-                        saveToLocalDB("installedversions", { list: listInstalledBibleVersions });
-                    }
-                });
+                saveToLocalDB("installedversions", { list: listInstalledBibleVersions });
             }
         });
     }

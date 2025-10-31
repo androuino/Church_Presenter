@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class SseEvent(val type: String, val data: String, val timestamp: Long = System.currentTimeMillis())
+data class SseEvent(val event: String, val data: String, val type: String = "text/event-stream", val timestamp: Long = System.currentTimeMillis())
 
 object EventBroadcaster {
     private val _events = MutableSharedFlow<SseEvent>(

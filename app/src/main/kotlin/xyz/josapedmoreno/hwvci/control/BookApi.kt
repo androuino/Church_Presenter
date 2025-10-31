@@ -59,7 +59,7 @@ class BookApi {
             var success = false
             var i = 0
             if (Core.isConnectedToInternet()) {
-                val versions = listOf<String>("KJV", "JapBungo", "TagAngBiblia")
+                val versions = listOf("KJV", "JapBungo", "TagAngBiblia")
                 versions.forEach {
                     if (!checkIfVersionExist(it)) {
                         install(it)
@@ -84,7 +84,7 @@ class BookApi {
                 val moduleDirs: Array<File> = arrayOf(File("modules"))
                 SwordBookPath.setAugmentPath(moduleDirs)
 
-                // Create an install manager and fetch the default CrossWire repository
+                // Create an installation manager and fetch the default CrossWire repository
                 val installManager = InstallManager()
                 val installer: Installer = installManager.getInstaller("CrossWire")
 
@@ -149,6 +149,7 @@ class BookApi {
             val map = mutableMapOf<String, Any>()
             // Get a list of all installed books (Bibles, commentaries, dictionaries, etc.)
             val books: List<Book> = Books.installed().books
+            Log.i("installed versions", books)
 
             // Search for a specific Bible version
             val searchVersion = "Philippine Bible Society (1905)" // You can also search by initials like "TAB"

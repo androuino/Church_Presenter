@@ -48,14 +48,20 @@ m2d2.ready($ => {
         },
     });
     evtSource.addEventListener("lyrics", function (ev) {
-        let evData = ev.data;
-        let lines = evData.split("\\n");
-        lines.shift();
-        const join = lines.join("\n");
-        const formattedText = join.replace(/\\n/g, '\n');
-        const clean = formattedText.replace(/\$[a-zA-Z]/, '');
-        const finalText = clean.replaceAll('"', '');
-        lyrics.textContent = finalText;
+        try {
+            const outer = JSON.parse(ev.data);
+            let raw = outer.data;
+            const lines = raw.split(/\r?\n/);  // Handles \n, \r\n
+            if (lines.length > 0 && /^\$[a-zA-Z]/.test(lines[0])) {
+                lines.shift();  // Remove $v, $c, etc.
+            }
+            const finalText = lines.join('\n');
+            lyrics.textContent = finalText;
+
+            console.log("Cleaned lyrics:", finalText);
+        } catch (err) {
+            console.error("Failed to parse lyrics event:", err, ev.data);
+        }
     });
     evtSource.addEventListener("settings", function (ev) {});
     evtSource.addEventListener("clear", function (ev) {
@@ -64,7 +70,13 @@ m2d2.ready($ => {
         info.textContent = "HWVCI Presenter";
     });
     evtSource.addEventListener("theme", function (ev) {
-        var data = JSON.parse(JSON.parse(ev.data));
+        var payload = JSON.parse(ev.data);
+        let data;
+        if (payload.type === "application/json") {
+            data = JSON.parse(payload.data);
+        } else {
+            data = payload;
+        }
         const id = data.id;
         const font = data.font;
         const fontSize = data.font_size;
@@ -116,11 +128,12 @@ m2d2.ready($ => {
         main.style.alignItems = data.align_items;
     });
     evtSource.addEventListener("verse", function (ev) {
-        var data = JSON.parse(JSON.parse(ev.data));
+        const data = JSON.parse(ev.data);
+        console.log("verse is", data.data);
         $.post("/searchbibleverse", data, res => {
             if (res.ok) {
-                var newLine = "";
-                var book = "";
+                let newLine = "";
+                let book = "";
                 const data = res.data;
                 if (data.length > 1) {
                     newLine = '\n\n';
@@ -130,7 +143,7 @@ m2d2.ready($ => {
                 for (let i = 0; i < numOfKeys; i++) {
                     // Create an array to hold the combined values for the current index
                     const combinedValues = [];
-                    var verse = "";
+                    let verse = "";
                     // Iterate through each map to get the value at the current index
                     for (let j = 0; j < numOfMaps; j++) {
                         verse += data[j][Object.keys(data[j])[i]] + newLine;
@@ -169,10 +182,12 @@ m2d2.ready($ => {
         mediaContainer.innerHTML = "";
     });
     evtSource.addEventListener("title", function (ev) {
-        info.textContent = ev.data.replaceAll('"', "");
+        const data = JSON.parse(ev.data);
+        info.textContent = data.data.replaceAll('"', "");
     });
     evtSource.addEventListener("changebackground", function (ev) {
-        const origName = ev.data.replaceAll('"', "");
+        const data = JSON.parse(ev.data);
+        let origName = data.data.replaceAll('"', "");
         if (origName === "link") {
             $.get("/getlink", res => {
                 if (res.ok) {
@@ -190,13 +205,15 @@ m2d2.ready($ => {
         }
     });
     evtSource.addEventListener("connected", function (ev) {
-        const res = ev.data.replaceAll('"', "");
+        const data = JSON.parse(ev.data);
+        res = data.data.replaceAll('"', "");
         if (res === "true") {
             info.textContent = "info";
         }
     });
     evtSource.addEventListener("apmode", function (ev) {
-        const res = ev.data.replaceAll('"', "");
+        const data = JSON.parse(ev.data);
+        const res = data.data.replaceAll('"', "");
         info.textContent = res;
     });
     function requestFullScreen() {
@@ -248,6 +265,7 @@ m2d2.ready($ => {
         const embedUrl = isLink ? getEmbedUrl(fileOrLink) : null;
 
         if (embedUrl) {
+            console.log("Media is a link");
             // It's a third-party video (YouTube/Vimeo/Dailymotion)
             mediaContainer.innerHTML = `
                 <iframe
@@ -267,6 +285,7 @@ m2d2.ready($ => {
             fileOrLink.endsWith('.ogg') ||
             (isLink && (fileOrLink.includes('.mp4') || fileOrLink.includes('.webm') || fileOrLink.includes('.ogg')))
         ) {
+            console.log("Media is a video", fileOrLink);
             let mimeType = '';
             if (fileOrLink.endsWith('.mp4') || (isLink && fileOrLink.includes('.mp4'))) mimeType = 'video/mp4';
             else if (fileOrLink.endsWith('.webm') || (isLink && fileOrLink.includes('.webm'))) mimeType = 'video/webm';
@@ -292,12 +311,14 @@ m2d2.ready($ => {
             fileOrLink.endsWith('.png') ||
             (isLink && (fileOrLink.includes('.jpeg') || fileOrLink.includes('.jpg') || fileOrLink.includes('.png')))
         ) {
+            console.log("Media is an image", fileOrLink);
             mediaContainer.innerHTML = `
                 <img id="imgContainer" style="object-fit: cover; width:100%; height:100%;" src="${fileOrLink}" alt="Image"/>
             `;
         }
         // Unsupported media
         else {
+            console.log("Unsupported media.");
             mediaContainer.innerHTML = "Unsupported media format.";
         }
     }
