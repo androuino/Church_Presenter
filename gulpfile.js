@@ -17,7 +17,7 @@ const paths = {
     jsrc    : ['jsrc/index.js', 'jsrc/control.js', 'jsrc/create.js', 'jsrc/settings.js', 'jsrc/wifisettings.js'],
     scss    : ['scss/index.scss', 'scss/control.scss', 'scss/create.scss', 'scss/settings.scss', 'scss/wifisettings.scss'],
     // Public out:
-    pub     : "resources/public/",
+    pub     : "app/src/main/resources/public/",
     js      : 'js/',
     css     : 'css/',
 }

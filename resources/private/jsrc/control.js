@@ -738,12 +738,19 @@ m2d2.ready($ => {
         onload : function(ev) {
             $.get("/checksessions", res => {
                 if (res.ok) {
+                    form.show = false;
                     container.show = false;
                     bubbles.show = false;
                     header.show = true;
                     mainControl.show = true;
                     getSongList();
                     localStorage.setItem("login", true);
+                    const wifi = JSON.parse(res.wifistatus);
+                    if (wifi.status === "connected") {
+                        mainControl.navWiFi.style.color = "green";
+                    } else {
+                        mainControl.navWiFi.style.color = "";
+                    }
                 } else {
                     header.show = false;
                     mainControl.show = false;
@@ -807,14 +814,16 @@ m2d2.ready($ => {
             }
         });
     }
+/*
     evtSource.addEventListener("wifi", function (ev) {
-        let data = JSON.parse(JSON.parse(ev.data));
-        if (data.status === "connected") {
+        const res = JSON.parse(ev.data);
+        if (res.data.status === "connected") {
             mainControl.navWiFi.style.color = "green";
         } else {
             mainControl.navWiFi.style.color = "";
         }
     });
+*/
     const liElements = live.ulLiveLyrics.getElementsByTagName('li');
     let selectedIndex = -1;
     document.addEventListener('keydown', function(event) {

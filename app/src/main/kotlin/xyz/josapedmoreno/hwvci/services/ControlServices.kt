@@ -18,8 +18,6 @@ import io.ktor.server.request.receiveMultipart
 import io.ktor.server.request.receiveText
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondBytes
-import io.ktor.server.response.respondFile
-import io.ktor.server.response.respondText
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
@@ -41,7 +39,6 @@ import xyz.josapedmoreno.hwvci.control.BookApi
 import xyz.josapedmoreno.hwvci.control.Core
 import xyz.josapedmoreno.hwvci.control.LoginAuth
 import xyz.josapedmoreno.hwvci.control.Paths
-import xyz.josapedmoreno.hwvci.control.Paths.Companion.publicDir
 import xyz.josapedmoreno.hwvci.control.Paths.Companion.uploadDir
 import xyz.josapedmoreno.hwvci.control.data.EventBroadcaster
 import xyz.josapedmoreno.hwvci.control.data.LoginRequest
@@ -77,7 +74,17 @@ fun Application.controller() {
             message = LoginAuth(loginRequest.user, loginRequest.pass).isValid()
             if (message == "success") {
                 success = true
+
+                Log.i("Setting session for user: ${loginRequest.user}")
+                call.sessions.set(UserSession(username = loginRequest.user))
+
+                val cookieAfter = call.response.cookies["USER_SESSION"]?.value
+                val cookieRequest = call.request.cookies["USER_SESSION"]
+                Log.i("SESSION SET - Response cookie: $cookieAfter")
+                Log.i("SESSION SET - Request cookie (should be old): $cookieRequest")
+
                 EventBroadcaster.emit(SseEvent("connected", "true"))
+                Log.i("Setting session for user: ${loginRequest.user}")
                 call.sessions.set(UserSession(username = loginRequest.user))
             }
             call.respond(mapOf("ok" to success, "message" to message))
@@ -162,12 +169,29 @@ fun Application.controller() {
         }
         get("/logout") {
             call.sessions.clear<UserSession>()
+            call.response.cookies.append(
+                name = "USER_SESSION",
+                value = "",
+                maxAge = 0,
+                path = "/",
+                httpOnly = true
+            )
             call.respond(mapOf("ok" to true))
         }
         get("/checksessions") {
+            val rawCookie = call.request.cookies["USER_SESSION"]
+            Log.i("CHECKSessions - RAW COOKIE: '$rawCookie'")
+
             val session = call.sessions.get<UserSession>()
-            val success = session?.username == "admin"
-            val jsonResponse = gson.toJson(mapOf("ok" to success))
+            Log.i("CHECKSessions - DESERIALIZED SESSION: $session")
+
+            val success = session?.username?.isNotEmpty() == true
+            Log.i("success = $success")
+            val map = LinkedHashMap<String, Any>()
+            Log.i("success is %s", success)
+            map["ok"] = success
+            val status = Core.getWifiStatus()
+            map["wifistatus"] = status
             if (!Core.getWifiConnectionStatus()) {
                 Log.w("Switching to AP mode")
                 // Check if packages are installed
@@ -180,10 +204,9 @@ fun Application.controller() {
                 APModeChecker.startAccessPointIfNecessary()
                 Log.i("Access point setup complete")
 
-                val status = Core.getWifiStatus()
-                launch {
+                /*launch {
                     SseSender().wifiStatus(status)
-                }
+                }*/
 
                 val ipAddress = IPAddressFetcher.getIPAddress("wlan0") // Replace with the correct interface
                 if (ipAddress != null) {
@@ -197,7 +220,8 @@ fun Application.controller() {
             } else {
                 Log.i("Device is connected to wifi")
             }
-            call.respondText(jsonResponse, ContentType.Application.Json)
+            val jsonResponse = gson.toJson(map)
+            call.respond(jsonResponse)
         }
         static("/uploaded") {
             files(uploadDir)

@@ -6,11 +6,14 @@ import com.intellisrc.core.SysService
 import com.intellisrc.db.Database
 import io.ktor.serialization.gson.gson
 import io.ktor.server.application.install
+import io.ktor.server.engine.ApplicationEngine
+import io.ktor.server.engine.EmbeddedServer
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.sse.SSE
 import xyz.josapedmoreno.hwvci.control.BookApi
+import xyz.josapedmoreno.hwvci.services.InMemorySessionStorage
 import xyz.josapedmoreno.hwvci.services.authService
 import xyz.josapedmoreno.hwvci.services.controller
 import xyz.josapedmoreno.hwvci.table.Themes
@@ -22,7 +25,8 @@ class App : SysService() {
         if (!args.isEmpty())
             port = Integer.parseInt(args.poll())
 
-        embeddedServer(
+        sessionStorage = InMemorySessionStorage()
+        server = embeddedServer(
             Netty,
             port = port,
             host = "0.0.0.0"
@@ -50,10 +54,15 @@ class App : SysService() {
 
     override fun onStop() {
         super.onStop()
+        sessionStorage.clearAll()
+        server?.stop(500, 1000)
         Database.getDefault().quit()
     }
 
     companion object {
+        var server: EmbeddedServer<*, *>? = null
+        lateinit var sessionStorage: InMemorySessionStorage
+
         init {
             service = App()
         }
