@@ -201,9 +201,7 @@ fun Application.controller() {
                 val ipAddress = IPAddressFetcher.getIPAddress("wlan0") // Replace with the correct interface
                 if (ipAddress != null) {
                     Log.i("Access Point IP Address: $ipAddress")
-                    launch {
-                        SseSender().mode(ipAddress)
-                    }
+                    launch { SseSender().mode(ipAddress) }
                 } else {
                     Log.w("Unable to fetch the IP address.")
                 }
@@ -213,12 +211,8 @@ fun Application.controller() {
             val jsonResponse = gson.toJson(map)
             call.respond(jsonResponse)
         }
-        static("/uploaded") {
-            files(uploadDir)
-        }
-        staticResources("/", "public") {
-            default("index.html")
-        }
+        static("/uploaded") { files(uploadDir) }
+        staticResources("/", "public") { default("index.html") }
         get("/admin") {
             val stream = object {}.javaClass.getResourceAsStream("/public/control.html")
             if (stream != null) {
@@ -238,10 +232,7 @@ fun Application.controller() {
                     call.respond(HttpStatusCode.NotFound, "create.html not found")
                 }
             }
-            put("/savesong") {
-                val song = call.receive<Song>()
-                call.respond(mapOf("ok" to SongTable().insertSong(song)))
-            }
+            put("/savesong") { call.respond(mapOf("ok" to SongTable().insertSong(call.receive<Song>()))) }
             get("/getsongs") {
                 var success = false
                 val map = LinkedHashMap<String, Any>(1)
@@ -265,10 +256,7 @@ fun Application.controller() {
                 map["ok"] = success
                 call.respond(map)
             }
-            delete("/deletesong/{id}") {
-                val id = call.parameters["id"]
-                call.respond(mapOf("ok" to SongTable().deleteSongById(id?.toInt() ?: 0)))
-            }
+            delete("/deletesong/{id}") { call.respond(mapOf("ok" to SongTable().deleteSongById(id = call.parameters["id"]?.toInt() ?: 0))) }
             get("/getsonglyrics/{id}") {
                 var success = false
                 val map = LinkedHashMap<String, Any>(1)
@@ -282,26 +270,12 @@ fun Application.controller() {
                 map["ok"] = success
                 call.respond(map)
             }
-            post("/saveeditedsong") {
-                val data = call.receive<JsonObject>()
-                call.respond(mapOf("ok" to SongTable().saveEditedSong(data)))
-            }
-            post("/deletetheme/{id}") {
-                val id = call.parameters["id"]
-                call.respond(mapOf("ok" to Themes().deleteTheme(id?.toInt() ?: 0)))
-            }
-            post("/disableservice") {
-                call.respond(mapOf("ok" to Core.disableService()))
-            }
-            post("/enableservice") {
-                call.respond(mapOf("ok" to Core.enableService()))
-            }
-            post("/startprojector") {
-                call.respond(mapOf("ok" to Core.startKiosk()))
-            }
-            post("/stopprojector") {
-                call.respond(mapOf("ok" to Core.stopKiosk()))
-            }
+            post("/saveeditedsong") { call.respond(mapOf("ok" to SongTable().saveEditedSong(call.receive<JsonObject>()))) }
+            post("/deletetheme/{id}") { call.respond(mapOf("ok" to Themes().deleteTheme(call.parameters["id"]?.toInt() ?: 0))) }
+            post("/disableservice") { call.respond(mapOf("ok" to Core.disableService())) }
+            post("/enableservice") { call.respond(mapOf("ok" to Core.enableService())) }
+            post("/startprojector") { call.respond(mapOf("ok" to Core.startKiosk())) }
+            post("/stopprojector") { call.respond(mapOf("ok" to Core.stopKiosk())) }
             get("/getsongtitle/{id}") {
                 var success = false
                 var title: String
@@ -330,9 +304,7 @@ fun Application.controller() {
                     call.respond(HttpStatusCode.NotFound, "settings.html not found")
                 }
             }
-            get("/getfonts") {
-                call.respond(mapOf("ok" to true, "data" to Core.getFonts()))
-            }
+            get("/getfonts") { call.respond(mapOf("ok" to true, "data" to Core.getFonts())) }
             get("/getssid") {
                 var success = false
                 val map = LinkedHashMap<String, Any>(1)
@@ -353,24 +325,11 @@ fun Application.controller() {
                     call.respond(HttpStatusCode.NotFound, "wifisettings.html not found")
                 }
             }
-            post("/wificonnect") {
-                val data = call.receive<JsonObject>()
-                call.respond(mapOf("ok" to Core.connectToWifi(data)))
-            }
-            post("/wifidisconnect") {
-                call.respond(mapOf("ok" to Core.wifiDisconnect()))
-            }
-            put("/savetheme") {
-                val data = call.receive<JsonObject>()
-                call.respond(mapOf("ok" to Themes().saveTheme(data)))
-            }
-            post("/gettheme") {
-                val data = call.receive<JsonObject>()
-                call.respond(mapOf("ok" to true, "data" to Themes().getTheme(data)))
-            }
-            get("/getthemes") {
-                call.respond(mapOf("ok" to true, "data" to Themes().getThemes()))
-            }
+            post("/wificonnect") { call.respond(mapOf("ok" to Core.connectToWifi(call.receive<JsonObject>()))) }
+            post("/wifidisconnect") { call.respond(mapOf("ok" to Core.wifiDisconnect())) }
+            put("/savetheme") { call.respond(mapOf("ok" to Themes().saveTheme(call.receive<JsonObject>()))) }
+            post("/gettheme") { call.respond(mapOf("ok" to true, "data" to Themes().getTheme(call.receive<JsonObject>()))) }
+            get("/getthemes") { call.respond(mapOf("ok" to true, "data" to Themes().getThemes())) }
             post("/settheme") {
                 var theme: Map<String, Any?>
                 val data = call.receive<JsonObject>()
