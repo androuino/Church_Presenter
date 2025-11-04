@@ -103,7 +103,7 @@ m2d2.ready($ => {
         },
         navLogout : {
             onclick : function(ev) {
-                $.confirm("Are you want to log out?", res => {
+                $.confirm("Please confirm to log out?", res => {
                     if (res) {
                         $.get("/logout", res => {
                             if (res.ok) {
