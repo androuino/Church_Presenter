@@ -953,7 +953,7 @@ class Core {
             return enumDisplayMonitorsJava()
         }
 
-// Extract nircmd.exe from resources to a temp file
+        // Extract nircmd.exe from resources to a temp file
         /*
         private fun extractNircmd(): String? = try {
             val res = Core::class.java.getResourceAsStream("/nircmd.exe")
