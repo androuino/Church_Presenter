@@ -14,8 +14,21 @@ const prefixUser = "user";
 const paths = {
     // Private in:
     priv    : "resources/private/",
-    jsrc    : ['jsrc/index.js', 'jsrc/control.js', 'jsrc/create.js', 'jsrc/settings.js', 'jsrc/wifisettings.js'],
-    scss    : ['scss/index.scss', 'scss/control.scss', 'scss/create.scss', 'scss/settings.scss', 'scss/wifisettings.scss'],
+    jsrc    : [
+        'jsrc/index.js',
+        'jsrc/control.js',
+        'jsrc/create.js',
+        'jsrc/settings.js',
+        'jsrc/wifisettings.js',
+        'jsrc/tooltip.js'
+    ],
+    scss    : [
+        'scss/index.scss',
+        'scss/control.scss',
+        'scss/create.scss',
+        'scss/settings.scss',
+        'scss/wifisettings.scss'
+    ],
     // Public out:
     pub     : "app/src/main/resources/public/",
     js      : 'js/',
@@ -43,7 +56,11 @@ gulp.task('js', gulp.series([], function() {
         .pipe(terser())
         .pipe(concat("wifisettings" + ".min.js"))
         .pipe(gulp.dest(paths.pub + paths.js));
-    return merge([index, control, create, settings, wifisettings]);
+    const tooltip = gulp.src([paths.priv + paths.jsrc[5]])
+        .pipe(terser())
+        .pipe(concat("tip" + ".min.js"))
+        .pipe(gulp.dest(paths.pub + paths.js));
+    return merge([index, control, create, settings, wifisettings, tooltip]);
 }));
 // CSS
 gulp.task('css', gulp.series([], function () {

@@ -102,14 +102,4 @@ m2d2.ready($ => {
     window.addEventListener('unload', function () {
         localStorage.setItem("data", null);
     });
-    tippy('#howTo', {
-        allowHTML: true,
-        content: howToContent,
-        interactive: true,
-        placement: "bottom-end",
-        trigger: "click",
-        onShow: async (instance) => {
-            // call a function here
-        }
-    });
 });

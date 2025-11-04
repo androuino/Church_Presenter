@@ -33,7 +33,7 @@ if [[ $? == 0 ]]; then
         rsync -av --exclude='deploy/log/*' deploy/resources deploy/*.jar deploy/config.properties deploy/kiosk deploy/run "sem@$IP:$DIR/."
     else
         DIR="www"
-        rsync -av --exclude='deploy/log/*' deploy/resources deploy/*.jar deploy/config.properties deploy/kiosk deploy/run "sem@$IP:$DIR/."
+       rsync -av --exclude='deploy/log/*' deploy/resources deploy/*.jar deploy/config.properties deploy/kiosk deploy/run "sem@$IP:$DIR/."
     fi
     LOG=log/
     if [[ -f "$LOG" ]]; then
