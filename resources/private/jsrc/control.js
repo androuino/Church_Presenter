@@ -988,7 +988,7 @@ m2d2.ready($ => {
     });
     tippy('.navInfo', {
         allowHTML: true,
-        content: 'About',
+        content: 'Version: 2.0\nDeveloper: Sem Moreno\nSince: 2024',
         interactive: true,
         placement: 'right',
         animation: 'scale',
