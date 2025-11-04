@@ -492,28 +492,31 @@ class Core {
             }
             return success
         }
-        fun startKiosk() {
+        fun startKiosk() : Boolean {
+            var success = false
             if (isKioskRunning()) {
                 Log.w("Kiosk already running – not starting")
-                return
+                return true
             }
 
             val os = System.getProperty("os.name").lowercase()
             val url = "http://localhost:5555"
 
             when {
-                os.contains("win") -> openBrowserWindow(url)
-                os.contains("mac") -> openBrowserMac(url)
-                os.contains("nix") || os.contains("nux") -> openBrowserLinux(url)
+                os.contains("win") -> success = openBrowserWindow(url)
+                os.contains("mac") -> success = openBrowserMac(url)
+                os.contains("nix") || os.contains("nux") -> success = openBrowserLinux(url)
                 else -> Log.w("Unsupported OS: $os")
             }
+            return success
         }
-        fun stopKiosk() {
+        fun stopKiosk() : Boolean {
+            var success = false
             val os = System.getProperty("os.name").lowercase()
             when {
-                os.contains("win") -> stopKioskWindows()
-                os.contains("mac") -> stopKioskMac()
-                os.contains("nix") || os.contains("nux") -> stopKioskLinux()
+                os.contains("win") -> success = stopKioskWindows()
+                os.contains("mac") -> success = stopKioskMac()
+                os.contains("nix") || os.contains("nux") -> success = stopKioskLinux()
             }
 
             // --- Always clean up lock file ---
@@ -521,15 +524,17 @@ class Core {
                 if (KIOSK_LOCK_FILE.exists()) {
                     KIOSK_LOCK_FILE.delete()
                     Log.i("Kiosk lock file removed")
+                    success = true
                 }
             } catch (_: Exception) { /* ignore */ }
-
             kioskPid = null
+            return success
         }
-        fun openBrowserWindow(url: String) {
+        fun openBrowserWindow(url: String): Boolean {
+            var success = false
             if (isKioskRunning()) {
                 Log.w("Kiosk is already running (PID: $kioskPid). Not starting another.")
-                return
+                return true
             }
             try {
                 // 1. Get real monitor geometry (x, y, w, h, primary)
@@ -537,7 +542,7 @@ class Core {
                 val monitors = getWindowsMonitors()
                 if (monitors.isEmpty()) {
                     Log.w("No monitors detected on Windows")
-                    return
+                    return success
                 }
 
                 // Choose the *extended* monitor
@@ -549,7 +554,7 @@ class Core {
                 // -------------------------------------------------
                 val chromeExe = findWindowsChrome() ?: run {
                     Log.e("Chrome not found")
-                    return
+                    return success
                 }
 
                 // -------------------------------------------------
@@ -593,22 +598,23 @@ class Core {
                     Thread.sleep(15_000)
                     profileDir.deleteRecursively()
                 }.start()
-
+                return true
             } catch (e: Exception) {
                 Log.e("Windows kiosk failed", e)
             }
+            return false
         }
 
-        fun openBrowserLinux(url: String) {
+        fun openBrowserLinux(url: String) : Boolean {
             if (isKioskRunning()) {
                 Log.w("Kiosk is already running (PID: $kioskPid). Not starting another.")
-                return
+                return true
             }
             try {
                 val monitors = detectMonitors()
                 if (monitors.isEmpty()) {
                     Log.w("No monitors detected")
-                    return
+                    return false
                 }
 
                 val extended = monitors.find { it["primary"] as? Boolean != true }
@@ -625,7 +631,7 @@ class Core {
 
                 val chromeCmd = findChromeCommand() ?: run {
                     Log.e("Chrome not found")
-                    return
+                    return false
                 }
 
                 val profileDir = File(System.getProperty("java.io.tmpdir"), "kiosk-profile-${System.nanoTime()}")
@@ -669,23 +675,24 @@ class Core {
                     Thread.sleep(10000)
                     profileDir.deleteRecursively()
                 }.start()
-
+                return true
             } catch (e: Exception) {
                 Log.e("Kiosk launch failed", e)
             }
+            return false
         }
 
-        fun openBrowserMac(url: String) {
+        fun openBrowserMac(url: String) : Boolean {
             if (isKioskRunning()) {
                 Log.w("Kiosk is already running (PID: $kioskPid). Not starting another.")
-                return
+                return true
             }
             try {
                 // 1. Detect screens
                 val screens = getMacScreens()
                 if (screens.isEmpty()) {
                     Log.w("No screens found on macOS")
-                    return
+                    return false
                 }
 
                 // 2. Choose extended screen (not the one with origin 0,0)
@@ -700,7 +707,7 @@ class Core {
                 // 3. Find Chrome
                 val chromeApp = findMacChrome() ?: run {
                     Log.e("Chrome not found on macOS")
-                    return
+                    return false
                 }
 
                 // 4. Temp profile
@@ -747,12 +754,13 @@ class Core {
                     Thread.sleep(15000)
                     profile.deleteRecursively()
                 }.start()
-
+                return true
             } catch (e: Exception) {
                 Log.e("macOS kiosk failed", e)
             }
+            return false
         }
-        private fun stopKioskWindows() {
+        private fun stopKioskWindows() : Boolean {
             try {
                 val pb = ProcessBuilder(
                     "taskkill", "/F", "/IM", "chrome.exe",
@@ -761,11 +769,13 @@ class Core {
                 val process = pb.start()
                 process.waitFor()
                 Log.i("Kiosk stopped on Windows")
+                return true
             } catch (e: Exception) {
                 Log.e("Failed to stop kiosk on Windows", e)
             }
+            return false
         }
-        private fun stopKioskMac() {
+        private fun stopKioskMac() : Boolean {
             try {
                 val script = """
                     tell application "Google Chrome"
@@ -791,13 +801,14 @@ class Core {
                 kioskPid?.let { pid ->
                     ProcessBuilder("kill", "-9", pid.toString()).start().waitFor()
                 }
-
                 Log.i("Kiosk stopped on macOS")
+                return true
             } catch (e: Exception) {
                 Log.e("Failed to stop kiosk on macOS", e)
             }
+            return false
         }
-        private fun stopKioskLinux() {
+        private fun stopKioskLinux() : Boolean {
             try {
                 // 1. Try killing by stored PID (most reliable)
                 kioskPid?.let { pid ->
@@ -805,7 +816,7 @@ class Core {
                         .redirectErrorStream(true).start().waitFor()
                     Log.i("Kiosk (PID $pid) terminated")
                     kioskPid = null
-                    return
+                    return true
                 }
 
                 // 2. Fallback: pkill by URL fragment
@@ -815,11 +826,13 @@ class Core {
 
                 if (code == 0) Log.i("Kiosk stopped via pkill")
                 else          Log.w("pkill returned $code – maybe already stopped")
+                return true
             } catch (e: Exception) {
                 Log.e("Failed to stop kiosk", e)
             }
+            return false
         }
-        private fun isKioskRunning(): Boolean {
+        private fun isKioskRunning() : Boolean {
             // 1. Check lock file
             if (!KIOSK_LOCK_FILE.exists()) return false
 

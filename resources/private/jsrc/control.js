@@ -63,6 +63,8 @@ m2d2.ready($ => {
                 $.post("/startprojector", res => {
                     if (res.ok) {
                         console.log("Projector started.");
+                    } else {
+                        $.failure("Is either google chrome is not installed or no extended monitor is connected");
                     }
                 }, true);
             }
@@ -72,6 +74,8 @@ m2d2.ready($ => {
                 $.post("/stopprojector", res => {
                     if (res.ok) {
                         console.log("Projector stopped.");
+                    } else {
+                        console.log("Failed to stop projector.")
                     }
                 }, true);
             }
@@ -92,7 +96,6 @@ m2d2.ready($ => {
                 window.open(newWindowUrl, 'wifiSettingWindow', 'width=800,height=400,toolbar=no,scrollbars=yes,resizable=yes');
             }
         },
-        // todo
         navSettings : {
             onclick : function(ev) {
                 $.get("/settings", res => {

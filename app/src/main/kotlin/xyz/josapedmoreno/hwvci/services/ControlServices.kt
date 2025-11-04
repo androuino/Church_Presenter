@@ -93,15 +93,9 @@ fun Application.controller() {
             val rawBody = call.receiveText()
             val jsonPrimitive = JsonParser.parseString(rawBody).asJsonPrimitive
             val innerJson = JsonParser.parseString(jsonPrimitive.asString).asJsonObject
-
             val verse = innerJson.get("verse").asString
             val bookInitials = innerJson.getAsJsonArray("versions")
-
-            val map = mapOf(
-                "ok" to true,
-                "data" to BookApi.getBook(bookInitials, verse)
-            )
-            call.respond(map)
+            call.respond(mapOf("ok" to true, "data" to BookApi.getBook(bookInitials, verse)))
         }
         post("/upload") {
             val multiPart = call.receiveMultipart()
@@ -135,15 +129,11 @@ fun Application.controller() {
             call.respond(map)
         }
         post("/bglink") {
-            val map = LinkedHashMap<String, Any>(1)
             val data = call.receive<JsonObject>()
             val link = data.get("link").asString
             cache.set("link", link)
-            launch {
-                SseSender().changeBackground("link")
-            }
-            map["ok"] = true
-            call.respond(map)
+            launch { SseSender().changeBackground("link") }
+            call.respond(mapOf("ok" to true))
         }
         get("/getlink") {
             var success = false
@@ -250,10 +240,7 @@ fun Application.controller() {
             }
             put("/savesong") {
                 val song = call.receive<Song>()
-                var success = false
-                if (SongTable().insertSong(song))
-                    success = true
-                call.respond(mapOf("ok" to success))
+                call.respond(mapOf("ok" to SongTable().insertSong(song)))
             }
             get("/getsongs") {
                 var success = false
@@ -279,21 +266,15 @@ fun Application.controller() {
                 call.respond(map)
             }
             delete("/deletesong/{id}") {
-                var success: Boolean
-                val map = LinkedHashMap<String, Any>(1)
                 val id = call.parameters["id"]
-                success = SongTable().deleteSongById(id?.toInt() ?: 0)
-                map["ok"] = success
-                call.respond(map)
+                call.respond(mapOf("ok" to SongTable().deleteSongById(id?.toInt() ?: 0)))
             }
             get("/getsonglyrics/{id}") {
                 var success = false
                 val map = LinkedHashMap<String, Any>(1)
                 val id = call.parameters["id"]
                 val lyrics: String = SongTable().getSongLyricsById(id?.toInt() ?: 0)
-                launch {
-                    SseSender().songTitle(SongTable().getSongTitleById(id?.toInt() ?: 0))
-                }
+                launch { SseSender().songTitle(SongTable().getSongTitleById(id?.toInt() ?: 0)) }
                 if (lyrics.isNotEmpty()) {
                     success = true
                     map["data"] = lyrics
@@ -302,42 +283,24 @@ fun Application.controller() {
                 call.respond(map)
             }
             post("/saveeditedsong") {
-                var success: Boolean
-                val map = LinkedHashMap<String, Any>(1)
                 val data = call.receive<JsonObject>()
-                success = SongTable().saveEditedSong(data)
-                map["ok"] = success
-                call.respond(map)
+                call.respond(mapOf("ok" to SongTable().saveEditedSong(data)))
             }
             post("/deletetheme/{id}") {
-                val map = LinkedHashMap<String, Any>(1)
                 val id = call.parameters["id"]
-                map["ok"] = Themes().deleteTheme(id?.toInt() ?: 0)
-                call.respond(map)
+                call.respond(mapOf("ok" to Themes().deleteTheme(id?.toInt() ?: 0)))
             }
             post("/disableservice") {
-                val map = LinkedHashMap<String, Any>(1)
-                map["ok"] = Core.disableService()
-                call.respond(map)
+                call.respond(mapOf("ok" to Core.disableService()))
             }
             post("/enableservice") {
-                val map = LinkedHashMap<String, Any>(1)
-                map["ok"] = Core.enableService()
-                call.respond(map)
+                call.respond(mapOf("ok" to Core.enableService()))
             }
             post("/startprojector") {
-                val success = true
-                Core.startKiosk()
-                val map = LinkedHashMap<String, Any>(1)
-                map["ok"] = success
-                call.respond(map)
+                call.respond(mapOf("ok" to Core.startKiosk()))
             }
             post("/stopprojector") {
-                val success = true
-                Core.stopKiosk()
-                val map = LinkedHashMap<String, Any>(1)
-                map["ok"] = success
-                call.respond(map)
+                call.respond(mapOf("ok" to Core.stopKiosk()))
             }
             get("/getsongtitle/{id}") {
                 var success = false
@@ -353,14 +316,10 @@ fun Application.controller() {
                 call.respond(map)
             }
             post("/stream") {
-                val map = LinkedHashMap<String, Any>(1)
                 val data = call.receive<JsonObject>()
                 val lyrics = data.get("lyrics").asString
-                launch {
-                    SseSender().changeLyrics(lyrics)
-                }
-                map["ok"] = true
-                call.respond(map)
+                launch { SseSender().changeLyrics(lyrics) }
+                call.respond(mapOf("ok" to true))
             }
             get("/settings") {
                 val stream = object {}.javaClass.getResourceAsStream("/public/settings.html")
@@ -372,10 +331,7 @@ fun Application.controller() {
                 }
             }
             get("/getfonts") {
-                val map = LinkedHashMap<String, Any>(1)
-                map["ok"] = true
-                map["data"] = Core.getFonts()
-                call.respond(map)
+                call.respond(mapOf("ok" to true, "data" to Core.getFonts()))
             }
             get("/getssid") {
                 var success = false
@@ -398,122 +354,68 @@ fun Application.controller() {
                 }
             }
             post("/wificonnect") {
-                var success: Boolean
-                val map = LinkedHashMap<String, Any>(1)
                 val data = call.receive<JsonObject>()
-                success = Core.connectToWifi(data)
-                map["ok"] = success
-                call.respond(map)
+                call.respond(mapOf("ok" to Core.connectToWifi(data)))
             }
             post("/wifidisconnect") {
-                val map = LinkedHashMap<String, Any>(1)
-                map["ok"] = Core.wifiDisconnect()
-                call.respond(map)
+                call.respond(mapOf("ok" to Core.wifiDisconnect()))
             }
             put("/savetheme") {
-                val map = LinkedHashMap<String, Any>(1)
                 val data = call.receive<JsonObject>()
-                map["ok"] = Themes().saveTheme(data)
-                call.respond(map)
+                call.respond(mapOf("ok" to Themes().saveTheme(data)))
             }
             post("/gettheme") {
-                val map = LinkedHashMap<String, Any>(1)
                 val data = call.receive<JsonObject>()
-                map["ok"] = true
-                map["data"] = Themes().getTheme(data)
-                call.respond(map)
+                call.respond(mapOf("ok" to true, "data" to Themes().getTheme(data)))
             }
             get("/getthemes") {
-                val map = LinkedHashMap<String, Any>(1)
-                map["ok"] = true
-                map["data"] = Themes().getThemes()
-                call.respond(map)
+                call.respond(mapOf("ok" to true, "data" to Themes().getThemes()))
             }
             post("/settheme") {
                 var theme: Map<String, Any?>
-                val map = LinkedHashMap<String, Any>(1)
                 val data = call.receive<JsonObject>()
                 theme = Themes().getTheme(data)
-                launch {
-                    SseSender().theme(gson.toJson(theme))
-                }
-                map["ok"] = true
-                map["data"] = theme
-                call.respond(map)
+                launch { SseSender().theme(gson.toJson(theme)) }
+                call.respond(mapOf("ok" to true, "data" to theme))
             }
             post("/liveclear") {
-                val map = LinkedHashMap<String, Any>(1)
-                launch {
-                    SseSender().clearLive("clear")
-                }
-                map["ok"] = true
-                call.respond(map)
+                launch { SseSender().clearLive("clear") }
+                call.respond(mapOf("ok" to true))
             }
             get("/getbooks") {
-                val map = LinkedHashMap<String, Any>(1)
-                map["ok"] = true
-                map["data"] = BookApi.listAvailableBibles()
-                call.respond(map)
+                call.respond(mapOf("ok" to true, "data" to BookApi.listAvailableBibles()))
             }
             get("/getversions") {
-                val map = LinkedHashMap<String, Any>(1)
-                map["ok"] = true
-                map["data"] = BookApi.getInstalledBooks()
-                call.respond(map)
+                call.respond(mapOf("ok" to true, "data" to BookApi.getInstalledBooks()))
             }
             post("/installbook") {
-                val map = LinkedHashMap<String, Any>(1)
                 val data = call.receive<JsonObject>()
-                map["ok"] = BookApi.install(data.get("initials").asString)
-                call.respond(map)
+                call.respond(mapOf("ok" to BookApi.install(data.get("initials").asString)))
             }
             delete("/uninstallbook") {
-                val map = LinkedHashMap<String, Any>(1)
                 val data = call.receive<JsonObject>()
-                map["ok"] = true
-                map["data"] = BookApi.uninstallBook(data.get("initials").asString)
-                call.respond(map)
+                call.respond(mapOf("ok" to true, "data" to BookApi.uninstallBook(data.get("initials").asString)))
             }
             post("/projectverse") {
-                val map = LinkedHashMap<String, Any>(1)
                 val data = call.receive<JsonObject>()
-                launch {
-                    SseSender().verse(gson.toJson(mapOf("verse" to data.get("verse").asString, "versions" to data.get("versions").asJsonArray)))
-                }
-                map["ok"] = true
-                call.respond(map)
+                launch { SseSender().verse(gson.toJson(mapOf("verse" to data.get("verse").asString, "versions" to data.get("versions").asJsonArray))) }
+                call.respond(mapOf("ok" to true))
             }
             post("/hidelyrics") {
-                val map = LinkedHashMap<String, Any>(1)
-                launch {
-                    SseSender().hideLyrics("true")
-                }
-                map["ok"] = true
-                call.respond(map)
+                launch { SseSender().hideLyrics("true") }
+                call.respond(mapOf("ok" to true))
             }
             post("/blackscreen") {
-                val map = LinkedHashMap<String, Any>(1)
-                launch {
-                    SseSender().blackScreen("true")
-                }
-                map["ok"] = true
-                call.respond(map)
+                launch { SseSender().blackScreen("true") }
+                call.respond(mapOf("ok" to true))
             }
             post("/showlyrics") {
-                val map = LinkedHashMap<String, Any>(1)
-                launch {
-                    SseSender().showLyrics("true")
-                }
-                map["ok"] = true
-                call.respond(map)
+                launch { SseSender().showLyrics("true") }
+                call.respond(mapOf("ok" to true))
             }
             post("/removebackground") {
-                val map = LinkedHashMap<String, Any>(1)
-                launch {
-                    SseSender().removeBackground("true")
-                }
-                map["ok"] = true
-                call.respond(map)
+                launch { SseSender().removeBackground("true") }
+                call.respond(mapOf("ok" to true))
             }
         }
     }
