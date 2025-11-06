@@ -3,6 +3,7 @@ app/build/
 deploy/log
 deploy/uploaded
 deploy/test.db
+deploy/app-1.0.jar
 /.gradle
 /node_modules
 log/
