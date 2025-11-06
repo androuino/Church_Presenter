@@ -29,6 +29,7 @@ m2d2.ready($ => {
     let songTitle = "";
     let isResizing = false;
     let songList = [];
+    let toLiveId = null;
     const header = $("#header");
     const container = $(".container");
     const bubbles = $(".bubbles");
@@ -119,6 +120,39 @@ m2d2.ready($ => {
                         })
                     }
                 })
+            }
+        },
+        customMenu : {
+            show : false,
+        },
+        toLive : {
+            onclick : function(ev) {
+                const blocks = [];
+                let lyric = "";
+                mainControl.customMenu.style.display = "none";
+                live.lyricsContainer.items.forEach(item => {
+                    if (item.dataset.id === toLiveId) {
+                        lyric = item.textContent;
+                    }
+                });
+                live.ulLiveLyrics.items.forEach(item => {
+                    const id = item.dataset.id;
+                    const lyric = item.textContent;
+                    blocks.push(lyric);
+                });
+                blocks.push(lyric);
+                const toDB = {
+                    lyricsId: toLiveId,
+                    blocks: blocks
+                };
+                saveToLocalDB("live", toDB);
+                live.ulLiveLyrics.items.push({
+                    pre : {
+                        tagName : "pre",
+                        text : lyric
+                    },
+                    innerHTML : lyric.replace(/\n/g, '<br>'),
+                });
             }
         },
     });
@@ -710,6 +744,13 @@ m2d2.ready($ => {
                             document.execCommand('insertHTML', false, '<br><br>'); // Insert a new line with a break
                             ev.preventDefault();
                         }
+                    },
+                    oncontextmenu : function(ev) {
+                        ev.preventDefault();
+                        mainControl.customMenu.style.left = `${ev.clientX}px`;
+                        mainControl.customMenu.style.top = `${ev.clientY}px`;
+                        mainControl.customMenu.style.display = "block";
+                        toLiveId = ev.target.dataset.id;
                     }
                 },
             },
@@ -846,6 +887,9 @@ m2d2.ready($ => {
             }
         }
     });
+    document.addEventListener('click', () => {
+        mainControl.customMenu.show = false;
+    });
     function changeSelection(direction) {
         // Remove the class from the currently selected item
         if (selectedIndex >= 0) {
@@ -874,7 +918,6 @@ m2d2.ready($ => {
         const liveSong = db.live.get("live").then(liveSong => {
             if (liveSong) {
                 live.ulLiveLyrics.items.clear();
-                const selectedSongId = liveSong.lyricsId;
                 const blocks = liveSong.lyrics;
                 blocks.forEach(block => {
                     let trimmedBlock = block.trim();
@@ -930,7 +973,7 @@ m2d2.ready($ => {
                         console.error("Invalid data for songs store: id or list missing");
                         return;
                     }
-                    await db.songs.put({ id: "songs", list: data });
+                    await db.songs.put({ id: key, list: data });
                     const songList = await db.songs.get("songs"); // Use data.id instead of hardcoded "songs"
                     console.log("Saved song list - ID:", songList.id, "List:", songList.list);
                     break;
@@ -955,4 +998,11 @@ m2d2.ready($ => {
                 break;
         }
     }
+    const autoSaveTippy = tippy(".lyricsContainer", {
+        content: "Save edit success!",
+        interactive: false,
+        placement: 'top',
+        trigger: 'manual',
+        animation: 'scale',
+    });
 });

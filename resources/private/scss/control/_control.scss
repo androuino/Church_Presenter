@@ -444,6 +444,27 @@ form button:hover {
     height: 160px;
     animation-delay: 11s;
 }
+.customMenu {
+    position: absolute;
+    background: $background_light;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    ul {
+        list-style: none;
+        margin: 0;
+        padding: 5px 0;
+        li {
+            padding: 8px 15px;
+            cursor: pointer;
+            &:hover {
+                color: $dark;
+                background: #f0f0f0;
+            }
+        }
+    }
+}
 @keyframes square {
     0% {
         transform: translateY(0);
