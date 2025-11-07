@@ -110,4 +110,28 @@ class SseSender {
             )
         )
     }
+    suspend fun presentationSource(data: String) {
+        EventBroadcaster.emit(
+            SseEvent(
+                event = "presentation",
+                data = data
+            )
+        )
+    }
+    suspend fun previousSlide() {
+        EventBroadcaster.emit(
+            SseEvent(
+                event = "next",
+                data = ""
+            )
+        )
+    }
+    suspend fun nextSlide() {
+        EventBroadcaster.emit(
+            SseEvent(
+                event = "previous",
+                data = ""
+            )
+        )
+    }
 }

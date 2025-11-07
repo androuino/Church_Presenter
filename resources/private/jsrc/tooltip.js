@@ -191,6 +191,13 @@ m2d2.ready($ => {
         animation: 'scale',
         theme: 'light',
     });
+    tippy('.navMessage', {
+        content: "Project speaker's message",
+        interactive: true,
+        placement: 'right',
+        animation: 'scale',
+        theme: 'light',
+    });
     tippy('.fontBold', {
         content: "Bold",
         interactive: true,
@@ -333,6 +340,27 @@ m2d2.ready($ => {
     });
     tippy('.fontAlignLeft', {
         content: "Text align left",
+        interactive: false,
+        placement: 'bottom',
+        animation: 'scale',
+        theme: 'light',
+    });
+    tippy('.saveMessage', {
+        content: "Save, set and start the presentation",
+        interactive: false,
+        placement: 'bottom',
+        animation: 'scale',
+        theme: 'light',
+    });
+    tippy('.previousSlide', {
+        content: "To previous slide",
+        interactive: false,
+        placement: 'bottom',
+        animation: 'scale',
+        theme: 'light',
+    });
+    tippy('.nextSlide', {
+        content: "To next slide",
         interactive: false,
         placement: 'bottom',
         animation: 'scale',

@@ -62,6 +62,7 @@ m2d2.ready($ => {
                 main.navLocationSettings.classList.remove("active");
                 main.navThemeList.classList.remove("active");
                 main.navBibleSettings.classList.remove("active");
+                main.navMessage.classList.remove("active");
             },
         },
         navLocationSettings : {
@@ -71,8 +72,9 @@ m2d2.ready($ => {
                 main.navFontSettings.classList.remove("active");
                 main.navThemeList.classList.remove("active");
                 main.navBibleSettings.classList.remove("active");
+                main.navMessage.classList.remove("active");
                 main.previewText.text = taFontPreview.value;
-            }
+            },
         },
         navThemeList : {
             onclick : function(ev) {
@@ -81,7 +83,8 @@ m2d2.ready($ => {
                 main.navFontSettings.classList.remove("active");
                 main.navLocationSettings.classList.remove("active");
                 main.navBibleSettings.classList.remove("active");
-            }
+                main.navMessage.classList.remove("active");
+            },
         },
         navBibleSettings : {
             onclick : function(ev) {
@@ -90,7 +93,18 @@ m2d2.ready($ => {
                 main.navFontSettings.classList.remove("active");
                 main.navLocationSettings.classList.remove("active");
                 main.navThemeList.classList.remove("active");
-            }
+                main.navMessage.classList.remove("active");
+            },
+        },
+        navMessage : {
+            onclick : function(ev) {
+                main.settingMessage.show = true;
+                main.navMessage.classList.add("active");
+                main.navBibleSettings.classList.remove("active");
+                main.navFontSettings.classList.remove("active");
+                main.navLocationSettings.classList.remove("active");
+                main.navThemeList.classList.remove("active");
+            },
         },
         settingFont : {
             show : true,
@@ -98,6 +112,7 @@ m2d2.ready($ => {
                 main.settingLocation.show = false;
                 main.settingThemeList.show = false;
                 main.settingBible.show = false;
+                main.settingMessage.show = false;
             },
         },
         fontBold : {
@@ -151,6 +166,7 @@ m2d2.ready($ => {
                 main.settingFont.show = false;
                 main.settingThemeList.show = false;
                 main.settingBible.show = false;
+                main.settingMessage.show = false;
                 const host = window.location.hostname; // Get the current host
                 const protocol = window.location.protocol; // Get the current protocol (http or https)
                 const url = `${host}:5555`; // Construct the full URL
@@ -542,6 +558,7 @@ m2d2.ready($ => {
                 main.settingFont.show = false;
                 main.settingLocation.show = false;
                 main.settingBible.show = false;
+                main.settingMessage.show = false;
             }
         },
         themeList2 : {
@@ -612,6 +629,16 @@ m2d2.ready($ => {
                 main.settingFont.show = false;
                 main.settingLocation.show = false;
                 main.settingThemeList.show = false;
+                main.settingMessage.show = false;
+            }
+        },
+        settingMessage : {
+            show : false,
+            onshow : function(ev) {
+                main.settingFont.show = false;
+                main.settingLocation.show = false;
+                main.settingThemeList.show = false;
+                main.settingBible.show = false;
             }
         },
         buttonInstall : {
@@ -805,6 +832,47 @@ m2d2.ready($ => {
                         $.failure("An error occurred!", error);
                     }, true);
                 }
+            }
+        },
+        speakerName : {},
+        messageDate : {},
+        presentationSource : {},
+        saveMessage : {
+            onclick : function(ev) {
+                const source = main.presentationSource.value;
+                if (source === "" || source == null) {
+                    $.failure("You did not provided a source. Nothing will show");
+                } else {
+                    $.post("/presentation/", source, res => {
+                        if (res.ok) {
+                            $.success("Setup is done.");
+                        }
+                    }, error => {
+                        console.error(error);
+                    }, true);
+                }
+            }
+        },
+        previousSlide : {
+            onclick : function(ev) {
+                $.post("/previous", res => {
+                    if (res.ok) {
+                        console.log("Slide to previous success.");
+                    }
+                }, error => {
+                    console.log(error);
+                }, true);
+            }
+        },
+        nextSlide : {
+            onclick : function(ev) {
+                $.post("/next", res => {
+                    if (res.ok) {
+                        console.log("Slide to next success.");
+                    }
+                }, error => {
+                    console.log(error);
+                }, true);
             }
         },
     });

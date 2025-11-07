@@ -216,6 +216,17 @@ m2d2.ready($ => {
         const res = data.data.replaceAll('"', "");
         info.textContent = res;
     });
+    evtSource.addEventListener("presentation", function (ev) {
+        const data = JSON.parse(ev.data);
+        console.log("presentation data is", data);
+        loadRevealPresentation(data);
+    });
+    evtSource.addEventListener("next", function (ev) {
+        if (window.Reveal) Reveal.next();
+    });
+    evtSource.addEventListener("previous", function (ev) {
+        if (window.Reveal) Reveal.prev();
+    });
     function requestFullScreen() {
         if (document.body.requestFullscreen) {
             document.body.requestFullscreen();
@@ -344,5 +355,40 @@ m2d2.ready($ => {
         else {
             return null; // Unsupported
         }
+    }
+    async function loadRevealPresentation(dirPath) {
+        mediaContainer.innerHTML = `
+            <div class="reveal">
+                <div class="slides" id="revealSlides"></div>
+            </div>
+        `;
+
+        // Fetch the file list from server (you can expose an endpoint for this)
+        let files = [];
+        await $.get(`/list-files?dir=${encodeURIComponent(dirPath)}`, res => {
+            if (res.ok) {
+                files = res.data;
+            }
+        }, error => {
+            console.error(error);
+        }, true);
+
+        const slidesContainer = document.getElementById("revealSlides");
+        files.forEach(filename => {
+            const section = document.createElement("section");
+            section.innerHTML = `<img src="/presentations/${filename}" style="width:100%;height:100%;object-fit:contain;">`;
+            slidesContainer.appendChild(section);
+        });
+
+        // Initialize Reveal
+        Reveal.initialize({
+            width: "100%",
+            height: "100%",
+            controls: true,
+            progress: false,
+            loop: true,
+            //autoSlide: 5000, // auto-advance every 5s (optional)
+            transition: 'fade'
+        });
     }
 });

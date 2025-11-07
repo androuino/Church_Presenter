@@ -38,7 +38,6 @@ import xyz.josapedmoreno.hwvci.ap.PackageChecker
 import xyz.josapedmoreno.hwvci.control.BookApi
 import xyz.josapedmoreno.hwvci.control.Core
 import xyz.josapedmoreno.hwvci.control.LoginAuth
-import xyz.josapedmoreno.hwvci.control.Paths
 import xyz.josapedmoreno.hwvci.control.Paths.Companion.uploadDir
 import xyz.josapedmoreno.hwvci.control.data.EventBroadcaster
 import xyz.josapedmoreno.hwvci.control.data.LoginRequest
@@ -105,7 +104,7 @@ fun Application.controller() {
                 when (part) {
                     is PartData.FileItem -> {
                         val filename = part.originalFileName?.replace("\\s".toRegex(), "_") ?: "unknown"
-                        val file = File(Paths.uploadDir, filename)
+                        val file = File(uploadDir, filename)
 
                         // Read bytes from the ByteReadChannel
                         part.streamProvider().use { input ->
@@ -134,6 +133,39 @@ fun Application.controller() {
             cache.set("link", link)
             launch { SseSender().changeBackground("link") }
             call.respond(mapOf("ok" to true))
+        }
+        post("/presentation/{source}") {
+            val source = call.parameters["source"]
+            SseSender().presentationSource(source ?: "")
+            call.respond(mapOf("ok" to true))
+        }
+        post("/previous") {
+            SseSender().previousSlide()
+            call.respond(mapOf("ok" to true))
+        }
+        post("/next") {
+            SseSender().nextSlide()
+            call.respond(mapOf("ok" to true))
+        }
+        get("/list-files/{dir}") {
+            val dirParam = call.parameters["dir"]
+            if (dirParam.isNullOrEmpty()) {
+                call.respond(mapOf("ok" to false))
+                return@get
+            }
+
+            val dir = File(System.getProperty("user.home"), dirParam)
+            if (!dir.exists() || !dir.isDirectory) {
+                call.respond(mapOf("ok" to false))
+                return@get
+            }
+
+            val files = dir.listFiles { f -> f.extension in listOf("png", "jpg", "jpeg") }
+                ?.map { it.name }
+                ?.sorted()
+                ?: emptyList()
+
+            call.respond(mapOf("ok" to true, "data" to files))
         }
         get("/getlink") {
             var success = false
