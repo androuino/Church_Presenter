@@ -18,6 +18,7 @@ m2d2.load($ => {
     });
 });
 m2d2.ready($ => {
+    let reveal = null;
     const splashScreen = $("#splashScreen");
     const main = $("#main");
     const lyrics = $("#lyrics");
@@ -222,10 +223,10 @@ m2d2.ready($ => {
         loadRevealPresentation(data);
     });
     evtSource.addEventListener("next", function (ev) {
-        if (window.Reveal) Reveal.next();
+        if (reveal) reveal.prev();
     });
     evtSource.addEventListener("previous", function (ev) {
-        if (window.Reveal) Reveal.prev();
+        if (reveal) reveal.next();
     });
     function requestFullScreen() {
         if (document.body.requestFullscreen) {
@@ -365,30 +366,36 @@ m2d2.ready($ => {
 
         // Fetch the file list from server (you can expose an endpoint for this)
         let files = [];
-        await $.get(`/list-files?dir=${encodeURIComponent(dirPath)}`, res => {
+        await $.get(`/list-files?dir=${encodeURIComponent(dirPath.data)}`, res => {
             if (res.ok) {
                 files = res.data;
+                const slidesContainer = document.getElementById("revealSlides");
+                res.data.forEach(filename => {
+                    console.log("Image is", filename);
+                    const section = document.createElement("section");
+                    section.innerHTML = `<img src="${dirPath.data}/${filename}" style="width:100%;height:100%;object-fit:contain;">`;
+                    slidesContainer.appendChild(section);
+                });
+            } else {
+                console.log("Something went wrong here.");
             }
         }, error => {
             console.error(error);
         }, true);
 
-        const slidesContainer = document.getElementById("revealSlides");
-        files.forEach(filename => {
-            const section = document.createElement("section");
-            section.innerHTML = `<img src="/presentations/${filename}" style="width:100%;height:100%;object-fit:contain;">`;
-            slidesContainer.appendChild(section);
-        });
-
         // Initialize Reveal
-        Reveal.initialize({
-            width: "100%",
-            height: "100%",
-            controls: true,
-            progress: false,
-            loop: true,
-            //autoSlide: 5000, // auto-advance every 5s (optional)
-            transition: 'fade'
-        });
+        if (reveal === null) {
+            reveal = Reveal.initialize({
+                width: "100%",
+                height: "100%",
+                controls: true,
+                progress: false,
+                loop: true,
+                //autoSlide: 5000, // auto-advance every 5s (optional)
+                transition: 'fade'
+            }).then(() => {
+                console.log("Reveal is initialized");
+            });
+        }
     }
 });

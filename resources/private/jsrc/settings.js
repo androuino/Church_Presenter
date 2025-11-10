@@ -843,7 +843,8 @@ m2d2.ready($ => {
                 if (source === "" || source == null) {
                     $.failure("You did not provided a source. Nothing will show");
                 } else {
-                    $.post("/presentation/", source, res => {
+                    const data = { source : source };
+                    $.post("/presentation", data, res => {
                         if (res.ok) {
                             $.success("Setup is done.");
                         }

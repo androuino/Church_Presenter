@@ -134,9 +134,9 @@ fun Application.controller() {
             launch { SseSender().changeBackground("link") }
             call.respond(mapOf("ok" to true))
         }
-        post("/presentation/{source}") {
-            val source = call.parameters["source"]
-            SseSender().presentationSource(source ?: "")
+        post("/presentation") {
+            val source = call.receive<JsonObject>()
+            SseSender().presentationSource(source.get("source").asString)
             call.respond(mapOf("ok" to true))
         }
         post("/previous") {
@@ -147,18 +147,22 @@ fun Application.controller() {
             SseSender().nextSlide()
             call.respond(mapOf("ok" to true))
         }
-        get("/list-files/{dir}") {
-            val dirParam = call.parameters["dir"]
+        get("/list-files") {
+            val dirParam = call.request.queryParameters["dir"]
             if (dirParam.isNullOrEmpty()) {
                 call.respond(mapOf("ok" to false))
                 return@get
             }
 
-            val dir = File(System.getProperty("user.home"), dirParam)
+            val dir = File(dirParam)
+            Log.i("Presentation dir is %s", dir.absolutePath)
             if (!dir.exists() || !dir.isDirectory) {
                 call.respond(mapOf("ok" to false))
                 return@get
+            } else {
+                Log.i("Images dir exists! %s", dir.absolutePath)
             }
+            Log.i("dirParam exists %s", dir.absolutePath)
 
             val files = dir.listFiles { f -> f.extension in listOf("png", "jpg", "jpeg") }
                 ?.map { it.name }
