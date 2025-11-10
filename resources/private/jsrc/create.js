@@ -59,7 +59,7 @@ m2d2.ready($ => {
                 const data = {
                     id: songId,
                     author: inputAuthor.value,
-                    title: inputSongTitle.value,
+                    songTitle: inputSongTitle.value,
                     lyrics: taLyrics.value
                 };
                 $.put("/savesong", data, res => {
