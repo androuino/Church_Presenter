@@ -131,6 +131,15 @@
                     <label for="versionsInstalled">Bible versions installed</label>
                     <select name="versionsInstalled" id="versionsInstalled"></select>
                     <button class="btn buttonUninstall">Uninstall</button>
+                    <div>
+                        <button class="btn buttonSetVerseBackground">Set Background Color</button>
+                        <input type="color" id="backgroundColorPicker" name="backgroundColorPicker" value="#000000">
+                    </div>
+                    <div class="slider-panel">
+                        <label for="opacity">Opacity:</label>
+                        <input type="range" id="opacity" min="0" max="100" value="70" step="1">
+                        <output id="value">70%</output>
+                    </div>
                 </section>
                 <section class="bibleSearchContainer">
                     <p>Search and project the Bible verse</p>

@@ -152,7 +152,7 @@ fun Application.controller() {
                 return@post
             }
 
-            val symlink = File("presentations/active")
+            val symlink = File("presentations", "active")
 
             // Remove old symlink if exists
             if (symlink.exists()) {

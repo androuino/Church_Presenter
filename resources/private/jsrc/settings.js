@@ -847,6 +847,11 @@ m2d2.ready($ => {
                     $.post("/presentation", data, res => {
                         if (res.ok) {
                             $.success("Setup is done.");
+                            saveToLocalDB("message", {
+                                speakerName: speakerName.value,
+                                messageDate: messageDate.value,
+                                presentationSource: presentationSource.value
+                            });
                         }
                     }, error => {
                         console.error(error);
@@ -1324,6 +1329,15 @@ m2d2.ready($ => {
                 }, true);
             }
         });
+        await db.media.get("message").then(message => {
+            if (message) {
+                speakerName.value = message.speakerName;
+                messageDate.value = message.messageDate;
+                presentationSource.value = message.presentationSource;
+            } else {
+                console.debug("No saved message");
+            }
+        });
         $.get("/getversions", res => {
             if (res.ok) {
                 versionsInstalled.items.clear();
@@ -1363,6 +1377,8 @@ m2d2.ready($ => {
             case "installedversions":
                 await db.media.put({ id: "installed", list: data.list });
                 break;
+            case "message":
+                await db.media.put({id: key, list: data });
             default:
                 break;
         }

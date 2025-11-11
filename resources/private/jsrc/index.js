@@ -162,6 +162,18 @@ m2d2.ready($ => {
             console.error("Error getting verse", error);
         }, true);
     });
+    evtSource.addEventListener("versebackground", function (ev) {
+        const data = JSON.parse(ev.data);
+        if (data.data) {
+            // enable background here
+        } else {
+            // disable background
+        }
+    });
+    evtSource.addEventListener("versebackgroundopacity", function (ev) {
+        const data = JSON.parse(ev.data);
+        // change background opacity
+    });
     evtSource.addEventListener("media", function (ev) {
     });
     evtSource.addEventListener("hidelyrics", function (ev) {
