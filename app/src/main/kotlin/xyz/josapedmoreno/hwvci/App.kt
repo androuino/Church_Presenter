@@ -17,6 +17,7 @@ import xyz.josapedmoreno.hwvci.services.authService
 import xyz.josapedmoreno.hwvci.services.controller
 import xyz.josapedmoreno.hwvci.table.Themes
 import xyz.josapedmoreno.hwvci.table.Users
+import java.io.File
 
 class App : SysService() {
     override fun onStart() {
@@ -61,9 +62,12 @@ class App : SysService() {
     companion object {
         var server: EmbeddedServer<*, *>? = null
         lateinit var sessionStorage: InMemorySessionStorage
+        val presentationsDir = File("presentations")
 
         init {
             service = App()
+            if (!presentationsDir.exists())
+                presentationsDir.mkdirs()
         }
     }
 }

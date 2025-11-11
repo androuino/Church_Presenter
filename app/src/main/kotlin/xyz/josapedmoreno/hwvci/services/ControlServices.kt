@@ -134,10 +134,54 @@ fun Application.controller() {
             launch { SseSender().changeBackground("link") }
             call.respond(mapOf("ok" to true))
         }
+        static("/presentations") {
+            files("presentations")
+        }
         post("/presentation") {
-            val source = call.receive<JsonObject>()
-            SseSender().presentationSource(source.get("source").asString)
-            call.respond(mapOf("ok" to true))
+            val sourceJson = call.receive<JsonObject>()
+            val sourcePath = sourceJson.get("source")?.asString?.trim()
+
+            if (sourcePath.isNullOrBlank()) {
+                call.respond(mapOf("ok" to false, "message" to "Source path is empty"))
+                return@post
+            }
+
+            val sourceDir = File(sourcePath)
+            if (!sourceDir.exists() || !sourceDir.isDirectory) {
+                call.respond(mapOf("ok" to false, "message" to "Directory not found: $sourcePath"))
+                return@post
+            }
+
+            val symlink = File("presentations/active")
+
+            // Remove old symlink if exists
+            if (symlink.exists()) {
+                if (symlink.isDirectory && symlink.listFiles()?.isEmpty() == true) {
+                    symlink.delete()
+                } else if (symlink.exists()) {
+                    symlink.delete()
+                }
+            }
+
+            // Create new symlink
+            try {
+                val result = ProcessBuilder("ln", "-sfn", sourceDir.absolutePath, symlink.absolutePath)
+                    .redirectOutput(ProcessBuilder.Redirect.INHERIT)
+                    .redirectError(ProcessBuilder.Redirect.INHERIT)
+                    .start()
+                    .waitFor()
+
+                if (result == 0) {
+                    Log.i("Symlink created: ${symlink.absolutePath} → ${sourceDir.absolutePath}")
+                    launch { SseSender().presentationSource(sourcePath) }
+                    call.respond(mapOf("ok" to true))
+                } else {
+                    call.respond(mapOf("ok" to false, "message" to "Failed to create symlink"))
+                }
+            } catch (e: Exception) {
+                Log.e("Symlink error", e)
+                call.respond(mapOf("ok" to false, "message" to e.message))
+            }
         }
         post("/previous") {
             SseSender().previousSlide()
@@ -154,17 +198,14 @@ fun Application.controller() {
                 return@get
             }
 
-            val dir = File(dirParam)
-            Log.i("Presentation dir is %s", dir.absolutePath)
-            if (!dir.exists() || !dir.isDirectory) {
+            // Resolve symlink
+            val realDir = File(dirParam).canonicalFile
+            if (!realDir.exists() || !realDir.isDirectory) {
                 call.respond(mapOf("ok" to false))
                 return@get
-            } else {
-                Log.i("Images dir exists! %s", dir.absolutePath)
             }
-            Log.i("dirParam exists %s", dir.absolutePath)
 
-            val files = dir.listFiles { f -> f.extension in listOf("png", "jpg", "jpeg") }
+            val files = realDir.listFiles { f -> f.extension in listOf("png", "jpg", "jpeg") }
                 ?.map { it.name }
                 ?.sorted()
                 ?: emptyList()

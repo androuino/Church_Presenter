@@ -223,10 +223,19 @@ m2d2.ready($ => {
         loadRevealPresentation(data);
     });
     evtSource.addEventListener("next", function (ev) {
-        if (reveal) reveal.prev();
+        if (reveal && typeof reveal.next === 'function') {
+            reveal.next();
+        } else {
+            console.warn("Reveal not ready for next");
+        }
     });
+
     evtSource.addEventListener("previous", function (ev) {
-        if (reveal) reveal.next();
+        if (reveal && typeof reveal.prev === 'function') {
+            reveal.prev();
+        } else {
+            console.warn("Reveal not ready for prev");
+        }
     });
     function requestFullScreen() {
         if (document.body.requestFullscreen) {
@@ -364,38 +373,55 @@ m2d2.ready($ => {
             </div>
         `;
 
-        // Fetch the file list from server (you can expose an endpoint for this)
-        let files = [];
-        await $.get(`/list-files?dir=${encodeURIComponent(dirPath.data)}`, res => {
-            if (res.ok) {
-                files = res.data;
-                const slidesContainer = document.getElementById("revealSlides");
-                res.data.forEach(filename => {
-                    console.log("Image is", filename);
-                    const section = document.createElement("section");
-                    section.innerHTML = `<img src="${dirPath.data}/${filename}" style="width:100%;height:100%;object-fit:contain;">`;
-                    slidesContainer.appendChild(section);
-                });
-            } else {
-                console.log("Something went wrong here.");
-            }
-        }, error => {
-            console.error(error);
-        }, true);
+        const encodedPath = encodeURIComponent(dirPath.data);
 
-        // Initialize Reveal
-        if (reveal === null) {
-            reveal = Reveal.initialize({
-                width: "100%",
-                height: "100%",
-                controls: true,
-                progress: false,
-                loop: true,
-                //autoSlide: 5000, // auto-advance every 5s (optional)
-                transition: 'fade'
-            }).then(() => {
-                console.log("Reveal is initialized");
+        // Wrap $.get in a Promise to make it awaitable
+        const fileListPromise = new Promise((resolve, reject) => {
+            $.get(`/list-files?dir=${encodedPath}`, res => {
+                if (!res.ok) {
+                    console.error("Failed to list files");
+                    reject(new Error("Failed to list files"));
+                } else {
+                    resolve(res.data);
+                }
+            }, error => {
+                console.error("Error fetching file list:", error);
+                reject(error);
+            }, true);
+        });
+
+        try {
+            const files = await fileListPromise;
+
+            const slidesContainer = document.getElementById("revealSlides");
+            files.forEach(filename => {
+                const safeName = encodeURIComponent(filename);
+                const imgUrl = `/presentations/active/${safeName}`;
+
+                const section = document.createElement("section");
+                section.innerHTML = `
+                    <img src="${imgUrl}"
+                         style="width:100%; height:100%; object-fit:contain; background:#000;">
+                `;
+                slidesContainer.appendChild(section);
             });
+
+            if (!reveal) {
+                reveal = new Reveal();  // Assuming Reveal is globally available; adjust if needed
+                await reveal.initialize({
+                    width: "100%",
+                    height: "100%",
+                    margin: 0,
+                    minScale: 1,
+                    maxScale: 1,
+                    transition: 'fade',
+                    controls: true,
+                    progress: false
+                });
+                console.log("Reveal initialized");
+            }
+        } catch (err) {
+            console.error("Error loading presentation:", err);
         }
     }
 });

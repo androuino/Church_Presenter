@@ -121,7 +121,7 @@ class SseSender {
     suspend fun previousSlide() {
         EventBroadcaster.emit(
             SseEvent(
-                event = "next",
+                event = "previous",
                 data = ""
             )
         )
@@ -129,7 +129,7 @@ class SseSender {
     suspend fun nextSlide() {
         EventBroadcaster.emit(
             SseEvent(
-                event = "previous",
+                event = "next",
                 data = ""
             )
         )
