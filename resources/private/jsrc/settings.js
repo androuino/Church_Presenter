@@ -630,6 +630,8 @@ m2d2.ready($ => {
                 main.settingLocation.show = false;
                 main.settingThemeList.show = false;
                 main.settingMessage.show = false;
+                setVerseBackgroundColor(main.backgroundColorPicker.value);
+                setOpacity(main.opacityRange.value);
             }
         },
         settingMessage : {
@@ -787,6 +789,20 @@ m2d2.ready($ => {
             },
             items : [],
         },
+        backgroundColorPicker : {},
+        buttonSetVerseBackground : {
+            onclick : function(ev) {
+                setVerseBackgroundColor(ev.target.value);
+            }
+        },
+        opacityRange : {
+            onchange : function(ev) {
+                const val = ev.target.value;
+                console.log("current opacity is", val);
+                setOpacity(val);
+            }
+        },
+        opacityValue : {},
         inputThemeName : {},
         buttonSaveTheme : {
             onclick : function(ev) {
@@ -1331,11 +1347,19 @@ m2d2.ready($ => {
         });
         await db.media.get("message").then(message => {
             if (message) {
-                speakerName.value = message.speakerName;
-                messageDate.value = message.messageDate;
-                presentationSource.value = message.presentationSource;
+                console.log("message is", message);
+                speakerName.value = message.list.speakerName;
+                messageDate.value = message.list.messageDate;
+                presentationSource.value = message.list.presentationSource;
             } else {
-                console.debug("No saved message");
+                console.debug("No saved message.");
+            }
+        });
+        await db.media.get("background").then(background => {
+            if (background) {
+                main.backgroundColorPicker.value = background.list.color;
+            } else {
+                console.debug("No background saved.");
             }
         });
         $.get("/getversions", res => {
@@ -1379,8 +1403,36 @@ m2d2.ready($ => {
                 break;
             case "message":
                 await db.media.put({id: key, list: data });
+                break;
+            case "background":
+                await db.media.put({id: key, list: data });
+                break;
             default:
                 break;
         }
+    }
+    function setOpacity(pct) {
+        const opacity = pct / 100;
+        // send SSE here
+        main.opacityValue.value = `${pct}%`;
+        $.post("backgroundopacity/" + pct, res => {
+            if (res.ok) {
+                console.log("Success on setting the verse background opacity");
+            }
+        }, error => {
+            console.error("Error on setting the verse background opacity");
+        }, true);
+    }
+    function setVerseBackgroundColor(color) {
+        const data = {
+            color : color
+        };
+        $.post("/versebackground", data, res => {
+            if (res.ok) {
+                saveToLocalDB("background", { color : main.backgroundColorPicker.value });
+            }
+        }, error => {
+            console.error("Error setting background color:", error);
+        }, true);
     }
 });

@@ -21,7 +21,8 @@ m2d2.ready($ => {
     let reveal = null;
     const splashScreen = $("#splashScreen");
     const main = $("#main");
-    const lyrics = $("#lyrics");
+    //const lyrics = $("#lyrics");
+    const lyrics = document.querySelector('#lyrics');
     const mediaContainer = $("#mediaContainer");
     const info = $("#info", {
         show : false,
@@ -241,13 +242,20 @@ m2d2.ready($ => {
             console.warn("Reveal not ready for next");
         }
     });
-
     evtSource.addEventListener("previous", function (ev) {
         if (reveal && typeof reveal.prev === 'function') {
             reveal.prev();
         } else {
             console.warn("Reveal not ready for prev");
         }
+    });
+    evtSource.addEventListener("versebackground", function (ev) {
+        const data = JSON.parse(ev.data);
+        lyrics.style.backgroundColor = data.data;
+    });
+    evtSource.addEventListener("backgroundopacity", function (ev) {
+        const data = JSON.parse(ev.data);
+        setBackgroundOpacity(data.data);
     });
     function requestFullScreen() {
         if (document.body.requestFullscreen) {
@@ -435,5 +443,28 @@ m2d2.ready($ => {
         } catch (err) {
             console.error("Error loading presentation:", err);
         }
+    }
+    function setBackgroundOpacity(opacity) {
+        const alpha = Math.max(0, Math.min(1, opacity / 100));
+        const computedStyle = window.getComputedStyle(lyrics);
+        const currentColor = computedStyle.backgroundColor;
+
+        // Match rgb(r, g, b) or rgba(...)
+        let r, g, b;
+        const rgbaMatch = currentColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)/);
+        if (rgbaMatch) {
+            r = rgbaMatch[1];
+            g = rgbaMatch[2];
+            b = rgbaMatch[3];
+        } else {
+            // Fallback: if no background, use a default (e.g. black)
+            console.warn("No background color detected, defaulting to black");
+            r = g = b = 0;
+        }
+
+        // Step 2: Apply new alpha
+        lyrics.style.backgroundColor = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+
+        console.log(`Background opacity set to ${opacity}% → alpha: ${alpha}`);
     }
 });

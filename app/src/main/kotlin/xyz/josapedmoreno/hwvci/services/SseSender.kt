@@ -77,6 +77,22 @@ class SseSender {
             )
         )
     }
+    suspend fun verseBackground(data: String) {
+        EventBroadcaster.emit(
+            SseEvent(
+                event = "versebackground",
+                data = data
+            )
+        )
+    }
+    suspend fun backgroundOpacity(data: String) {
+        EventBroadcaster.emit(
+            SseEvent(
+                event = "backgroundopacity",
+                data = data
+            )
+        )
+    }
     suspend fun wifiStatus(data: String) {
         EventBroadcaster.emit(
             SseEvent(

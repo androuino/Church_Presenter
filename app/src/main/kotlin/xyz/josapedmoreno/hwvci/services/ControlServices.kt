@@ -453,6 +453,16 @@ fun Application.controller() {
                 launch { SseSender().removeBackground("true") }
                 call.respond(mapOf("ok" to true))
             }
+            post("/versebackground") {
+                val data = call.receive<JsonObject>()
+                launch { SseSender().verseBackground(data.get("color").asString) }
+                call.respond(mapOf("ok" to true))
+            }
+            post("/backgroundopacity/{opacity}") {
+                val data = call.parameters["opacity"]
+                launch { SseSender().backgroundOpacity(data.toString()) }
+                call.respond(mapOf("ok" to true))
+            }
         }
     }
 }

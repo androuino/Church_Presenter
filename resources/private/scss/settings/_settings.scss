@@ -380,22 +380,36 @@ main {
                     div {
                         width: 100%;
                         display: flex;
-                        flex-direction: column:
+                        flex-direction: column;
                         gap: 8px;
                     }
+                    .bgcontainer {
+                        flex-direction: row;
+                        button {
+                            width: 100%;
+                        }
+                        input {
+                            width: 100%;
+                            height: inherit;
+                            border-radius: 4px;
+                        }
+                    }
                     .slider-panel {
-                        position: fixed;
-                        bottom: 20px;
-                        left: 50%;
-                        transform: translateX(-50%);
                         background: rgba(255,255,255,0.9);
-                        padding: 12px 24px;
                         border-radius: 30px;
                         box-shadow: 0 4px 12px rgba(0,0,0,.2);
                         display: flex;
                         align-items: center;
-                        gap: 12px;
                         font-family: system-ui, sans-serif;
+                        label {
+                            font-weight: 6000;
+                            color: black;
+                        }
+                        output {
+                            min-width: 40px;
+                            text-align: center;
+                            color: black;
+                        }
                       }
                       .slider-panel label { font-weight:600; }
                       .slider-panel output { min-width: 40px; text-align:center; }
