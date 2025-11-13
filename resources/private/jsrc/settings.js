@@ -24,6 +24,7 @@ m2d2.load($ => {
 m2d2.ready($ => {
     let isBold = false;
     let isItalic = false;
+    let opacityOrig = 0;
     let isStrikeThrough = false;
     let alignment = "center";
     let justifyContent = "";
@@ -630,8 +631,13 @@ m2d2.ready($ => {
                 main.settingLocation.show = false;
                 main.settingThemeList.show = false;
                 main.settingMessage.show = false;
-                setVerseBackgroundColor(main.backgroundColorPicker.value);
-                setOpacity(main.opacityRange.value);
+                opacityOrig = main.opacityRange.value;
+                if (main.iosSwitch.checked) {
+                    setVerseBackgroundColor(main.backgroundColorPicker.value);
+                    setOpacity(main.opacityRange.value);
+                } else {
+                    setOpacity(0);
+                }
             }
         },
         settingMessage : {
@@ -789,17 +795,39 @@ m2d2.ready($ => {
             },
             items : [],
         },
+        iosSwitch : {
+            onchange : function(ev) {
+                if (ev.target.checked) {
+                    saveToLocalDB("checked", true);
+                    setOpacity(opacityOrig);
+                    main.opacityRange.disabled = false;
+                } else {
+                    saveToLocalDB("checked", false);
+                    setOpacity(0);
+                    main.opacityRange.disabled = true;
+                }
+            }
+        },
         backgroundColorPicker : {},
         buttonSetVerseBackground : {
             onclick : function(ev) {
-                setVerseBackgroundColor(ev.target.value);
+                if (main.iosSwitch.checked) {
+                    setVerseBackgroundColor(main.backgroundColorPicker.value);
+                } else {
+                    $.failure("Please enable the background color first.");
+                }
             }
         },
         opacityRange : {
             onchange : function(ev) {
-                const val = ev.target.value;
-                console.log("current opacity is", val);
-                setOpacity(val);
+                if (main.iosSwitch.checked) {
+                    const val = ev.target.value;
+                    setOpacity(val);
+                    opacityOrig = val;
+                } else {
+                    ev.target.value = opacityOrig;
+                    $.failure("Please enable the background color first.");
+                }
             }
         },
         opacityValue : {},
@@ -1362,6 +1390,13 @@ m2d2.ready($ => {
                 console.debug("No background saved.");
             }
         });
+        await db.media.get("checked").then(checked => {
+            if (checked) {
+                main.iosSwitch.checked = checked.enabled;
+            } else {
+                console.debug("No background saved.");
+            }
+        });
         $.get("/getversions", res => {
             if (res.ok) {
                 versionsInstalled.items.clear();
@@ -1402,22 +1437,24 @@ m2d2.ready($ => {
                 await db.media.put({ id: "installed", list: data.list });
                 break;
             case "message":
-                await db.media.put({id: key, list: data });
+                await db.media.put({ id: key, list: data });
                 break;
             case "background":
-                await db.media.put({id: key, list: data });
+                await db.media.put({ id: key, list: data });
+                break;
+            case "checked":
+                await db.media.put({ id: key, enabled: data });
                 break;
             default:
                 break;
         }
     }
     function setOpacity(pct) {
-        const opacity = pct / 100;
-        // send SSE here
-        main.opacityValue.value = `${pct}%`;
         $.post("backgroundopacity/" + pct, res => {
             if (res.ok) {
-                console.log("Success on setting the verse background opacity");
+                main.opacityValue.value = `${pct}%`;
+                main.opacityRange.value = pct;
+                console.debug("Success on setting the verse background opacity");
             }
         }, error => {
             console.error("Error on setting the verse background opacity");

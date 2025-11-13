@@ -19,6 +19,7 @@ m2d2.load($ => {
 });
 m2d2.ready($ => {
     let reveal = null;
+    let globalOpacity = 0.70;
     const splashScreen = $("#splashScreen");
     const main = $("#main");
     //const lyrics = $("#lyrics");
@@ -178,10 +179,12 @@ m2d2.ready($ => {
     evtSource.addEventListener("media", function (ev) {
     });
     evtSource.addEventListener("hidelyrics", function (ev) {
-        lyrics.show = false;
+        //lyrics.show = false;
+        lyrics.style.visibility = "hidden";
     });
     evtSource.addEventListener("blackscreen", function (ev) {
-        lyrics.show = false;
+        //lyrics.show = false;
+        lyrics.style.visibility = "hidden";
         mediaContainer.innerHTML = "";
         info.show = false;
     });
@@ -189,7 +192,8 @@ m2d2.ready($ => {
     });
     // Default
     evtSource.addEventListener("showlyrics", function (ev) {
-        lyrics.show = true;
+        //lyrics.show = true;
+        lyrics.style.visibility = "visible";
         info.show = true;
     });
     evtSource.addEventListener("removebackground", function (ev) {
@@ -251,7 +255,7 @@ m2d2.ready($ => {
     });
     evtSource.addEventListener("versebackground", function (ev) {
         const data = JSON.parse(ev.data);
-        lyrics.style.backgroundColor = data.data;
+        lyrics.style.backgroundColor = hexToRgba(data.data, globalOpacity);
     });
     evtSource.addEventListener("backgroundopacity", function (ev) {
         const data = JSON.parse(ev.data);
@@ -449,7 +453,6 @@ m2d2.ready($ => {
         const computedStyle = window.getComputedStyle(lyrics);
         const currentColor = computedStyle.backgroundColor;
 
-        // Match rgb(r, g, b) or rgba(...)
         let r, g, b;
         const rgbaMatch = currentColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)/);
         if (rgbaMatch) {
@@ -457,14 +460,24 @@ m2d2.ready($ => {
             g = rgbaMatch[2];
             b = rgbaMatch[3];
         } else {
-            // Fallback: if no background, use a default (e.g. black)
             console.warn("No background color detected, defaulting to black");
             r = g = b = 0;
         }
 
-        // Step 2: Apply new alpha
+        globalOpacity = alpha;
         lyrics.style.backgroundColor = `rgba(${r}, ${g}, ${b}, ${alpha})`;
 
         console.log(`Background opacity set to ${opacity}% → alpha: ${alpha}`);
+    }
+    function hexToRgba(hex, opacity = 100) {
+        hex = hex.replace(/^#/, '');
+        if (hex.length === 3) {
+            hex = hex.split('').map(c => c + c).join('');
+        }
+        const r = parseInt(hex.slice(0, 2), 16);
+        const g = parseInt(hex.slice(2, 4), 16);
+        const b = parseInt(hex.slice(4, 6), 16);
+
+        return `rgba(${r}, ${g}, ${b}, ${opacity})`;
     }
 });

@@ -58,7 +58,7 @@ m2d2.ready($ => {
     });
     tippy('.navInfo', {
         allowHTML: true,
-        content: 'Version: 2.0\nDeveloper: Sem Moreno\nSince: 2024',
+        content: 'Version: 2.0\nDeveloper: Sem Moreno\nSince: 2024\nandrouino.info@gmail.com',
         interactive: true,
         placement: 'right',
         animation: 'scale',
@@ -361,6 +361,13 @@ m2d2.ready($ => {
     });
     tippy('.nextSlide', {
         content: "To next slide",
+        interactive: false,
+        placement: 'bottom',
+        animation: 'scale',
+        theme: 'light',
+    });
+    tippy('.switch', {
+        content: "Enable/Disable background",
         interactive: false,
         placement: 'bottom',
         animation: 'scale',
