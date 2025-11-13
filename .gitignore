@@ -4,6 +4,7 @@ deploy/log
 deploy/uploaded
 deploy/test.db
 deploy/app-1.0.jar
+deploy/app-1.0-all.jar
 /.gradle
 /node_modules
 log/
