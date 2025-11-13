@@ -18,31 +18,7 @@ m2d2.load($ => {
     });
 });
 m2d2.ready($ => {
-    let howToContent = "<p>Song sections</p>" +
-                       "<p>Small or capital letter is fine</p>" +
-                       "<p>--------------------------</p>" +
-                       "<p>$I - for INTRO</p>" +
-                       "<p>--------------------------</p>" +
-                       "<p>$P - for PRE-CHORUS</p>" +
-                       "<p>--------------------------</p>" +
-                       "<p>$V - for VERSE</p>" +
-                       "<p>--------------------------</p>" +
-                       "<p>$C - for CHORUS</p>" +
-                       "<p>--------------------------</p>" +
-                       "<p>$B - for BRIDGE</p>" +
-                       "<p>--------------------------</p>" +
-                       "<p>$R - for REFRAIN</p>" +
-                       "<p>--------------------------</p>" +
-                       "<p>$O - for OUTRO</p>" +
-                       "<p>--------------------------</p>" +
-                       "<p>Example</p>" +
-                       "<p>$V</p>" +
-                       "<p>The splendor of a King...</p>" +
-                       "<p>$c</p>" +
-                       "<p>How great is our God</p>" +
-                       "<p>$b</p>" +
-                       "<p>Name above all names.</p>";
-    let placeholder = "$v\n" +
+    const placeholder = "$v\n" +
                       "The splendor of a King,\n" +
                       "clothed in majesty\n" +
                       "Let all the earth rejoice\n" +
@@ -83,7 +59,7 @@ m2d2.ready($ => {
                 const data = {
                     id: songId,
                     author: inputAuthor.value,
-                    title: inputSongTitle.value,
+                    songTitle: inputSongTitle.value,
                     lyrics: taLyrics.value
                 };
                 $.put("/savesong", data, res => {
@@ -101,15 +77,5 @@ m2d2.ready($ => {
     });
     window.addEventListener('unload', function () {
         localStorage.setItem("data", null);
-    });
-    tippy('#howTo', {
-        allowHTML: true,
-        content: howToContent,
-        interactive: true,
-        placement: "bottom-end",
-        trigger: "click",
-        onShow: async (instance) => {
-            // call a function here
-        }
     });
 });

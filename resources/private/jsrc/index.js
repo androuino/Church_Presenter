@@ -18,9 +18,12 @@ m2d2.load($ => {
     });
 });
 m2d2.ready($ => {
+    let reveal = null;
+    let globalOpacity = 0.70;
     const splashScreen = $("#splashScreen");
     const main = $("#main");
-    const lyrics = $("#lyrics");
+    //const lyrics = $("#lyrics");
+    const lyrics = document.querySelector('#lyrics');
     const mediaContainer = $("#mediaContainer");
     const info = $("#info", {
         show : false,
@@ -48,14 +51,20 @@ m2d2.ready($ => {
         },
     });
     evtSource.addEventListener("lyrics", function (ev) {
-        let evData = ev.data;
-        let lines = evData.split("\\n");
-        lines.shift();
-        const join = lines.join("\n");
-        const formattedText = join.replace(/\\n/g, '\n');
-        const clean = formattedText.replace(/\$[a-zA-Z]/, '');
-        const finalText = clean.replaceAll('"', '');
-        lyrics.textContent = finalText;
+        try {
+            const outer = JSON.parse(ev.data);
+            let raw = outer.data;
+            const lines = raw.split(/\r?\n/);  // Handles \n, \r\n
+            if (lines.length > 0 && /^\$[a-zA-Z]/.test(lines[0])) {
+                lines.shift();  // Remove $v, $c, etc.
+            }
+            const finalText = lines.join('\n');
+            lyrics.textContent = finalText;
+
+            console.log("Cleaned lyrics:", finalText);
+        } catch (err) {
+            console.error("Failed to parse lyrics event:", err, ev.data);
+        }
     });
     evtSource.addEventListener("settings", function (ev) {});
     evtSource.addEventListener("clear", function (ev) {
@@ -64,7 +73,13 @@ m2d2.ready($ => {
         info.textContent = "HWVCI Presenter";
     });
     evtSource.addEventListener("theme", function (ev) {
-        var data = JSON.parse(JSON.parse(ev.data));
+        var payload = JSON.parse(ev.data);
+        let data;
+        if (payload.type === "application/json") {
+            data = JSON.parse(payload.data);
+        } else {
+            data = payload;
+        }
         const id = data.id;
         const font = data.font;
         const fontSize = data.font_size;
@@ -116,11 +131,12 @@ m2d2.ready($ => {
         main.style.alignItems = data.align_items;
     });
     evtSource.addEventListener("verse", function (ev) {
-        var data = JSON.parse(JSON.parse(ev.data));
+        const data = JSON.parse(ev.data);
+        console.log("verse is", data.data);
         $.post("/searchbibleverse", data, res => {
             if (res.ok) {
-                var newLine = "";
-                var book = "";
+                let newLine = "";
+                let book = "";
                 const data = res.data;
                 if (data.length > 1) {
                     newLine = '\n\n';
@@ -130,7 +146,7 @@ m2d2.ready($ => {
                 for (let i = 0; i < numOfKeys; i++) {
                     // Create an array to hold the combined values for the current index
                     const combinedValues = [];
-                    var verse = "";
+                    let verse = "";
                     // Iterate through each map to get the value at the current index
                     for (let j = 0; j < numOfMaps; j++) {
                         verse += data[j][Object.keys(data[j])[i]] + newLine;
@@ -148,13 +164,27 @@ m2d2.ready($ => {
             console.error("Error getting verse", error);
         }, true);
     });
+    evtSource.addEventListener("versebackground", function (ev) {
+        const data = JSON.parse(ev.data);
+        if (data.data) {
+            // enable background here
+        } else {
+            // disable background
+        }
+    });
+    evtSource.addEventListener("versebackgroundopacity", function (ev) {
+        const data = JSON.parse(ev.data);
+        // change background opacity
+    });
     evtSource.addEventListener("media", function (ev) {
     });
     evtSource.addEventListener("hidelyrics", function (ev) {
-        lyrics.show = false;
+        //lyrics.show = false;
+        lyrics.style.visibility = "hidden";
     });
     evtSource.addEventListener("blackscreen", function (ev) {
-        lyrics.show = false;
+        //lyrics.show = false;
+        lyrics.style.visibility = "hidden";
         mediaContainer.innerHTML = "";
         info.show = false;
     });
@@ -162,17 +192,20 @@ m2d2.ready($ => {
     });
     // Default
     evtSource.addEventListener("showlyrics", function (ev) {
-        lyrics.show = true;
+        //lyrics.show = true;
+        lyrics.style.visibility = "visible";
         info.show = true;
     });
     evtSource.addEventListener("removebackground", function (ev) {
         mediaContainer.innerHTML = "";
     });
     evtSource.addEventListener("title", function (ev) {
-        info.textContent = ev.data.replaceAll('"', "");
+        const data = JSON.parse(ev.data);
+        info.textContent = data.data.replaceAll('"', "");
     });
     evtSource.addEventListener("changebackground", function (ev) {
-        const origName = ev.data.replaceAll('"', "");
+        const data = JSON.parse(ev.data);
+        let origName = data.data.replaceAll('"', "");
         if (origName === "link") {
             $.get("/getlink", res => {
                 if (res.ok) {
@@ -190,14 +223,43 @@ m2d2.ready($ => {
         }
     });
     evtSource.addEventListener("connected", function (ev) {
-        const res = ev.data.replaceAll('"', "");
+        const data = JSON.parse(ev.data);
+        res = data.data.replaceAll('"', "");
         if (res === "true") {
             info.textContent = "info";
         }
     });
     evtSource.addEventListener("apmode", function (ev) {
-        const res = ev.data.replaceAll('"', "");
+        const data = JSON.parse(ev.data);
+        const res = data.data.replaceAll('"', "");
         info.textContent = res;
+    });
+    evtSource.addEventListener("presentation", function (ev) {
+        const data = JSON.parse(ev.data);
+        console.log("presentation data is", data);
+        loadRevealPresentation(data);
+    });
+    evtSource.addEventListener("next", function (ev) {
+        if (reveal && typeof reveal.next === 'function') {
+            reveal.next();
+        } else {
+            console.warn("Reveal not ready for next");
+        }
+    });
+    evtSource.addEventListener("previous", function (ev) {
+        if (reveal && typeof reveal.prev === 'function') {
+            reveal.prev();
+        } else {
+            console.warn("Reveal not ready for prev");
+        }
+    });
+    evtSource.addEventListener("versebackground", function (ev) {
+        const data = JSON.parse(ev.data);
+        lyrics.style.backgroundColor = hexToRgba(data.data, globalOpacity);
+    });
+    evtSource.addEventListener("backgroundopacity", function (ev) {
+        const data = JSON.parse(ev.data);
+        setBackgroundOpacity(data.data);
     });
     function requestFullScreen() {
         if (document.body.requestFullscreen) {
@@ -248,6 +310,7 @@ m2d2.ready($ => {
         const embedUrl = isLink ? getEmbedUrl(fileOrLink) : null;
 
         if (embedUrl) {
+            console.log("Media is a link");
             // It's a third-party video (YouTube/Vimeo/Dailymotion)
             mediaContainer.innerHTML = `
                 <iframe
@@ -267,6 +330,7 @@ m2d2.ready($ => {
             fileOrLink.endsWith('.ogg') ||
             (isLink && (fileOrLink.includes('.mp4') || fileOrLink.includes('.webm') || fileOrLink.includes('.ogg')))
         ) {
+            console.log("Media is a video", fileOrLink);
             let mimeType = '';
             if (fileOrLink.endsWith('.mp4') || (isLink && fileOrLink.includes('.mp4'))) mimeType = 'video/mp4';
             else if (fileOrLink.endsWith('.webm') || (isLink && fileOrLink.includes('.webm'))) mimeType = 'video/webm';
@@ -292,12 +356,14 @@ m2d2.ready($ => {
             fileOrLink.endsWith('.png') ||
             (isLink && (fileOrLink.includes('.jpeg') || fileOrLink.includes('.jpg') || fileOrLink.includes('.png')))
         ) {
+            console.log("Media is an image", fileOrLink);
             mediaContainer.innerHTML = `
                 <img id="imgContainer" style="object-fit: cover; width:100%; height:100%;" src="${fileOrLink}" alt="Image"/>
             `;
         }
         // Unsupported media
         else {
+            console.log("Unsupported media.");
             mediaContainer.innerHTML = "Unsupported media format.";
         }
     }
@@ -323,5 +389,95 @@ m2d2.ready($ => {
         else {
             return null; // Unsupported
         }
+    }
+    async function loadRevealPresentation(dirPath) {
+        mediaContainer.innerHTML = `
+            <div class="reveal">
+                <div class="slides" id="revealSlides"></div>
+            </div>
+        `;
+
+        const encodedPath = encodeURIComponent(dirPath.data);
+
+        // Wrap $.get in a Promise to make it awaitable
+        const fileListPromise = new Promise((resolve, reject) => {
+            $.get(`/list-files?dir=${encodedPath}`, res => {
+                if (!res.ok) {
+                    console.error("Failed to list files");
+                    reject(new Error("Failed to list files"));
+                } else {
+                    resolve(res.data);
+                }
+            }, error => {
+                console.error("Error fetching file list:", error);
+                reject(error);
+            }, true);
+        });
+
+        try {
+            const files = await fileListPromise;
+
+            const slidesContainer = document.getElementById("revealSlides");
+            files.forEach(filename => {
+                const safeName = encodeURIComponent(filename);
+                const imgUrl = `/presentations/active/${safeName}`;
+
+                const section = document.createElement("section");
+                section.innerHTML = `
+                    <img src="${imgUrl}"
+                         style="width:100%; height:100%; object-fit:contain; background:#000;">
+                `;
+                slidesContainer.appendChild(section);
+            });
+
+            if (!reveal) {
+                reveal = new Reveal();  // Assuming Reveal is globally available; adjust if needed
+                await reveal.initialize({
+                    width: "100%",
+                    height: "100%",
+                    margin: 0,
+                    minScale: 1,
+                    maxScale: 1,
+                    transition: 'fade',
+                    controls: true,
+                    progress: false
+                });
+                console.log("Reveal initialized");
+            }
+        } catch (err) {
+            console.error("Error loading presentation:", err);
+        }
+    }
+    function setBackgroundOpacity(opacity) {
+        const alpha = Math.max(0, Math.min(1, opacity / 100));
+        const computedStyle = window.getComputedStyle(lyrics);
+        const currentColor = computedStyle.backgroundColor;
+
+        let r, g, b;
+        const rgbaMatch = currentColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)/);
+        if (rgbaMatch) {
+            r = rgbaMatch[1];
+            g = rgbaMatch[2];
+            b = rgbaMatch[3];
+        } else {
+            console.warn("No background color detected, defaulting to black");
+            r = g = b = 0;
+        }
+
+        globalOpacity = alpha;
+        lyrics.style.backgroundColor = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+
+        console.log(`Background opacity set to ${opacity}% → alpha: ${alpha}`);
+    }
+    function hexToRgba(hex, opacity = 100) {
+        hex = hex.replace(/^#/, '');
+        if (hex.length === 3) {
+            hex = hex.split('').map(c => c + c).join('');
+        }
+        const r = parseInt(hex.slice(0, 2), 16);
+        const g = parseInt(hex.slice(2, 4), 16);
+        const b = parseInt(hex.slice(4, 6), 16);
+
+        return `rgba(${r}, ${g}, ${b}, ${opacity})`;
     }
 });

@@ -1,102 +1,64 @@
 package xyz.josapedmoreno.hwvci.services
 
-import com.google.gson.Gson
-import com.google.gson.JsonObject
-import com.intellisrc.web.service.*
-import xyz.josapedmoreno.hwvci.control.LoginAuth
-import java.io.File
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.Application
+import io.ktor.server.application.install
+import io.ktor.server.auth.Authentication
+import io.ktor.server.auth.session
+import io.ktor.server.response.respond
+import io.ktor.server.response.respondRedirect
+import io.ktor.server.sessions.SessionStorage
+import io.ktor.server.sessions.SessionTransportTransformerMessageAuthentication
+import io.ktor.server.sessions.Sessions
+import io.ktor.server.sessions.cookie
+import xyz.josapedmoreno.hwvci.App
+import xyz.josapedmoreno.hwvci.control.data.UserSession
 
-class AuthService: ServiciableAuth {
-    override fun getPath(): String {
-        return ""
+class InMemorySessionStorage : SessionStorage {
+    private val sessions = mutableMapOf<String, String>()
+
+    override suspend fun invalidate(id: String) {
+        sessions.remove(id)
     }
 
-    override fun getAllowOrigin(): String {
-        return "*"
+    override suspend fun read(id: String): String =
+        sessions[id] ?: throw NoSuchElementException("Session $id not found")
+
+    override suspend fun write(id: String, value: String) {
+        sessions[id] = value
     }
 
-    override fun getAcceptType(): String {
-        return ""
+    fun clearAll() {
+        sessions.clear()
     }
+}
 
-    override fun getAcceptCharset(): String {
-        return ""
-    }
+val sessionStorage = InMemorySessionStorage()
 
-    override fun getAllow(): Service.Allow? {
-        return null
-    }
-
-    override fun getBeforeRequest(): Service.BeforeRequest? {
-        return null
-    }
-
-    override fun getBeforeResponse(): Service.BeforeResponse? {
-        return null
-    }
-
-    override fun getOnError(): Service.ServiceError? {
-        return null
-    }
-
-    override fun getLoginPath(): String {
-        return "/login.path"
-    }
-
-    override fun getLogoutPath(): String {
-        return "/logout.path"
-    }
-
-    override fun onLogin(request: Request?, response: Response?): AuthData {
-        var success = false
-        var message = "Login failed!"
-        val returnValue = AuthData()
-        val mapToServer = HashMap<String?, Any?>()
-        val mapToClient = HashMap<String?, Any?>()
-        val gson = Gson()
-        val data = gson.fromJson(request!!.body(), JsonObject::class.java)
-        val user = data.get("user").asString
-        val pass = data.get("pass").asString
-        message = LoginAuth(user, pass).isValid()
-        if (message == "success") {
-            success = true
-            mapToServer["username"] = user
-            SSENotifier.controllerConnected(success)
+fun Application.authService() {
+    install(Sessions) {
+        val storage = App.sessionStorage
+        cookie<UserSession>("USER_SESSION", storage) {
+            cookie.path = "/"
+            cookie.httpOnly= true
+            // cookie.secure = true // only for HTTPS
+            // CRITICAL: This enables cookie to be written
+            transform(
+                SessionTransportTransformerMessageAuthentication(
+                    key = "00112233445566778899aabbccddeeff".toByteArray() // 32 bytes
+                )
+            )
         }
-
-        mapToClient["ok"] = success
-        mapToClient["message"] = message
-
-        returnValue.toStoreInServer = mapToServer
-        returnValue.toSendToClient = mapToClient
-        return returnValue
     }
 
-    override fun onLogout(request: Request?, response: Response?): Boolean {
-        return true
+    install(Authentication) {
+        session<UserSession>("auth-session") {
+            validate { session ->
+                if (session.username == "admin") session else null
+            }
+            challenge {
+                call.respond(HttpStatusCode.Unauthorized)
+            }
+        }
     }
-
-    override fun getAuthLogFile(): File? {
-        return null
-    }
-
-    override fun setAuthLogFile(authLogFile: File?) {}
-
-    override fun getAuthFailedLogFile(): File? {
-        return null
-    }
-
-    override fun setAuthFailedLogFile(authFailedLogFile: File?) {}
-
-    override fun isAuthLog(): Boolean {
-        return false
-    }
-
-    override fun setAuthLog(authLog: Boolean) {}
-
-    override fun isFailedLog(): Boolean {
-        return false
-    }
-
-    override fun setFailedLog(failedLog: Boolean) {}
 }

@@ -24,6 +24,7 @@ m2d2.load($ => {
 m2d2.ready($ => {
     let isBold = false;
     let isItalic = false;
+    let opacityOrig = 0;
     let isStrikeThrough = false;
     let alignment = "center";
     let justifyContent = "";
@@ -62,6 +63,7 @@ m2d2.ready($ => {
                 main.navLocationSettings.classList.remove("active");
                 main.navThemeList.classList.remove("active");
                 main.navBibleSettings.classList.remove("active");
+                main.navMessage.classList.remove("active");
             },
         },
         navLocationSettings : {
@@ -71,8 +73,9 @@ m2d2.ready($ => {
                 main.navFontSettings.classList.remove("active");
                 main.navThemeList.classList.remove("active");
                 main.navBibleSettings.classList.remove("active");
+                main.navMessage.classList.remove("active");
                 main.previewText.text = taFontPreview.value;
-            }
+            },
         },
         navThemeList : {
             onclick : function(ev) {
@@ -81,7 +84,8 @@ m2d2.ready($ => {
                 main.navFontSettings.classList.remove("active");
                 main.navLocationSettings.classList.remove("active");
                 main.navBibleSettings.classList.remove("active");
-            }
+                main.navMessage.classList.remove("active");
+            },
         },
         navBibleSettings : {
             onclick : function(ev) {
@@ -90,7 +94,18 @@ m2d2.ready($ => {
                 main.navFontSettings.classList.remove("active");
                 main.navLocationSettings.classList.remove("active");
                 main.navThemeList.classList.remove("active");
-            }
+                main.navMessage.classList.remove("active");
+            },
+        },
+        navMessage : {
+            onclick : function(ev) {
+                main.settingMessage.show = true;
+                main.navMessage.classList.add("active");
+                main.navBibleSettings.classList.remove("active");
+                main.navFontSettings.classList.remove("active");
+                main.navLocationSettings.classList.remove("active");
+                main.navThemeList.classList.remove("active");
+            },
         },
         settingFont : {
             show : true,
@@ -98,6 +113,7 @@ m2d2.ready($ => {
                 main.settingLocation.show = false;
                 main.settingThemeList.show = false;
                 main.settingBible.show = false;
+                main.settingMessage.show = false;
             },
         },
         fontBold : {
@@ -151,6 +167,7 @@ m2d2.ready($ => {
                 main.settingFont.show = false;
                 main.settingThemeList.show = false;
                 main.settingBible.show = false;
+                main.settingMessage.show = false;
                 const host = window.location.hostname; // Get the current host
                 const protocol = window.location.protocol; // Get the current protocol (http or https)
                 const url = `${host}:5555`; // Construct the full URL
@@ -542,6 +559,7 @@ m2d2.ready($ => {
                 main.settingFont.show = false;
                 main.settingLocation.show = false;
                 main.settingBible.show = false;
+                main.settingMessage.show = false;
             }
         },
         themeList2 : {
@@ -612,6 +630,23 @@ m2d2.ready($ => {
                 main.settingFont.show = false;
                 main.settingLocation.show = false;
                 main.settingThemeList.show = false;
+                main.settingMessage.show = false;
+                opacityOrig = main.opacityRange.value;
+                if (main.iosSwitch.checked) {
+                    setVerseBackgroundColor(main.backgroundColorPicker.value);
+                    setOpacity(main.opacityRange.value);
+                } else {
+                    setOpacity(0);
+                }
+            }
+        },
+        settingMessage : {
+            show : false,
+            onshow : function(ev) {
+                main.settingFont.show = false;
+                main.settingLocation.show = false;
+                main.settingThemeList.show = false;
+                main.settingBible.show = false;
             }
         },
         buttonInstall : {
@@ -628,7 +663,7 @@ m2d2.ready($ => {
                             };
                             $.post("/installbook", data, res => {
                                 if (res.ok) {
-                                    $.success("Installation is still in progress. Please refresh after 5 minutes.")
+                                    $.success("New Bible version installed.");
                                 }
                             }, error => {
                                 console.error("Error installing book", error);
@@ -760,6 +795,42 @@ m2d2.ready($ => {
             },
             items : [],
         },
+        iosSwitch : {
+            onchange : function(ev) {
+                if (ev.target.checked) {
+                    saveToLocalDB("checked", true);
+                    setOpacity(opacityOrig);
+                    main.opacityRange.disabled = false;
+                } else {
+                    saveToLocalDB("checked", false);
+                    setOpacity(0);
+                    main.opacityRange.disabled = true;
+                }
+            }
+        },
+        backgroundColorPicker : {},
+        buttonSetVerseBackground : {
+            onclick : function(ev) {
+                if (main.iosSwitch.checked) {
+                    setVerseBackgroundColor(main.backgroundColorPicker.value);
+                } else {
+                    $.failure("Please enable the background color first.");
+                }
+            }
+        },
+        opacityRange : {
+            onchange : function(ev) {
+                if (main.iosSwitch.checked) {
+                    const val = ev.target.value;
+                    setOpacity(val);
+                    opacityOrig = val;
+                } else {
+                    ev.target.value = opacityOrig;
+                    $.failure("Please enable the background color first.");
+                }
+            }
+        },
+        opacityValue : {},
         inputThemeName : {},
         buttonSaveTheme : {
             onclick : function(ev) {
@@ -805,6 +876,53 @@ m2d2.ready($ => {
                         $.failure("An error occurred!", error);
                     }, true);
                 }
+            }
+        },
+        speakerName : {},
+        messageDate : {},
+        presentationSource : {},
+        saveMessage : {
+            onclick : function(ev) {
+                const source = main.presentationSource.value;
+                if (source === "" || source == null) {
+                    $.failure("You did not provided a source. Nothing will show");
+                } else {
+                    const data = { source : source };
+                    $.post("/presentation", data, res => {
+                        if (res.ok) {
+                            $.success("Setup is done.");
+                            saveToLocalDB("message", {
+                                speakerName: speakerName.value,
+                                messageDate: messageDate.value,
+                                presentationSource: presentationSource.value
+                            });
+                        }
+                    }, error => {
+                        console.error(error);
+                    }, true);
+                }
+            }
+        },
+        previousSlide : {
+            onclick : function(ev) {
+                $.post("/previous", res => {
+                    if (res.ok) {
+                        console.log("Slide to previous success.");
+                    }
+                }, error => {
+                    console.log(error);
+                }, true);
+            }
+        },
+        nextSlide : {
+            onclick : function(ev) {
+                $.post("/next", res => {
+                    if (res.ok) {
+                        console.log("Slide to next success.");
+                    }
+                }, error => {
+                    console.log(error);
+                }, true);
             }
         },
     });
@@ -1255,52 +1373,52 @@ m2d2.ready($ => {
                 }, true);
             }
         });
-        await db.media.get("installed").then(versions => {
-            if (versions) {
+        await db.media.get("message").then(message => {
+            if (message) {
+                console.log("message is", message);
+                speakerName.value = message.list.speakerName;
+                messageDate.value = message.list.messageDate;
+                presentationSource.value = message.list.presentationSource;
+            } else {
+                console.debug("No saved message.");
+            }
+        });
+        await db.media.get("background").then(background => {
+            if (background) {
+                main.backgroundColorPicker.value = background.list.color;
+            } else {
+                console.debug("No background saved.");
+            }
+        });
+        await db.media.get("checked").then(checked => {
+            if (checked) {
+                main.iosSwitch.checked = checked.enabled;
+            } else {
+                console.debug("No background saved.");
+            }
+        });
+        $.get("/getversions", res => {
+            if (res.ok) {
                 versionsInstalled.items.clear();
                 selectVersion1.items.clear();
                 selectVersion2.items.clear();
                 selectVersion3.items.clear();
-                versions.list.forEach(item => {
+                Object.entries(res.data).forEach(([k,v]) => {
+                    listInstalledBibleVersions.push(`${k} : ${v}`);
                     versionsInstalled.items.push({
-                        text : item,
+                        text : `${k} : ${v}`,
                     });
                     selectVersion1.items.push({
-                        text : item,
+                        text : `${k} : ${v}`,
                     });
                     selectVersion2.items.push({
-                        text : item,
+                        text : `${k} : ${v}`,
                     });
                     selectVersion3.items.push({
-                        text : item,
+                        text : `${k} : ${v}`,
                     });
                 });
-            } else {
-                console.log("No Bible versions saved.")
-                $.get("/getversions", res => {
-                    if (res.ok) {
-                        versionsInstalled.items.clear();
-                        selectVersion1.items.clear();
-                        selectVersion2.items.clear();
-                        selectVersion3.items.clear();
-                        Object.entries(res.data).forEach(([k,v]) => {
-                            listInstalledBibleVersions.push(`${k} : ${v}`);
-                            versionsInstalled.items.push({
-                                text : `${k} : ${v}`,
-                            });
-                            selectVersion1.items.push({
-                                text : `${k} : ${v}`,
-                            });
-                            selectVersion2.items.push({
-                                text : `${k} : ${v}`,
-                            });
-                            selectVersion3.items.push({
-                                text : `${k} : ${v}`,
-                            });
-                        });
-                        saveToLocalDB("installedversions", { list: listInstalledBibleVersions });
-                    }
-                });
+                saveToLocalDB("installedversions", { list: listInstalledBibleVersions });
             }
         });
     }
@@ -1318,184 +1436,40 @@ m2d2.ready($ => {
             case "installedversions":
                 await db.media.put({ id: "installed", list: data.list });
                 break;
+            case "message":
+                await db.media.put({ id: key, list: data });
+                break;
+            case "background":
+                await db.media.put({ id: key, list: data });
+                break;
+            case "checked":
+                await db.media.put({ id: key, enabled: data });
+                break;
             default:
                 break;
         }
     }
-
-    tippy('.navFontSettings', {
-        content: "Font settings (Font style and size)",
-        interactive: true,
-        placement: 'right',
-        animation: 'scale',
-        theme: 'light',
-    });
-    tippy('.navLocationSettings', {
-        content: "Setting for the location of text on the screen",
-        interactive: true,
-        placement: 'right',
-        animation: 'scale',
-        theme: 'light',
-    });
-    tippy('.navThemeList', {
-        content: "List of themes",
-        interactive: true,
-        placement: 'right',
-        animation: 'scale',
-        theme: 'light',
-    });
-    tippy('.navBibleSettings', {
-        content: "Manage Bible versions",
-        interactive: true,
-        placement: 'right',
-        animation: 'scale',
-        theme: 'light',
-    });
-    tippy('.fontBold', {
-        content: "Bold",
-        interactive: true,
-        placement: 'bottom',
-        animation: 'scale',
-        theme: 'light',
-    });
-    tippy('.fontItalic', {
-        content: "Italic",
-        interactive: true,
-        placement: 'bottom',
-        animation: 'scale',
-        theme: 'light',
-    });
-    tippy('.fontStrikeThrough', {
-        content: "Strike through",
-        interactive: true,
-        placement: 'bottom',
-        animation: 'scale',
-        theme: 'light',
-    });
-    tippy('.topLeftOffset', {
-        content: "Top-left offset",
-        interactive: false,
-        placement: 'top',
-        animation: 'scale',
-        theme: 'light',
-    });
-    tippy('.topMiddleOffset', {
-        content: "Top-middle offset",
-        interactive: false,
-        placement: 'top',
-        animation: 'scale',
-        theme: 'light',
-    });
-    tippy('.topRightOffset', {
-        content: "Top-right offset",
-        interactive: false,
-        placement: 'top',
-        animation: 'scale',
-        theme: 'light',
-    });
-    tippy('.leftUpperOffset', {
-        content: "Left-upper offset",
-        interactive: false,
-        placement: 'right',
-        animation: 'scale',
-        theme: 'light',
-    });
-    tippy('.rightUpperOffset', {
-        content: "Right-upper offset",
-        interactive: false,
-        placement: 'right',
-        animation: 'scale',
-        theme: 'light',
-    });
-    tippy('.leftMiddleOffset', {
-        content: "Left-middle offset",
-        interactive: false,
-        placement: 'right',
-        animation: 'scale',
-        theme: 'light',
-    });
-    tippy('.rightMiddleOffset', {
-        content: "Right-middle offset",
-        interactive: false,
-        placement: 'right',
-        animation: 'scale',
-        theme: 'light',
-    });
-    tippy('.leftLowerOffset', {
-        content: "Bottom-lower offset",
-        interactive: false,
-        placement: 'right',
-        animation: 'scale',
-        theme: 'light',
-    });
-    tippy('.rightLowerOffset', {
-        content: "Right-lower offset",
-        interactive: false,
-        placement: 'right',
-        animation: 'scale',
-        theme: 'light',
-    });
-    tippy('.leftBottomOffset', {
-        content: "Left-bottom offset",
-        interactive: false,
-        placement: 'bottom',
-        animation: 'scale',
-        theme: 'light',
-    });
-    tippy('.middleBottomOffset', {
-        content: "Middle-bottom offset",
-        interactive: false,
-        placement: 'bottom',
-        animation: 'scale',
-        theme: 'light',
-    });
-    tippy('.rightBottomOffset', {
-        content: "Right-bottom offset",
-        interactive: false,
-        placement: 'bottom',
-        animation: 'scale',
-        theme: 'light',
-    });
-    tippy('.fontAlignCenter', {
-        content: "Text align center",
-        interactive: false,
-        placement: 'bottom',
-        animation: 'scale',
-        theme: 'light',
-    });
-    tippy('.fontAlignHorRight', {
-        content: "Text align end",
-        interactive: false,
-        placement: 'bottom',
-        animation: 'scale',
-        theme: 'light',
-    });
-    tippy('.fontAlignJustify', {
-        content: "Text align justify",
-        interactive: false,
-        placement: 'bottom',
-        animation: 'scale',
-        theme: 'light',
-    });
-    tippy('.fontAlignHorLeft', {
-        content: "Text align start",
-        interactive: false,
-        placement: 'bottom',
-        animation: 'scale',
-        theme: 'light',
-    });
-    tippy('.fontAlignRight', {
-        content: "Text align right",
-        interactive: false,
-        placement: 'bottom',
-        animation: 'scale',
-        theme: 'light',
-    });
-    tippy('.fontAlignLeft', {
-        content: "Text align left",
-        interactive: false,
-        placement: 'bottom',
-        animation: 'scale',
-        theme: 'light',
-    });
+    function setOpacity(pct) {
+        $.post("backgroundopacity/" + pct, res => {
+            if (res.ok) {
+                main.opacityValue.value = `${pct}%`;
+                main.opacityRange.value = pct;
+                console.debug("Success on setting the verse background opacity");
+            }
+        }, error => {
+            console.error("Error on setting the verse background opacity");
+        }, true);
+    }
+    function setVerseBackgroundColor(color) {
+        const data = {
+            color : color
+        };
+        $.post("/versebackground", data, res => {
+            if (res.ok) {
+                saveToLocalDB("background", { color : main.backgroundColorPicker.value });
+            }
+        }, error => {
+            console.error("Error setting background color:", error);
+        }, true);
+    }
 });

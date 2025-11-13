@@ -4,7 +4,8 @@ import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.intellisrc.core.Log
 import com.intellisrc.etc.Cache
-import xyz.josapedmoreno.hwvci.services.SSENotifier
+import xyz.josapedmoreno.hwvci.control.data.EventBroadcaster
+import xyz.josapedmoreno.hwvci.control.data.SseEvent
 import xyz.josapedmoreno.hwvci.table.Themes
 import java.awt.GraphicsEnvironment
 import java.io.BufferedReader
@@ -182,7 +183,7 @@ class Core {
                         success = true
                     } else {
                         Log.e("Failed to connect to WiFi. Exit code: $exitCode")
-1                    }
+                    }
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -405,16 +406,6 @@ class Core {
             return status == "connected"
         }
 
-        fun setTheme(data: JsonObject) {
-            val themeTheme = data.get("theme").asString
-            val theme = Themes().getByThemeName(themeTheme)
-            SSENotifier.setTheme(gson.toJson(theme))
-        }
-
-        fun liveClear() {
-            SSENotifier.liveClear()
-        }
-
         fun isConnectedToInternet(): Boolean {
             return try {
                 val url = URL("http://www.google.com")
@@ -425,7 +416,7 @@ class Core {
 
                 // Check for a successful response code (200–299 means success)
                 connection.responseCode in 200..299
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false  // Any exception means no connection
             }
         }
@@ -501,28 +492,31 @@ class Core {
             }
             return success
         }
-        fun startKiosk() {
+        fun startKiosk() : Boolean {
+            var success = false
             if (isKioskRunning()) {
                 Log.w("Kiosk already running – not starting")
-                return
+                return true
             }
 
             val os = System.getProperty("os.name").lowercase()
             val url = "http://localhost:5555"
 
             when {
-                os.contains("win") -> openBrowserWindow(url)
-                os.contains("mac") -> openBrowserMac(url)
-                os.contains("nix") || os.contains("nux") -> openBrowserLinux(url)
+                os.contains("win") -> success = openBrowserWindow(url)
+                os.contains("mac") -> success = openBrowserMac(url)
+                os.contains("nix") || os.contains("nux") -> success = openBrowserLinux(url)
                 else -> Log.w("Unsupported OS: $os")
             }
+            return success
         }
-        fun stopKiosk() {
+        fun stopKiosk() : Boolean {
+            var success = false
             val os = System.getProperty("os.name").lowercase()
             when {
-                os.contains("win") -> stopKioskWindows()
-                os.contains("mac") -> stopKioskMac()
-                os.contains("nix") || os.contains("nux") -> stopKioskLinux()
+                os.contains("win") -> success = stopKioskWindows()
+                os.contains("mac") -> success = stopKioskMac()
+                os.contains("nix") || os.contains("nux") -> success = stopKioskLinux()
             }
 
             // --- Always clean up lock file ---
@@ -530,15 +524,17 @@ class Core {
                 if (KIOSK_LOCK_FILE.exists()) {
                     KIOSK_LOCK_FILE.delete()
                     Log.i("Kiosk lock file removed")
+                    success = true
                 }
-            } catch (e: Exception) { /* ignore */ }
-
+            } catch (_: Exception) { /* ignore */ }
             kioskPid = null
+            return success
         }
-        fun openBrowserWindow(url: String) {
+        fun openBrowserWindow(url: String): Boolean {
+            var success = false
             if (isKioskRunning()) {
                 Log.w("Kiosk is already running (PID: $kioskPid). Not starting another.")
-                return
+                return true
             }
             try {
                 // 1. Get real monitor geometry (x, y, w, h, primary)
@@ -546,7 +542,7 @@ class Core {
                 val monitors = getWindowsMonitors()
                 if (monitors.isEmpty()) {
                     Log.w("No monitors detected on Windows")
-                    return
+                    return success
                 }
 
                 // Choose the *extended* monitor
@@ -558,7 +554,7 @@ class Core {
                 // -------------------------------------------------
                 val chromeExe = findWindowsChrome() ?: run {
                     Log.e("Chrome not found")
-                    return
+                    return success
                 }
 
                 // -------------------------------------------------
@@ -602,22 +598,23 @@ class Core {
                     Thread.sleep(15_000)
                     profileDir.deleteRecursively()
                 }.start()
-
+                return true
             } catch (e: Exception) {
                 Log.e("Windows kiosk failed", e)
             }
+            return false
         }
 
-        fun openBrowserLinux(url: String) {
+        fun openBrowserLinux(url: String) : Boolean {
             if (isKioskRunning()) {
                 Log.w("Kiosk is already running (PID: $kioskPid). Not starting another.")
-                return
+                return true
             }
             try {
                 val monitors = detectMonitors()
                 if (monitors.isEmpty()) {
                     Log.w("No monitors detected")
-                    return
+                    return false
                 }
 
                 val extended = monitors.find { it["primary"] as? Boolean != true }
@@ -634,7 +631,7 @@ class Core {
 
                 val chromeCmd = findChromeCommand() ?: run {
                     Log.e("Chrome not found")
-                    return
+                    return false
                 }
 
                 val profileDir = File(System.getProperty("java.io.tmpdir"), "kiosk-profile-${System.nanoTime()}")
@@ -678,23 +675,24 @@ class Core {
                     Thread.sleep(10000)
                     profileDir.deleteRecursively()
                 }.start()
-
+                return true
             } catch (e: Exception) {
                 Log.e("Kiosk launch failed", e)
             }
+            return false
         }
 
-        fun openBrowserMac(url: String) {
+        fun openBrowserMac(url: String) : Boolean {
             if (isKioskRunning()) {
                 Log.w("Kiosk is already running (PID: $kioskPid). Not starting another.")
-                return
+                return true
             }
             try {
                 // 1. Detect screens
                 val screens = getMacScreens()
                 if (screens.isEmpty()) {
                     Log.w("No screens found on macOS")
-                    return
+                    return false
                 }
 
                 // 2. Choose extended screen (not the one with origin 0,0)
@@ -709,7 +707,7 @@ class Core {
                 // 3. Find Chrome
                 val chromeApp = findMacChrome() ?: run {
                     Log.e("Chrome not found on macOS")
-                    return
+                    return false
                 }
 
                 // 4. Temp profile
@@ -756,12 +754,13 @@ class Core {
                     Thread.sleep(15000)
                     profile.deleteRecursively()
                 }.start()
-
+                return true
             } catch (e: Exception) {
                 Log.e("macOS kiosk failed", e)
             }
+            return false
         }
-        private fun stopKioskWindows() {
+        private fun stopKioskWindows() : Boolean {
             try {
                 val pb = ProcessBuilder(
                     "taskkill", "/F", "/IM", "chrome.exe",
@@ -770,11 +769,13 @@ class Core {
                 val process = pb.start()
                 process.waitFor()
                 Log.i("Kiosk stopped on Windows")
+                return true
             } catch (e: Exception) {
                 Log.e("Failed to stop kiosk on Windows", e)
             }
+            return false
         }
-        private fun stopKioskMac() {
+        private fun stopKioskMac() : Boolean {
             try {
                 val script = """
                     tell application "Google Chrome"
@@ -800,13 +801,14 @@ class Core {
                 kioskPid?.let { pid ->
                     ProcessBuilder("kill", "-9", pid.toString()).start().waitFor()
                 }
-
                 Log.i("Kiosk stopped on macOS")
+                return true
             } catch (e: Exception) {
                 Log.e("Failed to stop kiosk on macOS", e)
             }
+            return false
         }
-        private fun stopKioskLinux() {
+        private fun stopKioskLinux() : Boolean {
             try {
                 // 1. Try killing by stored PID (most reliable)
                 kioskPid?.let { pid ->
@@ -814,7 +816,7 @@ class Core {
                         .redirectErrorStream(true).start().waitFor()
                     Log.i("Kiosk (PID $pid) terminated")
                     kioskPid = null
-                    return
+                    return true
                 }
 
                 // 2. Fallback: pkill by URL fragment
@@ -824,168 +826,169 @@ class Core {
 
                 if (code == 0) Log.i("Kiosk stopped via pkill")
                 else          Log.w("pkill returned $code – maybe already stopped")
+                return true
             } catch (e: Exception) {
                 Log.e("Failed to stop kiosk", e)
             }
+            return false
         }
-        private fun isKioskRunning(): Boolean {
+        private fun isKioskRunning() : Boolean {
             // 1. Check lock file
             if (!KIOSK_LOCK_FILE.exists()) return false
 
             // 2. Read PID from lock file
-            val pidStr = try { KIOSK_LOCK_FILE.readText().trim() } catch (e: Exception) { return false }
+            val pidStr = try { KIOSK_LOCK_FILE.readText().trim() } catch (_: Exception) { return false }
             val pid = pidStr.toLongOrNull() ?: return false
 
             // 3. Verify the process is still alive + has our URL
             return isProcessAlive(pid) && processHasUrl(pid, "localhost:5555")
         }
-    }
-}
+        private fun detectMonitors(): List<Map<String, Any>> {
+            return try {
+                val p = ProcessBuilder("xrandr", "--query").start()
+                val lines = p.inputStream.bufferedReader().readLines()
+                p.waitFor()
 
-private fun detectMonitors(): List<Map<String, Any>> {
-    return try {
-        val p = ProcessBuilder("xrandr", "--query").start()
-        val lines = p.inputStream.bufferedReader().readLines()
-        p.waitFor()
-
-        lines.filter { it.contains(" connected") }
-            .mapNotNull { line ->
-                val r = Regex("""(\S+) connected (primary )?(\d+)x(\d+)\+(\d+)\+(\d+)""")
-                val m = r.find(line) ?: return@mapNotNull null
-                mapOf(
-                    "name" to m.groupValues[1],
-                    "primary" to m.groupValues[2].isNotEmpty(),
-                    "width" to m.groupValues[3].toInt(),
-                    "height" to m.groupValues[4].toInt(),
-                    "x" to m.groupValues[5].toInt(),
-                    "y" to m.groupValues[6].toInt()
-                )
+                lines.filter { it.contains(" connected") }
+                    .mapNotNull { line ->
+                        val r = Regex("""(\S+) connected (primary )?(\d+)x(\d+)\+(\d+)\+(\d+)""")
+                        val m = r.find(line) ?: return@mapNotNull null
+                        mapOf(
+                            "name" to m.groupValues[1],
+                            "primary" to m.groupValues[2].isNotEmpty(),
+                            "width" to m.groupValues[3].toInt(),
+                            "height" to m.groupValues[4].toInt(),
+                            "x" to m.groupValues[5].toInt(),
+                            "y" to m.groupValues[6].toInt()
+                        )
+                    }
+            } catch (_: Exception) {
+                emptyList()
             }
-    } catch (e: Exception) {
-        emptyList()
-    }
-}
-
-private fun findChromeCommand(): String? {
-    // Try common locations + environment
-    val candidates = listOf(
-        "google-chrome",
-        "google-chrome-stable",
-        "chromium",
-        "chromium-browser",
-        "/usr/bin/google-chrome",
-        "/usr/bin/google-chrome-stable",
-        "/usr/bin/chromium-browser",
-        "/snap/bin/chrome",
-        "/usr/bin/chromium"
-    )
-
-    // First: check if in PATH via File
-    for (cmd in candidates) {
-        if (cmd.contains("/")) {
-            if (File(cmd).canExecute()) return cmd
-        } else {
-            // Try `command -v` without triggering Chrome
-            val path = System.getenv("PATH").split(":").map { "$it/$cmd" }.find { File(it).canExecute() }
-            if (path != null) return cmd
         }
-    }
 
-    // Last resort: try running it (safe, won't open tab)
-    return candidates.find { isCommandRunnable(it) }
-}
+        private fun findChromeCommand(): String? {
+            // Try common locations + environment
+            val candidates = listOf(
+                "google-chrome",
+                "google-chrome-stable",
+                "chromium",
+                "chromium-browser",
+                "/usr/bin/google-chrome",
+                "/usr/bin/google-chrome-stable",
+                "/usr/bin/chromium-browser",
+                "/snap/bin/chrome",
+                "/usr/bin/chromium"
+            )
 
-private fun isCommandRunnable(cmd: String): Boolean {
-    return try {
-        val p = ProcessBuilder(cmd, "--version").redirectErrorStream(true).start()
-        p.waitFor() == 0
-    } catch (e: Exception) {
-        false
-    }
-}
+            // First: check if in PATH via File
+            for (cmd in candidates) {
+                if (cmd.contains("/")) {
+                    if (File(cmd).canExecute()) return cmd
+                } else {
+                    // Try `command -v` without triggering Chrome
+                    val path = System.getenv("PATH").split(":").map { "$it/$cmd" }.find { File(it).canExecute() }
+                    if (path != null) return cmd
+                }
+            }
 
-private fun findChromeKioskWindow(): String? {
-    return try {
-        val p = ProcessBuilder("wmctrl", "-l").start()
-        val output = p.inputStream.bufferedReader().readLines()
-        p.waitFor()
+            // Last resort: try running it (safe, won't open tab)
+            return candidates.find { isCommandRunnable(it) }
+        }
 
-        output.map { it.split(Regex("\\s+"), 4) }
-            .find { parts ->
-                parts.size >= 4 &&
-                        parts[3].contains("localhost:5555", ignoreCase = true)
-            }?.get(0)  // Return window ID
-    } catch (e: Exception) {
-        null
-    }
-}
+        private fun isCommandRunnable(cmd: String): Boolean {
+            return try {
+                val p = ProcessBuilder(cmd, "--version").redirectErrorStream(true).start()
+                p.waitFor() == 0
+            } catch (_: Exception) {
+                false
+            }
+        }
 
-private fun moveWindowById(id: String, x: Int, y: Int, w: Int, h: Int) {
-    try {
-        ProcessBuilder("wmctrl", "-i", "-r", id, "-e", "0,$x,$y,$w,$h")
-            .redirectErrorStream(true).start().waitFor()
-    } catch (_: Exception) {}
-}
+        private fun findChromeKioskWindow(): String? {
+            return try {
+                val p = ProcessBuilder("wmctrl", "-l").start()
+                val output = p.inputStream.bufferedReader().readLines()
+                p.waitFor()
 
-private fun fullscreenWindowById(id: String) {
-    try {
-        ProcessBuilder("wmctrl", "-i", "-r", id, "-b", "add,fullscreen")
-            .redirectErrorStream(true).start().waitFor()
-    } catch (_: Exception) {}
-}
+                output.map { it.split(Regex("\\s+"), 4) }
+                    .find { parts ->
+                        parts.size >= 4 &&
+                                parts[3].contains("localhost:5555", ignoreCase = true)
+                    }?.get(0)  // Return window ID
+            } catch (_: Exception) {
+                null
+            }
+        }
 
-private fun getWindowsMonitors(): List<WinMonitor> {
-    // -------------------------------------------------
-    // 1. Try nircmd (tiny external tool – bundled)
-    // -------------------------------------------------
-    val nircmd = extractNirCmd() ?: return emptyList()
-    val proc = ProcessBuilder(nircmd, "monitor", "list").start()
-    val output = proc.inputStream.bufferedReader().readText()
-    proc.waitFor()
+        private fun moveWindowById(id: String, x: Int, y: Int, w: Int, h: Int) {
+            try {
+                ProcessBuilder("wmctrl", "-i", "-r", id, "-e", "0,$x,$y,$w,$h")
+                    .redirectErrorStream(true).start().waitFor()
+            } catch (_: Exception) {}
+        }
 
-    // Example output:
-    // Monitor 1: \\.\DISPLAY1  Primary  0,0  1920x1080
-    // Monitor 2: \\.\DISPLAY2            1920,0  1920x1080
-    val regex = Regex("""Monitor \d+: (\\\\\.\\[^ ]+) +(?:Primary +)?(\d+),(\d+) +(\d+)x(\d+)""")
-    val monitors = regex.findAll(output).mapNotNull { m ->
-        val name = m.groupValues[1]
-        val primary = output.contains("$name Primary")
-        val x = m.groupValues[2].toInt()
-        val y = m.groupValues[3].toInt()
-        val w = m.groupValues[4].toInt()
-        val h = m.groupValues[5].toInt()
-        WinMonitor(name, primary, x, y, w, h)
-    }.toList()
+        private fun fullscreenWindowById(id: String) {
+            try {
+                ProcessBuilder("wmctrl", "-i", "-r", id, "-b", "add,fullscreen")
+                    .redirectErrorStream(true).start().waitFor()
+            } catch (_: Exception) {}
+        }
 
-    if (monitors.isNotEmpty()) return monitors
+        private fun getWindowsMonitors(): List<WinMonitor> {
+            // -------------------------------------------------
+            // 1. Try nircmd (tiny external tool – bundled)
+            // -------------------------------------------------
+            val nircmd = extractNirCmd() ?: return emptyList()
+            val proc = ProcessBuilder(nircmd, "monitor", "list").start()
+            val output = proc.inputStream.bufferedReader().readText()
+            proc.waitFor()
 
-    // -------------------------------------------------
-    // 2. Fallback – pure Java (EnumDisplayMonitors)
-    // -------------------------------------------------
-    return enumDisplayMonitorsJava()
-}
+            // Example output:
+            // Monitor 1: \\.\DISPLAY1  Primary  0,0  1920x1080
+            // Monitor 2: \\.\DISPLAY2            1920,0  1920x1080
+            val regex = Regex("""Monitor \d+: (\\\\\.\\[^ ]+) +(?:Primary +)?(\d+),(\d+) +(\d+)x(\d+)""")
+            val monitors = regex.findAll(output).map { m ->
+                val name = m.groupValues[1]
+                val primary = output.contains("$name Primary")
+                val x = m.groupValues[2].toInt()
+                val y = m.groupValues[3].toInt()
+                val w = m.groupValues[4].toInt()
+                val h = m.groupValues[5].toInt()
+                WinMonitor(name, primary, x, y, w, h)
+            }.toList()
 
-// Extract nircmd.exe from resources to a temp file
-private fun extractNircmd(): String? = try {
-    val res = Core::class.java.getResourceAsStream("/nircmd.exe")
-        ?: return null
-    val tmp = File.createTempFile("nircmd", ".exe")
-    tmp.deleteOnExit()
-    res.use { input -> FileOutputStream(tmp).use { output -> input.copyTo(output) } }
-    tmp.absolutePath
-} catch (e: Exception) { null }
+            if (monitors.isNotEmpty()) return monitors
 
-private fun findWindowsChrome(): String? {
-    val candidates = listOf(
-        """C:\Program Files\Google\Chrome\Application\chrome.exe""",
-        """C:\Program Files (x86)\Google\Chrome\Application\chrome.exe""",
-        """${System.getenv("LOCALAPPDATA")}\Google\Chrome\Application\chrome.exe"""
-    )
-    return candidates.find { File(it).exists() }
-}
+            // -------------------------------------------------
+            // 2. Fallback – pure Java (EnumDisplayMonitors)
+            // -------------------------------------------------
+            return enumDisplayMonitorsJava()
+        }
 
-private fun getMacScreens(): List<MacScreen> {
-    val script = """
+        // Extract nircmd.exe from resources to a temp file
+        /*
+        private fun extractNircmd(): String? = try {
+            val res = Core::class.java.getResourceAsStream("/nircmd.exe")
+                ?: return null
+            val tmp = File.createTempFile("nircmd", ".exe")
+            tmp.deleteOnExit()
+            res.use { input -> FileOutputStream(tmp).use { output -> input.copyTo(output) } }
+            tmp.absolutePath
+        } catch (e: Exception) { null }
+        */
+
+        private fun findWindowsChrome(): String? {
+            val candidates = listOf(
+                """C:\Program Files\Google\Chrome\Application\chrome.exe""",
+                """C:\Program Files (x86)\Google\Chrome\Application\chrome.exe""",
+                """${System.getenv("LOCALAPPDATA")}\Google\Chrome\Application\chrome.exe"""
+            )
+            return candidates.find { File(it).exists() }
+        }
+
+        private fun getMacScreens(): List<MacScreen> {
+            val script = """
         tell application "System Events"
             set screenList to {}
             repeat with d in every desktop
@@ -995,134 +998,136 @@ private fun getMacScreens(): List<MacScreen> {
         end tell
     """.trimIndent()
 
-    val tmp = File.createTempFile("screens", ".scpt")
-    tmp.writeText(script)
-    val proc = ProcessBuilder("osascript", tmp.absolutePath).start()
-    val out = proc.inputStream.bufferedReader().readText().trim()
-    proc.waitFor()
-    tmp.delete()
+            val tmp = File.createTempFile("screens", ".scpt")
+            tmp.writeText(script)
+            val proc = ProcessBuilder("osascript", tmp.absolutePath).start()
+            val out = proc.inputStream.bufferedReader().readText().trim()
+            proc.waitFor()
+            tmp.delete()
 
-    // Output format: {{0, 0, 1920, 1080}, {1920, 0, 1920, 1080}}
-    return Regex("\\{(\\d+), (\\d+), (\\d+), (\\d+)\\}")
-        .findAll(out)
-        .map { m ->
-            MacScreen(
-                x = m.groupValues[1].toInt(),
-                y = m.groupValues[2].toInt(),
-                width = m.groupValues[3].toInt(),
-                height = m.groupValues[4].toInt()
-            )
-        }.toList()
-}
-
-private fun findMacChrome(): String? {
-    val paths = listOf(
-        "/Applications/Google Chrome.app",
-        "/Applications/Chromium.app"
-    )
-    return paths.find { File("$it/Contents/MacOS/Google Chrome").exists() }
-        ?.let { "$it/Contents/MacOS/Google Chrome" }
-}
-
-private fun extractNirCmd(): String? = try {
-    val input = Core::class.java.getResourceAsStream("/nircmd.exe") ?: return null
-    val tmp = File.createTempFile("nircmd", ".exe").apply { deleteOnExit() }
-    input.use { i -> FileOutputStream(tmp).use { o -> i.copyTo(o) } }
-    tmp.absolutePath
-} catch (e: Exception) {
-    Log.e("Failed to extract nircmd", e)
-    null
-}
-
-private fun enumDisplayMonitorsJava(): List<WinMonitor> {
-    // Uses JNA – add dependency: com.sun.jna:jna:5.13.0
-    // (or implement with JNI – omitted for brevity)
-    return emptyList()   // placeholder – you can skip if nircmd works
-}
-
-private fun moveChromeWithNirCmd(x: Int, y: Int, w: Int, h: Int) {
-    val nircmd = extractNirCmd() ?: return
-
-    // Use ProcessBuilder → preserves quoted paths
-    listOf(
-        listOf(nircmd, "win", "move", "class", "Chrome_WidgetWin_1", x.toString(), y.toString(), w.toString(), h.toString()),
-        listOf(nircmd, "win", "setsize", "class", "Chrome_WidgetWin_1", x.toString(), y.toString(), w.toString(), h.toString()),
-        listOf(nircmd, "win", "max", "class", "Chrome_WidgetWin_1")
-    ).forEach { cmd ->
-        try {
-            ProcessBuilder(cmd).redirectErrorStream(true).start().waitFor()
-        } catch (_: Exception) {}
-    }
-}
-
-private fun getProcessPid(process: Process): Long? {
-    return try {
-        // Java 8: ProcessImpl has private field 'pid'
-        val clazz = process.javaClass
-        if (clazz.name == "java.lang.UNIXProcess" || clazz.name == "java.lang.ProcessImpl") {
-            val f: Field = clazz.getDeclaredField("pid")
-            f.isAccessible = true
-            return f.getLong(process)
+            // Output format: {{0, 0, 1920, 1080}, {1920, 0, 1920, 1080}}
+            return Regex("\\{(\\d+), (\\d+), (\\d+), (\\d+)\\}")
+                .findAll(out)
+                .map { m ->
+                    MacScreen(
+                        x = m.groupValues[1].toInt(),
+                        y = m.groupValues[2].toInt(),
+                        width = m.groupValues[3].toInt(),
+                        height = m.groupValues[4].toInt()
+                    )
+                }.toList()
         }
 
-        // Fallback: try "handle" field (Windows)
-        val handleField = clazz.getDeclaredField("handle")
-        handleField.isAccessible = true
-        val handle = handleField.getLong(process)
-        return handle // on Windows, handle ≠ PID, but we can use it later if needed
-    } catch (e: Exception) {
-        Log.w("Could not get PID (Java 8)", e)
-        null
-    }
-}
+        private fun findMacChrome(): String? {
+            val paths = listOf(
+                "/Applications/Google Chrome.app",
+                "/Applications/Chromium.app"
+            )
+            return paths.find { File("$it/Contents/MacOS/Google Chrome").exists() }
+                ?.let { "$it/Contents/MacOS/Google Chrome" }
+        }
 
-private fun isProcessAlive(pid: Long): Boolean = try {
-    val os = System.getProperty("os.name").lowercase()
-    when {
-        os.contains("win") -> {
-            val p = ProcessBuilder("tasklist", "/FI", "PID eq $pid").start()
+        private fun extractNirCmd(): String? = try {
+            val input = Core::class.java.getResourceAsStream("/nircmd.exe") ?: return null
+            val tmp = File.createTempFile("nircmd", ".exe").apply { deleteOnExit() }
+            input.use { i -> FileOutputStream(tmp).use { o -> i.copyTo(o) } }
+            tmp.absolutePath
+        } catch (e: Exception) {
+            Log.e("Failed to extract nircmd", e)
+            null
+        }
+
+        private fun enumDisplayMonitorsJava(): List<WinMonitor> {
+            // Uses JNA – add dependency: com.sun.jna:jna:5.13.0
+            // (or implement with JNI – omitted for brevity)
+            return emptyList()   // placeholder – you can skip if nircmd works
+        }
+
+        private fun moveChromeWithNirCmd(x: Int, y: Int, w: Int, h: Int) {
+            val nircmd = extractNirCmd() ?: return
+
+            // Use ProcessBuilder → preserves quoted paths
+            listOf(
+                listOf(nircmd, "win", "move", "class", "Chrome_WidgetWin_1", x.toString(), y.toString(), w.toString(), h.toString()),
+                listOf(nircmd, "win", "setsize", "class", "Chrome_WidgetWin_1", x.toString(), y.toString(), w.toString(), h.toString()),
+                listOf(nircmd, "win", "max", "class", "Chrome_WidgetWin_1")
+            ).forEach { cmd ->
+                try {
+                    ProcessBuilder(cmd).redirectErrorStream(true).start().waitFor()
+                } catch (_: Exception) {}
+            }
+        }
+
+        private fun getProcessPid(process: Process): Long? {
+            return try {
+                // Java 8: ProcessImpl has private field 'pid'
+                val clazz = process.javaClass
+                if (clazz.name == "java.lang.UNIXProcess" || clazz.name == "java.lang.ProcessImpl") {
+                    val f: Field = clazz.getDeclaredField("pid")
+                    f.isAccessible = true
+                    return f.getLong(process)
+                }
+
+                // Fallback: try "handle" field (Windows)
+                val handleField = clazz.getDeclaredField("handle")
+                handleField.isAccessible = true
+                val handle = handleField.getLong(process)
+                return handle // on Windows, handle ≠ PID, but we can use it later if needed
+            } catch (e: Exception) {
+                Log.w("Could not get PID (Java 8)", e)
+                null
+            }
+        }
+
+        private fun isProcessAlive(pid: Long): Boolean = try {
+            val os = System.getProperty("os.name").lowercase()
+            when {
+                os.contains("win") -> {
+                    val p = ProcessBuilder("tasklist", "/FI", "PID eq $pid").start()
+                    val out = p.inputStream.bufferedReader().readText()
+                    p.waitFor()
+                    out.contains(" $pid ")
+                }
+                os.contains("mac") -> {
+                    ProcessBuilder("ps", "-p", pid.toString()).start().waitFor() == 0
+                }
+                else -> { // Linux / Unix
+                    ProcessBuilder("kill", "-0", pid.toString()).start().waitFor() == 0
+                }
+            }
+        } catch (e: Exception) {
+            false
+        }
+
+        private fun processHasUrl(pid: Long, urlFragment: String): Boolean = try {
+            val os = System.getProperty("os.name").lowercase()
+            val cmd = when {
+                os.contains("win") -> listOf("wmic", "process", "where", "processid=$pid", "get", "commandline")
+                os.contains("mac") -> listOf("ps", "-p", pid.toString(), "-o", "command=")
+                else -> listOf("ps", "-p", pid.toString(), "-o", "cmd=")
+            }
+            val p = ProcessBuilder(cmd).redirectErrorStream(true).start()
             val out = p.inputStream.bufferedReader().readText()
             p.waitFor()
-            out.contains(" $pid ")
+            out.contains(urlFragment)
+        } catch (e: Exception) {
+            false
         }
-        os.contains("mac") -> {
-            ProcessBuilder("ps", "-p", pid.toString()).start().waitFor() == 0
-        }
-        else -> { // Linux / Unix
-            ProcessBuilder("kill", "-0", pid.toString()).start().waitFor() == 0
+
+        private fun findMacKioskPid(): Long? = try {
+            val pb = ProcessBuilder(
+                "sh", "-c",
+                """ps -eo pid,command | grep "[C]hrome --app=http://localhost:5555" | awk '{print \$1}'"""
+            ).redirectErrorStream(true)
+
+            val p = pb.start()
+            val out = p.inputStream.bufferedReader().readText().trim()
+            p.waitFor()
+
+            out.toLongOrNull()
+        } catch (e: Exception) {
+            Log.w("Failed to find macOS kiosk PID", e)
+            null
         }
     }
-} catch (e: Exception) {
-    false
-}
-
-private fun processHasUrl(pid: Long, urlFragment: String): Boolean = try {
-    val os = System.getProperty("os.name").lowercase()
-    val cmd = when {
-        os.contains("win") -> listOf("wmic", "process", "where", "processid=$pid", "get", "commandline")
-        os.contains("mac") -> listOf("ps", "-p", pid.toString(), "-o", "command=")
-        else -> listOf("ps", "-p", pid.toString(), "-o", "cmd=")
-    }
-    val p = ProcessBuilder(cmd).redirectErrorStream(true).start()
-    val out = p.inputStream.bufferedReader().readText()
-    p.waitFor()
-    out.contains(urlFragment)
-} catch (e: Exception) {
-    false
-}
-
-private fun findMacKioskPid(): Long? = try {
-    val pb = ProcessBuilder(
-        "sh", "-c",
-        """ps -eo pid,command | grep "[C]hrome --app=http://localhost:5555" | awk '{print \$1}'"""
-    ).redirectErrorStream(true)
-
-    val p = pb.start()
-    val out = p.inputStream.bufferedReader().readText().trim()
-    p.waitFor()
-
-    out.toLongOrNull()
-} catch (e: Exception) {
-    Log.w("Failed to find macOS kiosk PID", e)
-    null
 }

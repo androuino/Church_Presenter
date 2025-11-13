@@ -82,7 +82,7 @@ main {
                         resize: none;
                         textarea {
                             width: 100%;
-                            height: 6.6em;
+                            height: inherit;
                             font-size: 1.2em;
                             resize: none;
                         }
@@ -377,6 +377,85 @@ main {
                     select {
                         font-size: 1.2em;
                     }
+                    div {
+                        width: 100%;
+                        display: flex;
+                        flex-direction: column;
+                        gap: 8px;
+                    }
+                    .bgcontainer {
+                        flex-direction: row;
+                        align-items: center;
+                        button {
+                            width: 100%;
+                        }
+                        input {
+                            width: 100%;
+                            height: inherit;
+                            border-radius: 4px;
+                        }
+                        .backgroundColorPicker {
+                            height: 100% !important;
+                        }
+                        .switch {
+                            position: relative;
+                            display: inline-block;
+                            width: 31%;
+                            height: 34px;
+                        }
+                        .switch input {
+                            opacity: 0;
+                            width: 0;
+                            height: 0;
+                        }
+                        .slider {
+                            position: absolute;
+                            cursor: pointer;
+                            top: 0;
+                            left: 0;
+                            right: 0;
+                            bottom: 0;
+                            background-color: #ccc;
+                            transition: .4s;
+                            border-radius: 34px;
+                        }
+                        .slider:before {
+                            position: absolute;
+                            content: "";
+                            height: 26px;
+                            width: 26px;
+                            left: 4px;
+                            bottom: 4px;
+                            background-color: white;
+                            transition: .4s;
+                            border-radius: 50%;
+                        }
+                        input:checked + .slider {
+                            background-color: #4CAF50;
+                        }
+                        input:checked + .slider:before {
+                            transform: translateX(26px);
+                        }
+                    }
+                    .slider-panel {
+                        background: rgba(255,255,255,0.9);
+                        border-radius: 30px;
+                        box-shadow: 0 4px 12px rgba(0,0,0,.2);
+                        display: flex;
+                        align-items: center;
+                        font-family: system-ui, sans-serif;
+                        label {
+                            font-weight: 6000;
+                            color: black;
+                        }
+                        output {
+                            min-width: 40px;
+                            text-align: center;
+                            color: black;
+                        }
+                      }
+                      .slider-panel label { font-weight:600; }
+                      .slider-panel output { min-width: 40px; text-align:center; }
                 }
                 .bibleSearchContainer {
                     width: calc(100% / 2);
@@ -412,6 +491,59 @@ main {
                             &:hover {
                                 background-color: gray;
                             }
+                        }
+                    }
+                }
+            }
+            .settingMessage {
+                width: 100%;
+                height: inherit;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start;
+                align-items: center;
+                gap: 10px;
+                padding: 12px;
+                .description {
+                    width: 100%;
+                    height: auto;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 4px;
+                }
+                div {
+                    width: 100%;
+                    height: auto;
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center;
+                    justify-content: flex-start;
+                    justify-content: space-around;
+                    gap: 8px;
+                    font-size: 1.5em;
+                    margin: 0;
+                    padding: 0;
+                    label {
+                        width: 100%;
+                        background-color: cadetblue;
+                    }
+                    input {
+                        font-size: 1em;
+                        border-radius: 10px;
+                        width: 100%;
+                    }
+                    span {
+                        width: 100%;
+                        height: auto;
+                        display: flex;
+                        flex-direction: row;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 2em;
+                        background-color: cornflowerblue;
+                        &:hover {
+                            cursor: pointer;
                         }
                     }
                 }

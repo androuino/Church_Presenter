@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Settings</title>
+
+    <link rel="stylesheet" href="css/alert.css" type="text/css"/>
+    <link rel="stylesheet" href="css/googleicon.css" type="text/css">
+    <link rel="stylesheet" href="css/settings.min.css" type="text/css"/>
+    <link rel="stylesheet" href="css/scale.css" type="text/css" />
+    <link rel="stylesheet" href="css/light.css" type="text/css" />
+
+    <script src="js/dexie.min.js" type="text/javascript"></script>
+    <script src="js/popper.min.js" type="text/javascript"></script>
+    <script src="js/tippy-bundle.umd.js" type="text/javascript"></script>
+    <script src="js/m2d2.bundle.min.js" type="text/javascript"></script>
+    <script src="js/tip.min.js" type="text/javascript"></script>
+    <script src="js/settings.min.js" type="text/javascript"></script>
+</head>
+<body>
+<main>
+    <nav class="settingsNav">
+        <span class="gicon navFontSettings">font_download</span>
+        <span class="gicon navLocationSettings">subject</span>
+        <span class="gicon navThemeList">format_list_numbered</span>
+        <span class="gicon navBibleSettings">menu_book</span>
+        <span class="gicon navMessage">present_to_all</span>
+    </nav>
+    <section class="mainSettings">
+        <ol>
+            <li class="settingFont">
+                <section class="sectionSettings">
+                    <label for="selectFont">Choose font:</label>
+                    <select name="font" id="selectFont"></select>
+                    <label for="inputFontSize">Font size:</label>
+                    <input id="inputFontSize" type="number" placeholder="14">
+                    <label for="colorPicker">Font color:</label>
+                    <input type="color" id="colorPicker" name="colorPicker" value="#000000">
+                    <button id="buttonSave" class="btn">Save settings</button>
+                </section>
+                <section class="sectionPreview">
+                    <label for="taFontPreview">Font Preview</label>
+                    <aside class="taContainer">
+                        <textarea name="font preview" id="taFontPreview">Sample TEXT</textarea>
+                    </aside>
+                    <aside class="fontModifierControls">
+                        <span class="gicon fontBold">format_bold</span>
+                        <span class="gicon fontItalic">format_italic</span>
+                        <span class="gicon fontStrikeThrough">format_strikethrough</span>
+                    </aside>
+                </section>
+            </li>
+            <li class="settingLocation">
+                <section class="sectionSettingLocation">
+                    <p>Text location set-up</p>
+                    <aside class="gridContainer">
+                        <div class="box box1"></div>
+                        <div class="box box2"><input class="offset topLeftOffset" type="number" value="0"></div>
+                        <div class="box box3"><input class="offset topMiddleOffset" type="number" value="0"></div>
+                        <div class="box box4"><input class="offset topRightOffset" type="number" value="0"></div>
+                        <div class="box box5"></div>
+                        <div class="box box6"><input class="offset leftUpperOffset" type="number" value="0"></div>
+                        <div class="box box7"><input class="radioLocation radioTopLeft" name="group1" type="radio" style="scale: 14px;"></div>
+                        <div class="box box8"><input class="radioLocation radioTopMiddle" name="group1" type="radio" style="scale: 14px;"></div>
+                        <div class="box box9"><input class="radioLocation radioTopRight" name="group1" type="radio" style="scale: 14px;"></div>
+                        <div class="box box10"><input class="offset rightUpperOffset" type="number" value="0"></div>
+                        <div class="box box11"><input class="offset leftMiddleOffset" type="number" value="0"></div>
+                        <div class="box box12"><input class="radioLocation radioLefMiddle" name="group1" type="radio" style="scale: 14px;"></div>
+                        <div class="box box13"><input class="radioLocation radioCenter" name="group1" type="radio" style="scale: 14px;" checked></div>
+                        <div class="box box14"><input class="radioLocation radioRightMiddle" name="group1" type="radio" style="scale: 14px;"></div>
+                        <div class="box box15"><input class="offset rightMiddleOffset" type="number" value="0"></div>
+                        <div class="box box16"><input class="offset leftLowerOffset" type="number" value="0"></div>
+                        <div class="box box17"><input class="radioLocation radioLeftBottom" name="group1" type="radio" style="scale: 14px;"></div>
+                        <div class="box box18"><input class="radioLocation radioMiddleBottom" name="group1" type="radio" style="scale: 14px;"></div>
+                        <div class="box box19"><input class="radioLocation radioRightBottom" name="group1" type="radio" style="scale: 14px;"></div>
+                        <div class="box box20"><input class="offset rightLowerOffset" type="number" value="0"></div>
+                        <div class="box box21"></div>
+                        <div class="box box22"><input class="offset leftBottomOffset" type="number" value="0"></div>
+                        <div class="box box23"><input class="offset middleBottomOffset" type="number" value="0"></div>
+                        <div class="box box24"><input class="offset rightBottomOffset" type="number" value="0"></div>
+                        <div class="box box25"></div>
+                    </aside>
+                    <aside class="previewFontAlignment">
+                        <span class="gicon fontAlignCenter">format_align_center</span>
+                        <span class="gicon fontAlignHorRight">align_horizontal_right</span>
+                        <span class="gicon fontAlignJustify">format_align_justify</span>
+                        <span class="gicon fontAlignHorLeft">align_horizontal_left</span>
+                        <span class="gicon fontAlignRight">format_align_right</span>
+                        <span class="gicon fontAlignLeft">format_align_left</span>
+                    </aside>
+                    <button class="btn buttonResetOffset">Reset offset</button>
+                    <aside class="themeContainer">
+                        <p>Theme List</p>
+                        <div class="themeSettingContainer">
+                            <select name="themes" class="themeList"></select>
+                            <button class="btn buttonSetTheme">Set this theme</button>
+                        </div>
+                        <aside class="mediaControl">
+                            <p>Set background media from file</p>
+                            <button class="btn buttonOpenFile">Choose file</button>
+                            <label for="mediaLink">Set background media from external link</label>
+                            <input id="mediaLink" type="text" placeholder="https://">
+                            <div>
+                                <button class="btn buttonSetPlay">Set and play</button>
+                                <button class="btn buttonClearMedia">Clear / remove media</button>
+                            </div>
+                        </aside>
+                    </aside>
+                </section>
+                <section class="sectionPreviewLocation">
+                    <p>Preview</p>
+                    <aside class="previewContainer"><p class="previewText"></p></aside>
+                    <!--iframe id="livePreview" src="" width="100%" height="400" style="border: none;"></iframe-->
+                </section>
+            </li>
+            <li class="settingThemeList">
+                <aside class="themeControlContainer">
+                    <select name="themes" class="themeList2"></select>
+                    <button class="btn buttonDeleteTheme">Delete</button>
+                </aside>
+                <aside class="otherSettingContainer">
+                    <h2>Other Settings</h2>
+                    <button class="btn buttonDisableService">Disable projector</button>
+                </aside>
+            </li>
+            <li class="settingBible">
+                <section class="bibleControlContainer">
+                    <label for="bibleVersions">List of available Bible versions</label>
+                    <select name="versions" id="bibleVersions"></select>
+                    <button class="btn buttonInstall">Install</button>
+                    <label for="versionsInstalled">Bible versions installed</label>
+                    <select name="versionsInstalled" id="versionsInstalled"></select>
+                    <button class="btn buttonUninstall">Uninstall</button>
+                    <div class="bgcontainer">
+                        <label class="switch">
+                            <input type="checkbox" class="iosSwitch">
+                            <span class="slider"></span>
+                        </label>
+                        <button class="btn buttonSetVerseBackground">Set Background Color</button>
+                        <input type="color" class="backgroundColorPicker" name="backgroundColorPicker" value="#000000">
+                    </div>
+                    <div class="slider-panel">
+                        <label for="opacity">Background opacity:</label>
+                        <input type="range" id="opacity" class="opacityRange" min="0" max="100" value="70" step="1">
+                        <output class="opacityValue">70%</output>
+                    </div>
+                </section>
+                <section class="bibleSearchContainer">
+                    <p>Search and project the Bible verse</p>
+                    <label for="inputVerseSearch">Search the Bible like this "Genesis 1:1" without the quotes.</label>
+                    <input id="inputVerseSearch" type="text" placeholder="Genesis 1:1">
+                    <p>How many Bible versions do you want to project on the screen?</p>
+                    <select name="numberOfVersions" class="selectVersionsToProject">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                    </select>
+                    <aside class="versionsContainer">
+                        <div class="version1">
+                            <label for="selectVersion1">Bible version 1</label>
+                            <select id="selectVersion1" class="select-version"></select>
+                        </div>
+                        <div class="version2">
+                            <label for="selectVersion2">Bible version 2</label>
+                            <select id="selectVersion2" class="select-version"></select>
+                        </div>
+                        <div class="version3">
+                            <label for="selectVersion3">Bible version 3</label>
+                            <select id="selectVersion3" class="select-version"></select>
+                        </div>
+                    </aside>
+                    <button class="btn buttonSearch">Search</button>
+                    <pre>Result of search</pre>
+                    <ul class="verseList" style="border: 1px solid yellow; overflow: auto;"></ul>
+                </section>
+            </li>
+            <li class="settingMessage">
+                <div class="description">
+                    <p>Use this section if the message is made in canva</p>
+                    <p>In order for this to work, you have to download the presentation from canva as images</p>
+                    <p>Save the downloaded zip file anywhere you want and unzip it</p>
+                    <p>Take note of the folder location of the unzip images and paste it in Source:</p>
+                </div>
+                <div>
+                    <label>Speaker's Name:</label>
+                    <input class="speakerName" type="text"/>
+                </div>
+                <div>
+                    <label>Date:</label>
+                    <input class="messageDate" type="date"/>
+                </div>
+                <div>
+                    <label>Source:</label>
+                    <input class="presentationSource" type="text"/>
+                </div>
+                <div><span class="gicon saveMessage">save</span></div>
+                <div>
+                    <p>Controller. Switch to the next or previous slide</p>
+                </div>
+                <div>
+                    <span class="gicon previousSlide">line_start_arrow_notch</span>
+                    <span class="gicon nextSlide">line_end_arrow_notch</span>
+                </div>
+            </li>
+        </ol>
+        <aside class="saveThemeContainer">
+            <input class="inputThemeName" type="text" placeholder="Theme's name">
+            <button class="btn buttonSaveTheme">Save this settings as a theme</button>
+        </aside>
+    </section>
+</main>
+</body>
+</html>

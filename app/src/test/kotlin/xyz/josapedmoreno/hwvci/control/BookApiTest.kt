@@ -17,7 +17,7 @@ class BookApiTest {
     @Test
     fun `Installed Bible version must return a verse`() {
         var success = false
-        val initials = arrayListOf<String>("KJV")
+        val initials = arrayListOf("KJV")
         val jsonArray = JsonArray()
         jsonArray.add("KJV")
         jsonArray.add("TagAngBiblia")

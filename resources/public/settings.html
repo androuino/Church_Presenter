@@ -14,7 +14,8 @@
     <script src="js/popper.min.js" type="text/javascript"></script>
     <script src="js/tippy-bundle.umd.js" type="text/javascript"></script>
     <script src="js/m2d2.bundle.min.js" type="text/javascript"></script>
-    <script type="text/javascript" src="js/settings.min.js"></script>
+    <script src="js/tip.min.js" type="text/javascript"></script>
+    <script src="js/settings.min.js" type="text/javascript"></script>
 </head>
 <body>
 <main>
@@ -23,6 +24,7 @@
         <span class="gicon navLocationSettings">subject</span>
         <span class="gicon navThemeList">format_list_numbered</span>
         <span class="gicon navBibleSettings">menu_book</span>
+        <span class="gicon navMessage">present_to_all</span>
     </nav>
     <section class="mainSettings">
         <ol>
@@ -158,6 +160,34 @@
                     <pre>Result of search</pre>
                     <ul class="verseList" style="border: 1px solid yellow; overflow: auto;"></ul>
                 </section>
+            </li>
+            <li class="settingMessage">
+                <div>
+                    <p>Use this section if the message is made in canva</p>
+                    <p>In order for this to work, you have to download the presentation from canva as images</p>
+                    <p>Save the downloaded zip file anywhere you want and unzip it</p>
+                    <p>Take note of the folder location of the unzip images and paste it in Source:</p>
+                </div>
+                <div>
+                    <label>Speaker's Name:</label>
+                    <input type="text"/>
+                </div>
+                <div>
+                    <label>Date:</label>
+                    <input type="date"/>
+                </div>
+                <div>
+                    <label>Source:</label>
+                    <input type="date"/>
+                </div>
+                <div><span class="gicon saveMessage">save</span></div>
+                <div>
+                    <p>Controller. Switch to the next or previous slide</p>
+                </div>
+                <div>
+                    <span class="gicon previousSlide">line_start_arrow_notch</span>
+                    <span class="gicon nextSlide">line_end_arrow_notch</span>
+                </div>
             </li>
         </ol>
         <aside class="saveThemeContainer">

@@ -1,0 +1,53 @@
+#!/bin/bash
+
+clear
+# shellcheck disable=SC2164
+cd /home/sem/www/
+source env.file
+#FILE=main.db
+#if [[ -f $FILE ]]; then
+#    echo rm $FILE
+#fi
+if [[ -f /Library/Java/JavaVirtualMachines/jdk-15.0.2.jdk/Contents/Home/bin/java ]]; then
+  msgJAVABIN="/Library/Java/JavaVirtualMachines/jdk-15.0.2.jdk/Contents/Home/bin/java"
+  echo $msgJAVABIN
+elif [[ -f /opt/java/openjdk/bin/java ]]; then
+  msgJAVABIN="/opt/java/openjdk/bin/java"
+  echo $msgJAVABIN
+elif [[ -f /usr/bin/java ]]; then
+  msgJAVABIN="/usr/bin/java"
+  echo $msgJAVABIN
+else
+  echo "Unknown location of Java"
+  msgJAVABIN="java"
+fi
+#classpath is not required but it doesn't hurt
+JAR=$(ls -v -w 1 *all.jar | tail -n1)
+DEBUG=""
+if [[ $1 == "" ]]; then
+  DEBUG="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5555"
+fi
+$msgJAVABIN -Xmx128M -Djava.awt.headless=true -jar $JAR ${@:1}
+
+JAR_NAME="your-application.jar"
+
+# Get the directory where this script is located
+SCRIPT_DIR=$(dirname "$0")
+
+# Path to the executable file in the same directory
+EXECUTABLE="$SCRIPT_DIR/kiosk"
+
+# Check if the JAR is running
+if pgrep -f "$JAR_NAME" > /dev/null; then
+    echo "$JAR_NAME is running."
+    # Execute the other file
+    if [ -x "$EXECUTABLE" ]; then
+        echo "Running $EXECUTABLE..."
+        "$EXECUTABLE"
+    else
+        echo "Executable $EXECUTABLE not found or not executable."
+    fi
+else
+    echo "$JAR_NAME is not running."
+fi
+exit

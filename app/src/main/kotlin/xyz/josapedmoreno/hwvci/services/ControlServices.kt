@@ -2,29 +2,57 @@ package xyz.josapedmoreno.hwvci.services
 
 import com.google.gson.*
 import com.intellisrc.core.Log
-import com.intellisrc.web.service.Request
-import com.intellisrc.web.service.Service
-import com.intellisrc.web.service.ServiciableMultiple
-import com.intellisrc.web.service.UploadFile
 import com.intellisrc.etc.Cache
-import groovy.lang.Closure
-import org.eclipse.jetty.http.HttpMethod
+import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.content.PartData
+import io.ktor.http.content.forEachPart
+import io.ktor.http.content.streamProvider
+import io.ktor.server.application.Application
+import io.ktor.server.auth.authenticate
+import io.ktor.server.http.content.files
+import io.ktor.server.http.content.static
+import io.ktor.server.http.content.staticResources
+import io.ktor.server.request.receive
+import io.ktor.server.request.receiveMultipart
+import io.ktor.server.request.receiveText
+import io.ktor.server.response.respond
+import io.ktor.server.response.respondBytes
+import io.ktor.server.routing.delete
+import io.ktor.server.routing.get
+import io.ktor.server.routing.post
+import io.ktor.server.routing.put
+import io.ktor.server.routing.routing
+import io.ktor.server.sessions.clear
+import io.ktor.server.sessions.get
+import io.ktor.server.sessions.sessions
+import io.ktor.server.sessions.set
+import io.ktor.server.sse.sse
+import io.ktor.sse.ServerSentEvent
+import kotlinx.coroutines.launch
+import xyz.josapedmoreno.hwvci.ap.APModeChecker
+import xyz.josapedmoreno.hwvci.ap.ConfigFileChecker
+import xyz.josapedmoreno.hwvci.ap.IPAddressFetcher
+import xyz.josapedmoreno.hwvci.ap.IPForwardingChecker
+import xyz.josapedmoreno.hwvci.ap.PackageChecker
 import xyz.josapedmoreno.hwvci.control.BookApi
 import xyz.josapedmoreno.hwvci.control.Core
-import xyz.josapedmoreno.hwvci.control.Paths
-import xyz.josapedmoreno.hwvci.control.Paths.Companion.publicResources
+import xyz.josapedmoreno.hwvci.control.LoginAuth
+import xyz.josapedmoreno.hwvci.control.Paths.Companion.uploadDir
+import xyz.josapedmoreno.hwvci.control.data.EventBroadcaster
+import xyz.josapedmoreno.hwvci.control.data.LoginRequest
+import xyz.josapedmoreno.hwvci.control.data.SseEvent
+import xyz.josapedmoreno.hwvci.control.data.UserSession
+import xyz.josapedmoreno.hwvci.model.Song
 import xyz.josapedmoreno.hwvci.table.SongTable
 import xyz.josapedmoreno.hwvci.table.Themes
 import java.io.File
-import java.io.IOException
-import java.nio.file.Files
-import java.nio.file.StandardCopyOption
 
-class ControlServices : ServiciableMultiple {
-    override fun getPath(): String {
-        return ""
-    }
+fun Application.controller() {
+    val gson = Gson().newBuilder().create()
+    val cache = Cache<Any>()
 
+<<<<<<< HEAD
     override fun getAllowOrigin(): String {
         return "*"
     }
@@ -139,40 +167,267 @@ class ControlServices : ServiciableMultiple {
                         success = true
                 } catch (ex: NullPointerException) {
                     success = false
+=======
+    routing {
+        sse("/events") {
+            val collectJob = launch {
+                EventBroadcaster.events.collect { event ->
+                    send(
+                        ServerSentEvent(
+                            event = event.event,
+                            data = gson.toJson(event)
+                        )
+                    )
+>>>>>>> ktor
                 }
-                map["ok"] = success
-                return gson.toJson(map)
+            }
+            collectJob.join()
+        }
+        post("/login") {
+            val loginRequest = call.receive<LoginRequest>()
+            var message = "Login failed!"
+            var success = false
+            message = LoginAuth(loginRequest.user, loginRequest.pass).isValid()
+            if (message == "success") {
+                success = true
+
+                Log.i("Setting session for user: ${loginRequest.user}")
+                call.sessions.set(UserSession(username = loginRequest.user))
+
+                val cookieAfter = call.response.cookies["USER_SESSION"]?.value
+                val cookieRequest = call.request.cookies["USER_SESSION"]
+                Log.i("SESSION SET - Response cookie: $cookieAfter")
+                Log.i("SESSION SET - Request cookie (should be old): $cookieRequest")
+
+                EventBroadcaster.emit(SseEvent("connected", "true"))
+                Log.i("Setting session for user: ${loginRequest.user}")
+                call.sessions.set(UserSession(username = loginRequest.user))
+            }
+            call.respond(mapOf("ok" to success, "message" to message))
+        }
+        post("/searchbibleverse") {
+            val rawBody = call.receiveText()
+            val jsonPrimitive = JsonParser.parseString(rawBody).asJsonPrimitive
+            val innerJson = JsonParser.parseString(jsonPrimitive.asString).asJsonObject
+            val verse = innerJson.get("verse").asString
+            val bookInitials = innerJson.getAsJsonArray("versions")
+            call.respond(mapOf("ok" to true, "data" to BookApi.getBook(bookInitials, verse)))
+        }
+        post("/upload") {
+            val multiPart = call.receiveMultipart()
+            val map = LinkedHashMap<String, Any>(1)
+
+            multiPart.forEachPart { part ->
+                when (part) {
+                    is PartData.FileItem -> {
+                        val filename = part.originalFileName?.replace("\\s".toRegex(), "_") ?: "unknown"
+                        val file = File(uploadDir, filename)
+
+                        // Read bytes from the ByteReadChannel
+                        part.streamProvider().use { input ->
+                            file.writeBytes(input.readAllBytes())
+                        }
+
+                        launch {
+                            SseSender().changeBackground(filename)
+                        }
+                        map["ok"] = file.exists()
+                    }
+                    is PartData.FormItem -> {
+                        val fieldName = part.name
+                        val fieldValue = part.value
+                        println("Form field $fieldName = $fieldValue")
+                    }
+                    else -> {}
+                }
+                part.dispose()
+            }
+            call.respond(map)
+        }
+        post("/bglink") {
+            val data = call.receive<JsonObject>()
+            val link = data.get("link").asString
+            cache.set("link", link)
+            launch { SseSender().changeBackground("link") }
+            call.respond(mapOf("ok" to true))
+        }
+        static("/presentations") {
+            files("presentations")
+        }
+        post("/presentation") {
+            val sourceJson = call.receive<JsonObject>()
+            val sourcePath = sourceJson.get("source")?.asString?.trim()
+
+            if (sourcePath.isNullOrBlank()) {
+                call.respond(mapOf("ok" to false, "message" to "Source path is empty"))
+                return@post
+            }
+
+            val sourceDir = File(sourcePath)
+            if (!sourceDir.exists() || !sourceDir.isDirectory) {
+                call.respond(mapOf("ok" to false, "message" to "Directory not found: $sourcePath"))
+                return@post
+            }
+
+            val symlink = File("presentations", "active")
+
+            // Remove old symlink if exists
+            if (symlink.exists()) {
+                if (symlink.isDirectory && symlink.listFiles()?.isEmpty() == true) {
+                    symlink.delete()
+                } else if (symlink.exists()) {
+                    symlink.delete()
+                }
+            }
+
+            // Create new symlink
+            try {
+                val result = ProcessBuilder("ln", "-sfn", sourceDir.absolutePath, symlink.absolutePath)
+                    .redirectOutput(ProcessBuilder.Redirect.INHERIT)
+                    .redirectError(ProcessBuilder.Redirect.INHERIT)
+                    .start()
+                    .waitFor()
+
+                if (result == 0) {
+                    Log.i("Symlink created: ${symlink.absolutePath} → ${sourceDir.absolutePath}")
+                    launch { SseSender().presentationSource(sourcePath) }
+                    call.respond(mapOf("ok" to true))
+                } else {
+                    call.respond(mapOf("ok" to false, "message" to "Failed to create symlink"))
+                }
+            } catch (e: Exception) {
+                Log.e("Symlink error", e)
+                call.respond(mapOf("ok" to false, "message" to e.message))
             }
         }
-        return service
-    }
+        post("/previous") {
+            SseSender().previousSlide()
+            call.respond(mapOf("ok" to true))
+        }
+        post("/next") {
+            SseSender().nextSlide()
+            call.respond(mapOf("ok" to true))
+        }
+        get("/list-files") {
+            val dirParam = call.request.queryParameters["dir"]
+            if (dirParam.isNullOrEmpty()) {
+                call.respond(mapOf("ok" to false))
+                return@get
+            }
 
-    private fun saveSongService(): Service {
-        val service = Service()
-        service.method = HttpMethod.PUT
-        service.allow = getUserAllow()
-        service.path = "/savesong"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(request: Request): String {
-                var success = false
-                val map = LinkedHashMap<String, Any>(1)
-                val data = gson.fromJson(request.body, JsonObject::class.java)
-                if (SongTable().insertSong(data))
-                    success = true
-                map["ok"] = success
-                return gson.toJson(map)
+            // Resolve symlink
+            val realDir = File(dirParam).canonicalFile
+            if (!realDir.exists() || !realDir.isDirectory) {
+                call.respond(mapOf("ok" to false))
+                return@get
+            }
+
+            val files = realDir.listFiles { f -> f.extension in listOf("png", "jpg", "jpeg") }
+                ?.map { it.name }
+                ?.sorted()
+                ?: emptyList()
+
+            call.respond(mapOf("ok" to true, "data" to files))
+        }
+        get("/getlink") {
+            var success = false
+            val map = LinkedHashMap<String, Any>(1)
+            val link = Core.getLink(cache)
+            if (link.isNotEmpty()) {
+                map["link"] = link
+                success = true
+            }
+            map["ok"] = success
+            call.respond(map)
+        }
+        get("/getip") {
+            var success = false
+            val map = LinkedHashMap<String, Any>(1)
+            val data = gson.fromJson(Core.getWifiStatus(), JsonObject::class.java)
+            if (!data.isEmpty) {
+                map["data"] = data
+                success = true
+            }
+            map["ok"] = success
+            call.respond(map)
+        }
+        get("/logout") {
+            call.sessions.clear<UserSession>()
+            call.response.cookies.append(
+                name = "USER_SESSION",
+                value = "",
+                maxAge = 0,
+                path = "/",
+                httpOnly = true
+            )
+            call.respond(mapOf("ok" to true))
+        }
+        get("/checksessions") {
+            val rawCookie = call.request.cookies["USER_SESSION"]
+            Log.i("CHECKSessions - RAW COOKIE: '$rawCookie'")
+
+            val session = call.sessions.get<UserSession>()
+            Log.i("CHECKSessions - DESERIALIZED SESSION: $session")
+
+            val success = session?.username?.isNotEmpty() == true
+            Log.i("success = $success")
+            val map = LinkedHashMap<String, Any>()
+            Log.i("success is %s", success)
+            map["ok"] = success
+            val status = Core.getWifiStatus()
+            map["wifistatus"] = status
+            if (!Core.getWifiConnectionStatus()) {
+                Log.w("Switching to AP mode")
+                // Check if packages are installed
+                PackageChecker.installPackagesIfNecessary()
+                // Check if configuration files are set
+                ConfigFileChecker.setupConfigurationFiles()
+                // Check if IP forwarding is enabled
+                IPForwardingChecker.enableIPForwardingIfNecessary()
+                // Check if Access Point is active
+                APModeChecker.startAccessPointIfNecessary()
+                Log.i("Access point setup complete")
+
+                /*launch {
+                    SseSender().wifiStatus(status)
+                }*/
+
+                val ipAddress = IPAddressFetcher.getIPAddress("wlan0") // Replace with the correct interface
+                if (ipAddress != null) {
+                    Log.i("Access Point IP Address: $ipAddress")
+                    launch { SseSender().mode(ipAddress) }
+                } else {
+                    Log.w("Unable to fetch the IP address.")
+                }
+            } else {
+                Log.i("Device is connected to wifi")
+            }
+            val jsonResponse = gson.toJson(map)
+            call.respond(jsonResponse)
+        }
+        static("/uploaded") { files(uploadDir) }
+        staticResources("/", "public") { default("index.html") }
+        get("/admin") {
+            val stream = object {}.javaClass.getResourceAsStream("/public/control.html")
+            if (stream != null) {
+                val bytes = stream.readBytes()
+                call.respondBytes(bytes, ContentType.Text.Html)
+            } else {
+                call.respond(HttpStatusCode.NotFound, "control.html not found")
             }
         }
-        return service
-    }
-
-    private fun getSongsService(): Service {
-        val service = Service()
-        service.method = HttpMethod.GET
-        service.allow = getUserAllow()
-        service.path = "/getsongs"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(): String {
+        authenticate("auth-session") {
+            get("/create") {
+                val stream = object {}.javaClass.getResourceAsStream("/public/create.html")
+                if (stream != null) {
+                    val bytes = stream.readBytes()
+                    call.respondBytes(bytes, ContentType.Text.Html)
+                } else {
+                    call.respond(HttpStatusCode.NotFound, "create.html not found")
+                }
+            }
+            put("/savesong") { call.respond(mapOf("ok" to SongTable().insertSong(call.receive<Song>()))) }
+            get("/getsongs") {
                 var success = false
                 val map = LinkedHashMap<String, Any>(1)
                 val data = SongTable().getAllSongs()
@@ -181,171 +436,70 @@ class ControlServices : ServiciableMultiple {
                     map["data"] = data
                 }
                 map["ok"] = success
-                return gson.toJson(map)
+                call.respond(map)
             }
-        }
-        return service
-    }
-
-    private fun editSongsService(): Service {
-        val service = Service()
-        service.method = HttpMethod.GET
-        service.allow = getUserAllow()
-        service.path = "/editsong/:id"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(request: Request): String {
+            get("/editsong/{id}") {
                 var success = false
                 val map = LinkedHashMap<String, Any>(1)
-                val id = request.params("id")
-                val data = SongTable().getSongById(id.toInt())
+                val id = call.parameters["id"]
+                val data = SongTable().getSongById(id?.toInt() ?: 0)
                 if (data.author.isNotEmpty()) {
                     success = true
                     map["data"] = data
                 }
                 map["ok"] = success
-                return gson.toJson(map)
+                call.respond(map)
             }
-        }
-        return service
-    }
-
-    private fun deleteSongsService(): Service {
-        val service = Service()
-        service.method = HttpMethod.DELETE
-        service.allow = getUserAllow()
-        service.path = "/deletesong/:id"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(request: Request): String {
+            delete("/deletesong/{id}") { call.respond(mapOf("ok" to SongTable().deleteSongById(id = call.parameters["id"]?.toInt() ?: 0))) }
+            get("/getsonglyrics/{id}") {
                 var success = false
                 val map = LinkedHashMap<String, Any>(1)
-                val id = request.params("id")
-                success = SongTable().deleteSongById(id.toInt())
-                map["ok"] = success
-                return gson.toJson(map)
-            }
-        }
-        return service
-    }
-
-    private fun getSongLyricsService(): Service {
-        val service = Service()
-        service.method = HttpMethod.GET
-        service.allow = getUserAllow()
-        service.path = "/getsonglyrics/:id"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(request: Request): String {
-                var success = false
-                val map = LinkedHashMap<String, Any>(1)
-                val id: String = request.params("id")
-                val lyrics: String = SongTable().getSongLyricsById(id.toInt())
-                SSENotifier.sendSongTitle(SongTable().getSongTitleById(id.toInt()))
+                val id = call.parameters["id"]
+                val lyrics: String = SongTable().getSongLyricsById(id?.toInt() ?: 0)
+                launch { SseSender().songTitle(SongTable().getSongTitleById(id?.toInt() ?: 0)) }
                 if (lyrics.isNotEmpty()) {
                     success = true
                     map["data"] = lyrics
                 }
                 map["ok"] = success
-                return gson.toJson(map)
+                call.respond(map)
             }
-        }
-        return service
-    }
-
-    private fun saveEditedSongService(): Service {
-        val service = Service()
-        service.method = HttpMethod.POST
-        service.allow = getUserAllow()
-        service.path = "/saveeditedsong"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(request: Request): String {
+            post("/saveeditedsong") { call.respond(mapOf("ok" to SongTable().saveEditedSong(call.receive<JsonObject>()))) }
+            post("/deletetheme/{id}") { call.respond(mapOf("ok" to Themes().deleteTheme(call.parameters["id"]?.toInt() ?: 0))) }
+            post("/disableservice") { call.respond(mapOf("ok" to Core.disableService())) }
+            post("/enableservice") { call.respond(mapOf("ok" to Core.enableService())) }
+            post("/startprojector") { call.respond(mapOf("ok" to Core.startKiosk())) }
+            post("/stopprojector") { call.respond(mapOf("ok" to Core.stopKiosk())) }
+            get("/getsongtitle/{id}") {
                 var success = false
+                var title: String
                 val map = LinkedHashMap<String, Any>(1)
-                val data = gson.fromJson(request.body, JsonObject::class.java)
-                success = SongTable().saveEditedSong(data)
-                map["ok"] = success
-                return gson.toJson(map)
-            }
-        }
-        return service
-    }
-
-    private fun getSongTitleService(): Service {
-        val service = Service()
-        service.method = HttpMethod.GET
-        service.allow = getUserAllow()
-        service.path = "/getsongtitle/:id"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(request: Request): String {
-                var success = false
-                var title = ""
-                val map = LinkedHashMap<String, Any>(1)
-                val id = request.params("id").toInt()
-                title = SongTable().getSongTitleById(id)
+                val id = call.parameters["id"]
+                title = SongTable().getSongTitleById(id?.toInt() ?: 0)
                 if (title.isNotEmpty()) {
                     success = true
                     map["title"] = title
                 }
                 map["ok"] = success
-                return gson.toJson(map)
+                call.respond(map)
             }
-        }
-        return service
-    }
-
-    private fun steamService(): Service {
-        val service = Service()
-        service.method = HttpMethod.POST
-        service.allow = getUserAllow()
-        service.path = "/stream"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(request: Request): String {
-                val map = LinkedHashMap<String, Any>(1)
-                val data = gson.fromJson(request.body, JsonObject::class.java)
+            post("/stream") {
+                val data = call.receive<JsonObject>()
                 val lyrics = data.get("lyrics").asString
-                SSENotifier.sendLyrics(lyrics)
-                map["ok"] = true
-                return gson.toJson(map)
+                launch { SseSender().changeLyrics(lyrics) }
+                call.respond(mapOf("ok" to true))
             }
-        }
-        return service
-    }
-
-    private fun settingsService(): Service {
-        val service = Service()
-        service.method = HttpMethod.GET
-        service.allow = getUserAllow()
-        service.contentType = "text/html"
-        service.path = "/settings"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(): File {
-                return File(publicResources, "settings.html")
+            get("/settings") {
+                val stream = object {}.javaClass.getResourceAsStream("/public/settings.html")
+                if (stream != null) {
+                    val bytes = stream.readBytes()
+                    call.respondBytes(bytes, ContentType.Text.Html)
+                } else {
+                    call.respond(HttpStatusCode.NotFound, "settings.html not found")
+                }
             }
-        }
-        return service
-    }
-
-    private fun getFontsService(): Service {
-        val service = Service()
-        service.method = HttpMethod.GET
-        service.allow = getUserAllow()
-        service.path = "/getfonts"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(): String {
-                val map = LinkedHashMap<String, Any>(1)
-                map["ok"] = true
-                map["data"] = Core.getFonts()
-                return gson.toJson(map)
-            }
-        }
-        return service
-    }
-
-    private fun getSSIDService(): Service {
-        val service = Service()
-        service.method = HttpMethod.GET
-        service.allow = getUserAllow()
-        service.path = "/getssid"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(): String {
+            get("/getfonts") { call.respond(mapOf("ok" to true, "data" to Core.getFonts())) }
+            get("/getssid") {
                 var success = false
                 val map = LinkedHashMap<String, Any>(1)
                 val data = Core.getAvailableWifiSSID()
@@ -354,484 +508,78 @@ class ControlServices : ServiciableMultiple {
                     map["data"] = data
                 }
                 map["ok"] = success
-                return gson.toJson(map)
+                call.respond(map)
             }
-        }
-        return service
-    }
-
-    private fun wifiSettingsService(): Service {
-        val service = Service()
-        service.method = HttpMethod.GET
-        service.allow = getUserAllow()
-        service.contentType = "text/html"
-        service.path = "/wifisettings"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(): File {
-                return File(publicResources, "wifisettings.html")
-            }
-        }
-        return service
-    }
-
-    private fun wifiConnectService(): Service {
-        val service = Service()
-        service.method = HttpMethod.POST
-        service.allow = getUserAllow()
-        service.path = "/wificonnect"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(request: Request): String {
-                var success = false
-                val map = LinkedHashMap<String, Any>(1)
-                val data = gson.fromJson(request.body, JsonObject::class.java)
-                success = Core.connectToWifi(data)
-                map["ok"] = success
-                return gson.toJson(map)
-            }
-        }
-        return service
-    }
-
-    private fun wifiDisconnectService(): Service {
-        val service = Service()
-        service.method = HttpMethod.POST
-        service.allow = getUserAllow()
-        service.path = "/wifidisconnect"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(): String {
-                val map = LinkedHashMap<String, Any>(1)
-                map["ok"] = Core.wifiDisconnect()
-                return gson.toJson(map)
-            }
-        }
-        return service
-    }
-
-    private fun saveThemeService(): Service {
-        val service = Service()
-        service.method = HttpMethod.PUT
-        service.allow = getUserAllow()
-        service.path = "/savetheme"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(request: Request): String {
-                val map = LinkedHashMap<String, Any>(1)
-                val data = gson.fromJson(request.body, JsonObject::class.java)
-                map["ok"] = Themes().saveTheme(data)
-                return gson.toJson(map)
-            }
-        }
-        return service
-    }
-
-    private fun getThemeService(): Service {
-        val service = Service()
-        service.method = HttpMethod.POST
-        service.allow = getUserAllow()
-        service.path = "/gettheme"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(request: Request): String {
-                val map = LinkedHashMap<String, Any>(1)
-                val data = gson.fromJson(request.body(), JsonObject::class.java)
-                map["ok"] = true
-                map["data"] = Themes().getTheme(data)
-                return gson.toJson(map)
-            }
-        }
-        return service
-    }
-
-    private fun getThemesService(): Service {
-        val service = Service()
-        service.method = HttpMethod.GET
-        service.allow = getUserAllow()
-        service.path = "/getthemes"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(request: Request): String {
-                val map = LinkedHashMap<String, Any>(1)
-                map["ok"] = true
-                map["data"] = Themes().getThemes()
-                return gson.toJson(map)
-            }
-        }
-        return service
-    }
-
-    private fun setThemeService(): Service {
-        val service = Service()
-        service.method = HttpMethod.POST
-        service.allow = getUserAllow()
-        service.path = "/settheme"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(request: Request): String {
-                val map = LinkedHashMap<String, Any>(1)
-                val data = gson.fromJson(request.body(), JsonObject::class.java)
-                Core.setTheme(data)
-                map["ok"] = true
-                map["data"] = Themes().getTheme(data)
-                return gson.toJson(map)
-            }
-        }
-        return service
-    }
-
-    private fun liveClearService(): Service {
-        val service = Service()
-        service.method = HttpMethod.POST
-        service.allow = getUserAllow()
-        service.path = "/liveclear"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(): String {
-                val map = LinkedHashMap<String, Any>(1)
-                Core.liveClear()
-                map["ok"] = true
-                return gson.toJson(map)
-            }
-        }
-        return service
-    }
-
-    private fun getBooksService(): Service {
-        val service = Service()
-        service.method = HttpMethod.GET
-        service.allow = getUserAllow()
-        service.path = "/getbooks"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(request: Request): String {
-                val map = LinkedHashMap<String, Any>(1)
-                map["ok"] = true
-                map["data"] = BookApi.listAvailableBibles()
-                return gson.toJson(map)
-            }
-        }
-        return service
-    }
-
-    private fun getInstalledVersionsService(): Service {
-        val service = Service()
-        service.method = HttpMethod.GET
-        service.allow = getUserAllow()
-        service.path = "/getversions"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(request: Request): String {
-                val map = LinkedHashMap<String, Any>(1)
-                map["ok"] = true
-                map["data"] = BookApi.getInstalledBooks()
-                return gson.toJson(map)
-            }
-        }
-        return service
-    }
-
-    private fun installBookService(): Service {
-        val service = Service()
-        service.method = HttpMethod.POST
-        service.allow = getUserAllow()
-        service.path = "/installbook"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(request: Request): String {
-                val map = LinkedHashMap<String, Any>(1)
-                val data = gson.fromJson(request.body(), JsonObject::class.java)
-                map["ok"] = true
-                map["data"] = BookApi.install(data.get("initials").asString)
-                return gson.toJson(map)
-            }
-        }
-        return service
-    }
-
-    private fun uninstallBookService(): Service {
-        val service = Service()
-        service.method = HttpMethod.DELETE
-        service.allow = getUserAllow()
-        service.path = "/uninstallbook"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(request: Request): String {
-                val map = LinkedHashMap<String, Any>(1)
-                val data = gson.fromJson(request.body(), JsonObject::class.java)
-                map["ok"] = true
-                map["data"] = BookApi.uninstallBook(data.get("initials").asString)
-                return gson.toJson(map)
-            }
-        }
-        return service
-    }
-
-    private fun searchBibleVerseService(): Service {
-        val service = Service()
-        service.method = HttpMethod.POST
-        service.path = "/searchbibleverse"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(request: Request): String {
-                val map = LinkedHashMap<String, Any>(1)
-                val data: JsonElement = gson.fromJson(request.body(), JsonElement::class.java)
-                var verse = ""
-                var bookInitials = JsonArray()
-
-                if (data.isJsonObject) {
-                    val jsonObject = data.asJsonObject
-                    verse = jsonObject.get("verse").asString
-                    bookInitials = jsonObject.get("versions").asJsonArray
-                } else if (data.isJsonPrimitive) {
-                    val jsonPrimitive = data.asJsonPrimitive
-                    val jsonObject = JsonParser.parseString(jsonPrimitive.asString).asJsonObject
-                    verse = jsonObject.get("verse").asString
-                    bookInitials = jsonObject.get("versions").asJsonArray
+            get("/wifisettings") {
+                val stream = object {}.javaClass.getResourceAsStream("/public/wifisettings.html")
+                if (stream != null) {
+                    val bytes = stream.readBytes()
+                    call.respondBytes(bytes, ContentType.Text.Html)
                 } else {
-                    Log.w("Unexpected JSON structure")
+                    call.respond(HttpStatusCode.NotFound, "wifisettings.html not found")
                 }
-                map["ok"] = true
-                map["data"] = BookApi.getBook(bookInitials, verse)
-                return gson.toJson(map)
+            }
+            post("/wificonnect") { call.respond(mapOf("ok" to Core.connectToWifi(call.receive<JsonObject>()))) }
+            post("/wifidisconnect") { call.respond(mapOf("ok" to Core.wifiDisconnect())) }
+            put("/savetheme") { call.respond(mapOf("ok" to Themes().saveTheme(call.receive<JsonObject>()))) }
+            post("/gettheme") { call.respond(mapOf("ok" to true, "data" to Themes().getTheme(call.receive<JsonObject>()))) }
+            get("/getthemes") { call.respond(mapOf("ok" to true, "data" to Themes().getThemes())) }
+            post("/settheme") {
+                var theme: Map<String, Any?>
+                val data = call.receive<JsonObject>()
+                theme = Themes().getTheme(data)
+                launch { SseSender().theme(gson.toJson(theme)) }
+                call.respond(mapOf("ok" to true, "data" to theme))
+            }
+            post("/liveclear") {
+                launch { SseSender().clearLive("clear") }
+                call.respond(mapOf("ok" to true))
+            }
+            get("/getbooks") {
+                call.respond(mapOf("ok" to true, "data" to BookApi.listAvailableBibles()))
+            }
+            get("/getversions") {
+                call.respond(mapOf("ok" to true, "data" to BookApi.getInstalledBooks()))
+            }
+            post("/installbook") {
+                val data = call.receive<JsonObject>()
+                call.respond(mapOf("ok" to BookApi.install(data.get("initials").asString)))
+            }
+            delete("/uninstallbook") {
+                val data = call.receive<JsonObject>()
+                call.respond(mapOf("ok" to true, "data" to BookApi.uninstallBook(data.get("initials").asString)))
+            }
+            post("/projectverse") {
+                val data = call.receive<JsonObject>()
+                launch { SseSender().verse(gson.toJson(mapOf("verse" to data.get("verse").asString, "versions" to data.get("versions").asJsonArray))) }
+                call.respond(mapOf("ok" to true))
+            }
+            post("/hidelyrics") {
+                launch { SseSender().hideLyrics("true") }
+                call.respond(mapOf("ok" to true))
+            }
+            post("/blackscreen") {
+                launch { SseSender().blackScreen("true") }
+                call.respond(mapOf("ok" to true))
+            }
+            post("/showlyrics") {
+                launch { SseSender().showLyrics("true") }
+                call.respond(mapOf("ok" to true))
+            }
+            post("/removebackground") {
+                launch { SseSender().removeBackground("true") }
+                call.respond(mapOf("ok" to true))
+            }
+            post("/versebackground") {
+                val data = call.receive<JsonObject>()
+                launch { SseSender().verseBackground(data.get("color").asString) }
+                call.respond(mapOf("ok" to true))
+            }
+            post("/backgroundopacity/{opacity}") {
+                val data = call.parameters["opacity"]
+                launch { SseSender().backgroundOpacity(data.toString()) }
+                call.respond(mapOf("ok" to true))
             }
         }
-        return service
-    }
-
-    private fun projectVerseService(): Service {
-        val service = Service()
-        service.method = HttpMethod.POST
-        service.allow = getUserAllow()
-        service.path = "/projectverse"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(request: Request): String {
-                val map = LinkedHashMap<String, Any>(1)
-                val data = gson.fromJson(request.body(), JsonObject::class.java)
-                SSENotifier.projectVerse(gson.toJson(mapOf("verse" to data.get("verse").asString, "versions" to data.get("versions").asJsonArray)))
-                map["ok"] = true
-                return gson.toJson(map)
-            }
-        }
-        return service
-    }
-
-    private fun hideLyricsService(): Service { // default screen
-        val service = Service()
-        service.method = HttpMethod.POST
-        service.allow = getUserAllow()
-        service.path = "/hidelyrics"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(request: Request): String {
-                val map = LinkedHashMap<String, Any>(1)
-                SSENotifier.hideLyrics()
-                map["ok"] = true
-                return gson.toJson(map)
-            }
-        }
-        return service
-    }
-
-    private fun blackScreenService(): Service {
-        val service = Service()
-        service.method = HttpMethod.POST
-        service.allow = getUserAllow()
-        service.path = "/blackscreen"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(request: Request): String {
-                val map = LinkedHashMap<String, Any>(1)
-                SSENotifier.blackScreen()
-                map["ok"] = true
-                return gson.toJson(map)
-            }
-        }
-        return service
-    }
-
-    private fun showLyricsService(): Service {
-        val service = Service()
-        service.method = HttpMethod.POST
-        service.allow = getUserAllow()
-        service.path = "/showlyrics"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(request: Request): String {
-                val map = LinkedHashMap<String, Any>(1)
-                SSENotifier.showLyrics()
-                map["ok"] = true
-                return gson.toJson(map)
-            }
-        }
-        return service
-    }
-
-    private fun removeBackgroundService(): Service {
-        val service = Service()
-        service.method = HttpMethod.POST
-        service.allow = getUserAllow()
-        service.path = "/removebackground"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(request: Request): String {
-                val map = LinkedHashMap<String, Any>(1)
-                SSENotifier.removeBackground()
-                map["ok"] = true
-                return gson.toJson(map)
-            }
-        }
-        return service
-    }
-    // fixme: still having trouble saving file here.
-    private fun uploadService(): Service {
-        val service = Service()
-        service.method = HttpMethod.POST
-        service.path = "/upload"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(file: UploadFile): String {
-                val map = LinkedHashMap<String, Any>(1)
-                if (!Paths.uploadDir.exists())
-                    Paths.uploadDir.mkdirs()
-                val newFileName = file.originalName.replace("\\s".toRegex(), "_")
-                val targetFile = File(Paths.uploadDir.path, newFileName)
-                Files.move(file.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
-                SSENotifier.changeBackground(newFileName)
-                map["ok"] = targetFile.exists()
-                return gson.toJson(map)
-            }
-        }
-        return service
-    }
-
-    private fun bgLinkService(): Service {
-        val service = Service()
-        service.method = HttpMethod.POST
-        service.path = "/bglink"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(request: Request): String {
-                val map = LinkedHashMap<String, Any>(1)
-                val data = gson.fromJson(request.body(), JsonObject::class.java)
-                SSENotifier.setBgLink(data, cache)
-                map["ok"] = true
-                return gson.toJson(map)
-            }
-        }
-        return service
-    }
-
-    private fun getLinkService(): Service {
-        val service = Service()
-        service.method = HttpMethod.GET
-        service.path = "/getlink"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(request: Request): String {
-                var success = false
-                val map = LinkedHashMap<String, Any>(1)
-                var link = Core.getLink(cache)
-                if (link.isNotEmpty()) {
-                    map["link"] = link
-                    success = true
-                }
-                map["ok"] = success
-                return gson.toJson(map)
-            }
-        }
-        return service
-    }
-
-    private fun getIpService(): Service {
-        val service = Service()
-        service.method = HttpMethod.GET
-        service.path = "/getip"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(request: Request): String {
-                var success = false
-                val map = LinkedHashMap<String, Any>(1)
-                var data = gson.fromJson(Core.getWifiStatus(), JsonObject::class.java)
-                if (!data.isEmpty) {
-                    map["data"] = data
-                    success = true
-                }
-                map["ok"] = success
-                return gson.toJson(map)
-            }
-        }
-        return service
-    }
-
-    private fun deleteThemeService(): Service {
-        val service = Service()
-        service.method = HttpMethod.POST
-        service.path = "/deletetheme/:id"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(request: Request): String {
-                var success = false
-                val map = LinkedHashMap<String, Any>(1)
-                val id = request.params("id").toInt()
-                map["ok"] = Themes().deleteTheme(id)
-                return gson.toJson(map)
-            }
-        }
-        return service
-    }
-
-    private fun disableService(): Service {
-        val service = Service()
-        service.method = HttpMethod.POST
-        service.path = "/disableservice"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(request: Request): String {
-                var success = false
-                val map = LinkedHashMap<String, Any>(1)
-                map["ok"] = Core.disableService()
-                return gson.toJson(map)
-            }
-        }
-        return service
-    }
-
-    private fun enableService(): Service {
-        val service = Service()
-        service.method = HttpMethod.POST
-        service.path = "/enableservice"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(request: Request): String {
-                var success = false
-                val map = LinkedHashMap<String, Any>(1)
-                map["ok"] = Core.enableService()
-                return gson.toJson(map)
-            }
-        }
-        return service
-    }
-
-    private fun startProjector(): Service {
-        val service = Service()
-        service.method = HttpMethod.POST
-        service.path = "/startprojector"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(request: Request): String {
-                var success = true
-                Core.startKiosk()
-                val map = LinkedHashMap<String, Any>(1)
-                map["ok"] = success
-                return gson.toJson(map)
-            }
-        }
-        return service
-
-    }
-
-    private fun stopProjector(): Service {
-        val service = Service()
-        service.method = HttpMethod.POST
-        service.path = "/stopprojector"
-        service.action = object : Closure<LinkedHashMap<String?, Boolean?>?>(this, this) {
-            fun doCall(request: Request): String {
-                var success = true
-                Core.stopKiosk()
-                val map = LinkedHashMap<String, Any>(1)
-                map["ok"] = success
-                return gson.toJson(map)
-            }
-        }
-        return service
-
-    }
-    companion object {
-        fun getUserAllow() = Service.Allow { request ->
-            if (request.session() != null) {
-                return@Allow request.session().attribute("username").toString() == "admin"
-            } else {
-                return@Allow false
-            }
-        }
-        private val gson = Gson().newBuilder().create()
-        private val cache = Cache<Any>()
     }
 }

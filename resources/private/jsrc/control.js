@@ -23,12 +23,13 @@ m2d2.load($ => {
     });
 });
 m2d2.ready($ => {
-    const evtSource = new EventSource('/events');
+    //const evtSource = new EventSource('/events');
     let select = null;
     let songId = null;
     let songTitle = "";
     let isResizing = false;
     let songList = [];
+    let toLiveId = null;
     const header = $("#header");
     const container = $(".container");
     const bubbles = $(".bubbles");
@@ -63,6 +64,8 @@ m2d2.ready($ => {
                 $.post("/startprojector", res => {
                     if (res.ok) {
                         console.log("Projector started.");
+                    } else {
+                        $.failure("Is either google chrome is not installed or no extended monitor is connected");
                     }
                 }, true);
             }
@@ -72,6 +75,8 @@ m2d2.ready($ => {
                 $.post("/stopprojector", res => {
                     if (res.ok) {
                         console.log("Projector stopped.");
+                    } else {
+                        console.log("Failed to stop projector.")
                     }
                 }, true);
             }
@@ -92,7 +97,6 @@ m2d2.ready($ => {
                 window.open(newWindowUrl, 'wifiSettingWindow', 'width=800,height=400,toolbar=no,scrollbars=yes,resizable=yes');
             }
         },
-        // todo
         navSettings : {
             onclick : function(ev) {
                 $.get("/settings", res => {
@@ -103,9 +107,9 @@ m2d2.ready($ => {
         },
         navLogout : {
             onclick : function(ev) {
-                $.confirm("Are you want to log out?", res => {
+                $.confirm("Please confirm to log out?", res => {
                     if (res) {
-                        $.get("/logout.path", res => {
+                        $.get("/logout", res => {
                             if (res.ok) {
                                 header.show = false;
                                 mainControl.show = false;
@@ -116,6 +120,39 @@ m2d2.ready($ => {
                         })
                     }
                 })
+            }
+        },
+        customMenu : {
+            show : false,
+        },
+        toLive : {
+            onclick : function(ev) {
+                const blocks = [];
+                let lyric = "";
+                mainControl.customMenu.style.display = "none";
+                live.lyricsContainer.items.forEach(item => {
+                    if (item.dataset.id === toLiveId) {
+                        lyric = item.textContent;
+                    }
+                });
+                live.ulLiveLyrics.items.forEach(item => {
+                    const id = item.dataset.id;
+                    const lyric = item.textContent;
+                    blocks.push(lyric);
+                });
+                blocks.push(lyric);
+                const toDB = {
+                    lyricsId: toLiveId,
+                    blocks: blocks
+                };
+                saveToLocalDB("live", toDB);
+                live.ulLiveLyrics.items.push({
+                    pre : {
+                        tagName : "pre",
+                        text : lyric
+                    },
+                    innerHTML : lyric.replace(/\n/g, '<br>'),
+                });
             }
         },
     });
@@ -707,6 +744,13 @@ m2d2.ready($ => {
                             document.execCommand('insertHTML', false, '<br><br>'); // Insert a new line with a break
                             ev.preventDefault();
                         }
+                    },
+                    oncontextmenu : function(ev) {
+                        ev.preventDefault();
+                        mainControl.customMenu.style.left = `${ev.clientX}px`;
+                        mainControl.customMenu.style.top = `${ev.clientY}px`;
+                        mainControl.customMenu.style.display = "block";
+                        toLiveId = ev.target.dataset.id;
                     }
                 },
             },
@@ -744,6 +788,12 @@ m2d2.ready($ => {
                     mainControl.show = true;
                     getSongList();
                     localStorage.setItem("login", true);
+                    const wifi = JSON.parse(res.wifistatus);
+                    if (wifi.status === "connected") {
+                        mainControl.navWiFi.style.color = "green";
+                    } else {
+                        mainControl.navWiFi.style.color = "";
+                    }
                 } else {
                     header.show = false;
                     mainControl.show = false;
@@ -769,7 +819,7 @@ m2d2.ready($ => {
                     user : username,
                     pass : password
                 };
-                $.post("/login.path", data, res => {
+                $.post("/login", data, res => {
                     if (res.ok) {
                         form.show = false;
                         wrapper.classList.add("form-success");
@@ -807,14 +857,16 @@ m2d2.ready($ => {
             }
         });
     }
+/*
     evtSource.addEventListener("wifi", function (ev) {
-        let data = JSON.parse(JSON.parse(ev.data));
-        if (data.status === "connected") {
+        const res = JSON.parse(ev.data);
+        if (res.data.status === "connected") {
             mainControl.navWiFi.style.color = "green";
         } else {
             mainControl.navWiFi.style.color = "";
         }
     });
+*/
     const liElements = live.ulLiveLyrics.getElementsByTagName('li');
     let selectedIndex = -1;
     document.addEventListener('keydown', function(event) {
@@ -834,6 +886,9 @@ m2d2.ready($ => {
                 changeSelection(-1);
             }
         }
+    });
+    document.addEventListener('click', () => {
+        mainControl.customMenu.show = false;
     });
     function changeSelection(direction) {
         // Remove the class from the currently selected item
@@ -863,7 +918,6 @@ m2d2.ready($ => {
         const liveSong = db.live.get("live").then(liveSong => {
             if (liveSong) {
                 live.ulLiveLyrics.items.clear();
-                const selectedSongId = liveSong.lyricsId;
                 const blocks = liveSong.lyrics;
                 blocks.forEach(block => {
                     let trimmedBlock = block.trim();
@@ -919,7 +973,7 @@ m2d2.ready($ => {
                         console.error("Invalid data for songs store: id or list missing");
                         return;
                     }
-                    await db.songs.put({ id: "songs", list: data });
+                    await db.songs.put({ id: key, list: data });
                     const songList = await db.songs.get("songs"); // Use data.id instead of hardcoded "songs"
                     console.log("Saved song list - ID:", songList.id, "List:", songList.list);
                     break;
@@ -944,133 +998,11 @@ m2d2.ready($ => {
                 break;
         }
     }
-
-    tippy('.navNew', {
-        content: "Create a new song",
-        interactive: true,
-        placement: 'right',
-        animation: 'scale',
-    });
-    tippy('.navEdit', {
-        content: "Edit an existing song",
-        interactive: true,
-        placement: 'right',
-        animation: 'scale',
-    });
-    tippy('.navDelete', {
-        content: "Delete a song",
-        interactive: true,
-        placement: 'right',
-        animation: 'scale',
-    });
-    tippy('.navStartProjector', {
-        content: "Start Projector",
-        interactive: true,
-        placement: 'right',
-        animation: 'scale',
-    });
-    tippy('.navStopProjector', {
-        content: "Stop Projector",
-        interactive: true,
-        placement: 'right',
-        animation: 'scale',
-    });
-    tippy('.navInfo', {
-        allowHTML: true,
-        content: 'About',
-        interactive: true,
-        placement: 'right',
-        animation: 'scale',
-    });
-    tippy('.navWiFi', {
-        content: "Connect the server to a wifi network",
-        interactive: true,
-        placement: 'right',
-        animation: 'scale',
-    });
-    tippy('.navSettings', {
-        content: "Settings",
-        interactive: true,
-        placement: 'right',
-        animation: 'scale',
-    });
-    tippy('.navLogout', {
-        content: "Log out",
-        interactive: true,
-        placement: 'right',
-        animation: 'scale',
-    });
-    tippy('#iconSearch', {
-        content: "Search",
-        interactive: true,
-        placement: 'top',
-        animation: 'scale',
-    });
-    tippy('.lyricsContainer', {
-        content: "Double click to edit",
-        interactive: false,
-        placement: 'top',
-        animation: 'scale',
-    });
-    tippy('.clearLive', {
-        content: "Clear live",
-        interactive: false,
-        placement: 'top',
-        animation: 'scale',
-    });
     const autoSaveTippy = tippy(".lyricsContainer", {
         content: "Save edit success!",
         interactive: false,
         placement: 'top',
         trigger: 'manual',
-        animation: 'scale',
-    });
-    tippy('.controlDefault', {
-        content: "Default screen",
-        interactive: false,
-        placement: 'top',
-        animation: 'scale',
-    });
-    tippy('.controlBlackScreen', {
-        content: "Set screen to black",
-        interactive: false,
-        placement: 'top',
-        animation: 'scale',
-    });
-    tippy('.controlHideLyrics', {
-        content: "Hide the lyric",
-        interactive: false,
-        placement: 'top',
-        animation: 'scale',
-    });
-    tippy('.controlRemoveBackground', {
-        content: "Remove the background",
-        interactive: false,
-        placement: 'top',
-        animation: 'scale',
-    });
-    tippy('.controlCloseEditMode', {
-        content: "Clear editing",
-        interactive: false,
-        placement: 'top',
-        animation: 'scale',
-    });
-    tippy('.controlClearSongList', {
-        content: "Clear song list",
-        interactive: false,
-        placement: 'top',
-        animation: 'scale',
-    });
-    tippy('.controlViewLive', {
-        content: "Live view",
-        interactive: false,
-        placement: 'top',
-        animation: 'scale',
-    });
-    tippy('.controlPreview', {
-        content: "Preview",
-        interactive: false,
-        placement: 'top',
         animation: 'scale',
     });
 });
