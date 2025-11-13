@@ -191,6 +191,7 @@ m2d2.ready($ => {
     evtSource.addEventListener("showdesktop", function (ev) {
     });
     // Default
+    
     evtSource.addEventListener("showlyrics", function (ev) {
         //lyrics.show = true;
         lyrics.style.visibility = "visible";
