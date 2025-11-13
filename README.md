@@ -19,4 +19,8 @@ Church Presenter v2.0
 
 # Buy me a coffee?
 ## I'm accepting any amount of donation from your heart
+<<<<<<< HEAD
 [![Donate with Stripe](https://img.shields.io/badge/Donate-💖-blue?style=for-the-badge)](https://buy.stripe.com/4gM4gzgSq7906i2d8h4ZG02)
+=======
+[![Donate with Stripe](https://img.shields.io/badge/Donate-💖-blue?style=for-the-badge)](https://buy.stripe.com/4gM4gzgSq7906i2d8h4ZG02)
+>>>>>>> 7783f0f77e66055656fe1ab9d3b63677ad0f2df0
