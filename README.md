@@ -10,7 +10,7 @@ If you don't have a raspberry pi, you can still use this app using your normal c
 ## The download links
 [windows/linux/mac](https://drive.google.com/drive/folders/127Ya2byB306WCGRkNZA4TeRYnq7IK5mM?usp=sharing)
 
-## To use in Windows
+## To use on Windows
         1. Unzip or just copy the downloaded folder to your preferred location
         2. Download the javajdk or javaSE 11 and install it
         3. To run the app, double click the run.bat. This will open up a terminal, don't close it as it will terminate the app
@@ -18,7 +18,7 @@ If you don't have a raspberry pi, you can still use this app using your normal c
         5. Type in http://localhost:5555/admin
         6. To login, just type "admin" as username and password
 
-## To use in Linux/Mac
+## To use on Linux/Mac
         1. Unzip or just copy the downloaded file to your preferred location
         2. Download the java openjdk 11 and install it
         3. To run the app. execute the ./run located in the app's folder
