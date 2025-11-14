@@ -2,8 +2,7 @@
 Church Presenter v2.0
 
 ## The download links
-        * windows:
-        * linux/mac:
+        * [windows/linux/mac](https://drive.google.com/drive/folders/127Ya2byB306WCGRkNZA4TeRYnq7IK5mM?usp=sharing)
 
 ## To use in Windows
         1. unzip the downloaded file to your preferred location
